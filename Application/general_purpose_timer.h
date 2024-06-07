@@ -1,0 +1,68 @@
+/*
+ * general_purpose_timer.h
+ *
+ *  Created on: 30 Apr 2024
+ *      Author: Chee
+ */
+
+#ifndef APPLICATION_GENERAL_PURPOSE_TIMER_H_
+#define APPLICATION_GENERAL_PURPOSE_TIMER_H_
+
+#ifdef _cplusplus
+extern "C"
+{
+#endif
+
+/*********************************************************************
+ * INCLUDES
+ */
+/* Library Header files */
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <ti/sysbios/knl/Task.h>
+
+/* Driver Header files */
+#include <ti/drivers/GPIO.h>
+#include <ti/drivers/I2C.h>
+
+/* Driver configuration */
+#include "ti_drivers_config.h"
+
+/* Application Header files */
+#include "Hardware/gGo_device_params.h"
+
+/*********************************************************************************************
+ *  Constants
+ *********************************************************************************************/
+// Task configuration
+#define GPT_TASK_PRIORITY           5
+#ifndef GPT_TASK_STACK_SIZE
+#define GPT_TASK_STACK_SIZE         1024 // 416  //400 //360    // Stack size must be multiples of 8
+#endif
+
+#define GPT_TIME                    150      // milli-seconds
+#define GPT_INACTIVE                0
+#define GPT_ACTIVE                  1
+
+/*********************************************************************
+ * FUNCTIONS
+ *********************************************************************/
+extern void GeneralPurposeTimer_createTask(void);
+//extern void* gpt_GPTStateRegister();
+extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag);
+
+extern void gpt_powerOnRegister(bool *ptrpowerOn);
+//extern void gpt_PWR_CTL(bool PWR);    // no longer used
+extern void gpt_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);
+
+extern void* snvWriteFlageRegister();
+
+#ifdef _cplusplus
+}
+#endif
+
+
+
+#endif /* APPLICATION_GENERAL_PURPOSE_TIMER_H_ */
