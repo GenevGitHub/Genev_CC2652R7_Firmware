@@ -31,7 +31,7 @@ extern "C"
 // Warning beeps starts after the following duration (in milliseconds)
 #define BUZZER_WARNING_FREQUENCY           3200     //  BUZZER frequency
 #define BUZZER_WARNING_DUTYPERCENT         10       // in percentage
-#define BUZZER_WARNING_BEEP_PERIOD         60000    //  BUZZER repeat beeps at the following period (in milliseconds) -
+#define BUZZER_WARNING_BEEP_PERIOD         30000    //  BUZZER repeat beeps at the following period (in milliseconds) -
                                                     //Values should be in multiples of GPT_TIME
 // singleButton beeps
 #define BUZZER_MPB_FREQUENCY               4200
@@ -49,8 +49,10 @@ extern "C"
  * API FUNCTIONS
  */
 extern void buzzer_init();
+extern void buzzer_buzzerStatusRegister(uint8_t *ptrbuzzerStatus);
+extern void buzzer_ErrorHandler( void );
 extern void buzzer_buttonHandler(uint8_t buttonStatus);
-extern void buzzer_errorHandle(uint8_t warningDutyPercent, uint32_t warningPeriod);
+
 
 #ifdef _cplusplus
 }

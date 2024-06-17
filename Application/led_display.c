@@ -31,6 +31,8 @@ uint8_t ledLightMode_old;
 uint8_t ledBLESelect_old;
 uint8_t ledUnitSelect_old;
 uint8_t ledSpeedModeSelect_old;
+uint8_t led_controlLaw_ledStatus;
+uint8_t led_controlLaw_old;
 uint8_t ledSpeed_old;
 uint8_t ledBatteryStatus_old;
 uint8_t ledError_old;
@@ -42,6 +44,8 @@ uint8_t led_error_priority;
 uint8_t led_error_code_old;
 uint8_t battery_bar1_status;
 uint8_t BLE_flash_status;
+uint8_t led_controlLaw;
+
 
 uint8_t led_allOn = 0;
 
@@ -1321,7 +1325,7 @@ void led_display_setLEDPower(uint8_t ledPower)
 void led_display_changeLEDPower()
 {
     if(ledPower_old != ledSetpower){
-        if(ledSetpower == 60){
+        if(ledSetpower == LED_POWER_LIGHT_ON){
             ledBrightness = PWM_LOW;
         }
         else{
@@ -1355,6 +1359,8 @@ void led_display_init()
     ledUnitSelect_old = 0xFF;
     ledSpeedModeSelect_old = 0xFF;
     ledSpeed_old = 0xFF;
+    led_controlLaw_ledStatus = 0xFF;
+    led_controlLaw_old = 0xFF;
     ledPower_old = 0xFF;
     ledBrightness = PWM_CUSTOM;
     led_error_code_old = 0xFF;
@@ -1364,8 +1370,6 @@ void led_display_init()
     BLE_flash_status = 1;
 
 //    led_display_setAllOn();
-
-
 }
 
 /*********************************************************************
@@ -1504,10 +1508,10 @@ void led_display_setBatteryStatus(uint8_t batteryStatus)
  *
  * @return  none
  *********************************************************************/
-void led_display_changeBatteryStatus(uint16_t gpt_taskCounter)
+void led_display_changeBatteryStatus(uint32_t gptCounter)
 {
     /*  Enables flashing when battery status is critically low (batteryStatus = 0) */
-    if ((ledBatteryStatus == 0) && ((gpt_taskCounter % 2) == 1))
+    if ((ledBatteryStatus == 0) && (gptCounter % 6 == 0))
     {
         if(battery_bar1_status == 1)
         {
@@ -1573,23 +1577,64 @@ void led_display_setSpeedMode(uint8_t speedMode)
  *
  * @return  none
  *********************************************************************/
-void led_display_changeSpeedMode()
+void led_display_changeSpeedMode(uint32_t gptCounter)
 {
-    if ( ledSpeedModeSelect_old != ledSpeedMode || ledBrightness != ledBrightness_old )
+    if ((!led_controlLaw) && (gptCounter % 6 == 0)) // gpt_counter % 5 == 0   // if not normal law -> flashing speed mode indicator
     {
-        /*  change speed mode    */
-        if(ledSpeedMode == 0){
-            functionTable[3](I_OUT,ledBrightness);
-        }
-        else if(ledSpeedMode == 1){
-            functionTable[2](I_OUT,ledBrightness);
-        }
-        else{
-            functionTable[1](I_OUT,ledBrightness);
-        }
+        if (led_controlLaw_ledStatus)   // turn off speed mode led indicator
+        {
+            /*  change speed mode    */
+            if(ledSpeedMode == 0){
+                functionTable[3](I_OUT,PWM_ZERO);
+            }
+            else if(ledSpeedMode == 1){
+                functionTable[2](I_OUT,PWM_ZERO);
+            }
+            else{
+                functionTable[1](I_OUT,PWM_ZERO);
+            }
 
-        ledSpeedModeSelect_old = ledSpeedMode;
+            led_controlLaw_ledStatus = 0;
 
+        }
+        else    // turn on speed mode led indicator
+        {
+            /*  change speed mode    */
+            if(ledSpeedMode == 0){
+                functionTable[3](I_OUT,ledBrightness);
+            }
+            else if(ledSpeedMode == 1){
+                functionTable[2](I_OUT,ledBrightness);
+            }
+            else{
+                functionTable[1](I_OUT,ledBrightness);
+            }
+
+            led_controlLaw_ledStatus = 1;
+
+        }
+        led_controlLaw_old = led_controlLaw;
+    }
+
+
+    if (led_controlLaw)
+    {
+        if ( ledSpeedModeSelect_old != ledSpeedMode || ledBrightness != ledBrightness_old || led_controlLaw_old != led_controlLaw)
+        {
+            /*  change speed mode    */
+            if(ledSpeedMode == 0){
+                functionTable[3](I_OUT,ledBrightness);
+            }
+            else if(ledSpeedMode == 1){
+                functionTable[2](I_OUT,ledBrightness);
+            }
+            else{
+                functionTable[1](I_OUT,ledBrightness);
+            }
+
+            ledSpeedModeSelect_old = ledSpeedMode;
+            led_controlLaw_old = led_controlLaw;
+        }
     }
 }
 /*********************************************************************
@@ -1646,7 +1691,7 @@ uint8_t *ptr_led_opcode;
 uint8_t *ptr_led_advertiseFlag;
 uint32_t *ptr_led_gpt_counter;
 
-void led_display_changeBLE(uint16_t gpt_taskCounter)
+void led_display_changeBLE(uint32_t gptCounter)
 {
     /******  if advertiseFlag == 1 -> flash BLE indicator.  BLE indicator light is flashing   ****/
 
@@ -1664,7 +1709,8 @@ void led_display_changeBLE(uint16_t gpt_taskCounter)
         ledBLEStatus = 0;
     }
 
-    if ((ledBLEStatus == 2) && ((*ptr_led_gpt_counter % 2) == 1)){
+    if ((ledBLEStatus == 2) && (gptCounter % 6 == 0))
+    {
         if(BLE_flash_status == 1)
                 {
                     functionTable[4](I_OUT,ledBrightness);     //turn on BLE
@@ -1708,6 +1754,7 @@ void led_display_ErrorPriority(uint8_t error_priority)
     /*  stores the most critical error priority */
     if(error_priority < led_error_code_old){
         led_error_priority = error_priority;
+
     }
 }
 
@@ -1904,19 +1951,24 @@ void led_display_registerLedDisplay( led_display_ledDisplayManager_t *ledDisplay
 }
 
 /*********************************************************************
- * @fn      led_display_getError
+ * @fn      led_control_setControlLaw
  *
- * @brief   this function is called by other functions to get error status
+ * @brief   this function receives the updated control law value
  *
- * @param   none
+ * @param   controlLaw
  *
  * @return  none
  *********************************************************************/
-uint8_t led_display_getError( void )
+extern void led_control_setControlLaw(uint8_t controlLaw)
 {
-    return led_error_priority;
+    led_controlLaw = controlLaw;
 }
 
+
+extern void* led_display_errorPriorityRegister()
+{
+    return (&led_error_priority);
+}
 /*********************************************************************
  * @fn      led_display_registerOpcode
  *

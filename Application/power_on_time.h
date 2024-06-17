@@ -36,7 +36,7 @@ extern "C"
  *********************************************************************************************/
 // Task configuration
 #define POT_TASK_PRIORITY           2
-#define POT_TASK_STACK_SIZE         360         // Stack size must be multiples of 8
+#define POT_TASK_STACK_SIZE         512         // Stack size must be multiples of 8
 
 #define POT_TIME                    1000        // milli-seconds
 #define MINUTE_IN_HOUR              60          // 60 minutes in an hour
@@ -51,11 +51,11 @@ extern "C"
 *********************************************************************/
 extern void power_on_time_init();
 extern void power_on_time_createTask(void);
-
 extern uint16_t power_on_time_getPowerOnTime();
-extern void pot_advertiseFlagRegister(uint8_t *ptr_advertiseFlag);
 extern void pot_powerOnRegister(bool *ptr_powerOn);
-
+extern void pot_setDeviceUpTime(uint32_t uptimeMinutes);
+extern void pot_InitComplFlagRegister(uint8_t *ptr_initComplete_flag);
+extern void* pot_uptimeMinute();
 
 #ifdef __cplusplus
 }

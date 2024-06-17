@@ -25,19 +25,17 @@
 /*********************************************************************
  * LOCAL POINTERS
  */
-uint8_t     *ptr_pot_advertiseFlag;
 uint8       *ptr_pot_charVal;
 profileCharVal_t *ptr_pot_profileCharVal;
 
 /*********************************************************************
  * LOCAL VARIABLES
  */
+uint32_t    deviceUptimeMinutes = 0;
 uint16_t    powerOnTimeMinutes = 0;                    // power on time in minutes
 uint32_t    pot_count = 0;
 uint32_t    powerOnTimeMS = 0;      // power on time in milli-seconds
-uint16_t    pot_advertisingTime = 0;
-uint16_t    advertisingTimeout = SP_ADVERTISING_TIMEOUT * 10;   // advertising time defined in simple_peripheral.h in milliseconds
-uint8_t     pot_advertisingFlag_old = 0;
+uint8_t     *ptr_pot_initComplete_flag;
 bool        *ptr_pot_powerOn;
 
 // Task configuration
@@ -101,40 +99,24 @@ static void power_on_time_taskFxn(UArg a0, UArg a1)
     for (; ;)               /* infinite for loop, starting at 1 and without exit condition */
     {
     /****************  Task timing & delay *******************/
-      Task_sleep(POT_TIME * 1000 / Clock_tickPeriod);
-      pot_count++;
+        Task_sleep(POT_TIME * 1000 / Clock_tickPeriod);
 
-      /******* Counting of Device On Time  **************************************************/
-      powerOnTimeMS  += POT_TIME;
-      power_on_time_cal();
+        /***** Do nothing until (*ptr_pot_initComplet_flag) == 1 *****/
+        if (*ptr_pot_initComplete_flag)
+        {
+            pot_count++;
 
-      /**** This is the timer for reseting advertiseFlag to zero to coincident
-       *    with GAPadv timeout when no link is established   ****/
-      if (*ptr_pot_advertiseFlag)
-      {
-          pot_advertisingTime += POT_TIME;
-          /***** counting will stop when advertisingTime is greater than SP_ADVERTISING_TIMEOUT x 10    ****/
-          if (pot_advertisingTime > advertisingTimeout)
-          {
-              /****  set advertiseFlag = 0 to indicate advertising has terminated  ****/
-              *ptr_pot_advertiseFlag = 0;
-              pot_advertisingTime = 0;
-          }
-      }
-      else
-      {
-          if (!pot_advertisingTime)
-          {
-              pot_advertisingTime = 0;
-          }
-      }
+            /******* Counting of Device On Time  **************************************************/
+            powerOnTimeMS  += POT_TIME;
+            power_on_time_cal();
 
-      if (!(*ptr_pot_powerOn))
-      {
-          /*** break out of FOR loop during power off  ***/
-//          break;
-      }
-
+            if (!(*ptr_pot_powerOn))
+            {
+              /*** break out of FOR loop during power off  ***/
+            //          task_exit(); //???
+            //          break;
+            }
+        }
     }/* end FOR loop */
 
 }
@@ -168,26 +150,15 @@ static void power_on_time_cal()
     if (( powerOnTimeMS / POWERONTIME_MINUTE_TIME ) > powerOnTimeMinutes )
     {
         powerOnTimeMinutes++;
+        deviceUptimeMinutes++;
+
         /********** Update Service characteristics ************/
         ptr_pot_charVal = (ptr_pot_profileCharVal->ptr_dash_charVal->ptr_powerOnTime);
         profile_setCharVal(ptr_pot_charVal, DASHBOARD_POWER_ON_TIME_LEN, powerOnTimeMinutes);
 
+
     }
 
-}
-
-/*********************************************************************
- * @fn      pot_advertiseFlagRegister
- *
- * @brief   register the pointer to adevertiseFlag
- *
- * @params  ptr_advertiseFlag
- *
- * @return  Nil
- */
-extern void pot_advertiseFlagRegister(uint8_t *ptr_advertiseFlag)
-{
-    ptr_pot_advertiseFlag = ptr_advertiseFlag;
 }
 
 /*********************************************************************
@@ -202,4 +173,24 @@ extern void pot_advertiseFlagRegister(uint8_t *ptr_advertiseFlag)
 extern void pot_powerOnRegister(bool *ptr_powerOn)
 {
     ptr_pot_powerOn = ptr_powerOn;
+}
+
+/****  return the pointer to deviceUptimeMinutes to the calling function ****/
+extern void* pot_uptimeMinute()
+{
+    return (&deviceUptimeMinutes);
+}
+
+/*** receive the initial device uptime in minutes at start up ***/
+extern void pot_setDeviceUpTime(uint32_t uptimeMinutes)
+{
+    deviceUptimeMinutes = uptimeMinutes;
+}
+
+
+
+
+extern void pot_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
+{
+    ptr_pot_initComplete_flag = ptr_initComplete_flag;
 }

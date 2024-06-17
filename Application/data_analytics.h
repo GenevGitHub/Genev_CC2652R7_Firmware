@@ -36,8 +36,11 @@ extern "C"
 /*********************************************************************************************
  *  NVS Data Information
  *********************************************************************************************/
+/** Data analytics interval must be a multiple of GPT_TIME **/
+#define DATA_ANALYTICS_INTERVAL         300             // data analytics is performed at this time interval in milliseconds
+
 #define SETSIZE                         2
-#define UDARRAYSIZE                     13              // Number of Usage Dataset stored in flash memory
+#define UDARRAYSIZE                     12              // Number of Usage Dataset stored in flash memory
 #define UDTRIGGER                      100              // Number of integrations between saving data to snv_internal_80
 // DATA_ANALYSIS_POINTS must be an ODD number because numerical integration uses Simpson's 1/3 rule
 #define DATA_ANALYSIS_POINTS            21              // Number of elements in each numerical integration
@@ -50,7 +53,7 @@ extern "C"
 // Option 2:  (13-1) x 400ms = 4800ms.  4800ms x 75 = 360000ms = 6 minutes. 6 minutes x 10 = 60 minutes (1 hour)
 // Option 3:  (13-1) x 400ms = 4800ms.  4800ms x 125 = 600000ms = 10 minutes. 10 minutes x 6 = 60 minutes = 1 hour
 // Option 4:  (17-1) x 300ms = 4800ms.  4800ms x 75 = 360000ms = 6 minutes. 6 minutes x 10 = 60 minutes = 1 hour
-// Option 5:  (21-1) x 2 x 150ms = 6000ms.  6000ms x 100 = 600000ms = 10 minutes. 10 minutes x 13 = 130 minutes = 2 hour and 10 minutes
+// Option 5:  (21-1) x 2 x 150ms = 6000ms.  6000ms x 100 = 600000ms = 10 minutes. 10 minutes x 12 = 120 minutes = 2 hour 0 minutes
 
 //typedef
 // This set of data is stored in ram, and to be stored in flash (NVS) memory
@@ -107,48 +110,20 @@ extern void data_analytics_MCUDArrayRegister(MCUD_t (*ptrMCUD));
 extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErrorCodeStatus);
 
 //Battery status related Function declaration
-extern uint8_t computeBatteryPercentage( void );
-extern uint8_t determineBatteryStatus( void );
+static uint8_t computeBatteryPercentage( void );
+static uint8_t determineBatteryStatus( void );
 
-extern uint8_t data_analytics_getBatteryPercentage(void);
-//extern uint8_t data_analytics_getUnitSelectDash( void );
 extern void* data_analytics_ptrUnitSelectDash();
 extern void data_analytics_changeUnitSelectDash(void);
 
 //Global Functions declaration
 extern void data_analytics_init( void );
-static void coefficient_array_init( void );
 extern void data_analytics_LEDSpeed();
 extern void data_analytics( void );
 extern void data2UDArray( void );
-
-//static void dataSim();
-static void re_Initialize( void );
-static void data_analytics_setUDArrayData( void );
 extern void data_analytics_sampling();
-
 extern void data_analytics_Main( void );
-//extern void get_ADArrayData(uint8_t paramID);
-static void data_analytics_setCharVal(void);
-
-extern void data_analytics_setError( uint8_t errorCode, uint8_t errorStatus );
-
 extern void data_analytics_timerInterruptHandler( void );
-
-//Performance related Function declaration
-extern uint32_t computePowerConsumption( void ); // output in mW-hr
-extern uint32_t computeDistanceTravelled( void );// output in decimeter
-extern uint8_t  computeAvgSpeed(uint32_t deltaMileage_dm);   // output in km/hr
-extern int8_t   computeAvgHeatSinkTemperature( void );         // output in degrees celsius
-extern uint32_t computeAvgBatteryVoltage( void ); // output in mV
-extern uint16_t computeInstantEconomy(uint32_t deltaPowerConsumption_mWh, uint32_t deltaMileage_dm); // unit in W-hr / km x 100
-extern uint32_t computeEconomy( void );  // unit in W-hr / km x 100
-extern uint32_t computeRange( void ); // output in metres
-extern uint32_t computeCO2Saved( void ); // in g
-extern int8_t   computeMotorTemperature( void ); // in degrees Celsius
-
-extern uint8_t data_analytics_getInitSpeedMode(void);
-extern void data_analytics_errorStatus( uint8_t errorStatus );
 
 
 #ifdef __cplusplus

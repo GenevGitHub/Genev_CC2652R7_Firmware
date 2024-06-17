@@ -15,10 +15,13 @@
 #include "Application/periodic_communication.h"
 #include "Application/data_analytics.h"
 #include "Application/brake_and_throttle.h"
+#include "Application/lights.h"
 
 /*********************************************************************
  * CONSTANTS
  */
+//#define MOTOR_CONNECT           1
+
 #define TEMPERATUREOFFSET       50
 
 /*********************************************************************
@@ -27,20 +30,29 @@
 /*********************************************************************
  * LOCAL VARIABLES
  */
-//static uint8_t motorcontrol_i2cOpenStatus = 0;    // obsolete - delete
-static simplePeripheral_bleCBs_t *motorcontrol_bleCBs;
-//static uint8_t motorControl_getGAPRole_taskCreate_flag = 0;   // no longer required - delete
-//bool powerOn = 1;            // no longer required - singlebuttonCB moved to mpb
-
+//static simplePeripheral_bleCBs_t *motorcontrol_bleCBs;
+/** MCUDArray contains mcu retrieved data for data_analysis **/
 MCUD_t MCUDArray = {LEVEL45,
-                    3000,
-                    32000,
-                    3000,
-                    0,
+                    0,//3000,
+                    0,//32000,
+                    0,//3000,
+                    0,  // speed rpm
+                    1,  // rpm_status. 1 = 0 or positive, 0 = negative
                     70,
                     70,
                     0   };
 
+/** STM32MCDArray contains data for commanding / controlling the MCU and hence Motor **/
+// initial values for {allowable_speed, speed_mode_IQmax, IQ_value, ramp_rate, brake_percent, error_msg, brake_status, light_status, speed_mode}
+STM32MCPD_t STM32MCDArray = {BRAKE_AND_THROTTLE_MAXSPEED_AMBLE,
+                             14000,
+                             0,
+                             BRAKE_AND_THROTTLE_RAMPRATE_LEISURE,
+                             0,
+                             0,
+                             0,
+                             LIGHT_STATUS_OFF,
+                             BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE  };
 
 /**********************************************************************
  *  Local functions
@@ -49,8 +61,6 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
 static void motorcontrol_rxMsgCb(uint8_t *rxMsg, STM32MCP_txMsgNode_t *STM32MCP_txMsgNode);
 static void motorcontrol_exMsgCb(uint8_t exceptionCode);
 static void motorcontrol_erMsgCb(uint8_t errorCode);
-
-static void motorcontrol_brakeAndThrottleCB(uint16_t allowableSpeed, uint16_t IQValue, uint8_t errorMsg);
 
 /*********************************************************************
  * TYPEDEFS
@@ -61,7 +71,6 @@ static STM32MCP_CBs_t motor_control_STM32MCP_CBs =
      motorcontrol_exMsgCb,
      motorcontrol_erMsgCb
 };
-
 
 /*********************************************************************
 * PUBLIC FUNCTIONS
@@ -119,33 +128,21 @@ extern uint8_t Boot()
  *
  * @return  none
  */
-//uint8_t mccheck = 0;        // FOR DEBUGGING ONLY
 uint8_t bootFlag = 0xFF;
+
 void motor_control_init(void)
 {
     data_analytics_MCUDArrayRegister(&MCUDArray);            // passes ptrMCUDArray to dataAnalysis.c
     periodic_communication_MCUArrayRegister(&MCUDArray);
     brake_and_throttle_MCUArrayRegister(&MCUDArray);
 
-    STM32MCP_registerCBs(&motor_control_STM32MCP_CBs);
+    brake_and_throttle_STM32MCDArrayRegister(&STM32MCDArray);
+    lights_STM32MCPDArrayRegister(&STM32MCDArray);
+
+    STM32MCP_registerCBs(&motor_control_STM32MCP_CBs);      // pass pointer to motor_control_STM32MCP_CBs to STM32MCP.c
     STM32MCP_startCommunication();    //ACTIVATE OR DEACTIVATE
 
 }
-
-/*********************************************************************
- * @fn      motorcontrol_registerCB
- *
- * @brief   When the motor controller sends the get register frame message
- *
- * @param   STM32MCP_rxMsg_t - The memory message to the received message, the size of the message is the second index rxMsg[1]
- *
- * @return  None.
- */
-void motorcontrol_registerCB(simplePeripheral_bleCBs_t *obj)
-{
-    motorcontrol_bleCBs = obj;
-}
-
 
 /*********************************************************************
  * @fn      motorcontrol_processGetRegisterFrameMsg
@@ -156,6 +153,9 @@ void motorcontrol_registerCB(simplePeripheral_bleCBs_t *obj)
  *
  * @return  None.
  */
+uint8_t controller_error_code;
+uint8_t rpmStatus = 1;
+
 static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t txPayloadLength, uint8_t *rxPayload, uint8_t rxPayloadLength)
 {
     uint8_t regID = txPayload[0];
@@ -164,7 +164,7 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     case STM32MCP_BUS_VOLTAGE_REG_ID:
         {
             uint16_t voltage_mV = *((uint16_t*) rxPayload) * 1000; // rxPayload in V, voltage in mV
-        // **** store voltage_mV in MCUArray.voltage_mV
+        // **** store voltage_mV in MCUArray.bat_voltage_mV
             MCUDArray.bat_current_mA = voltage_mV;
             break;
         }
@@ -173,56 +173,64 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
         {
         //keep current in mV - do not convert it to A
             uint16_t current_mA = *((uint8_t*) rxPayload) * 1000;
-        // **** store current_mA in MCUArray.current_mV
+        // **** store current_mA in MCUArray.bat_current_mV
             MCUDArray.bat_current_mA = 3000;//current_mA;
             break;
         }
     case STM32MCP_HEATSINK_TEMPERATURE_REG_ID:
         {
-            uint8_t heatSinkTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF) + TEMPERATUREOFFSET;     // temperature can be a negative value, unless it is in Kelvin
+            uint8_t heatSinkTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
         // **** store heatSinkTemperature_Celcius in MCUArray.heatSinkTemperature_Celcius
-            MCUDArray.heatSinkTempOffset50_Celcius = 15;//heatSinkTemperature_Celcius;  // +50
+            MCUDArray.heatSinkTempOffset50_Celcius = 65;//heatSinkTemperature_Celcius + TEMPERATUREOFFSET;  // +50
             break;
         }
     case STM32MCP_SPEED_MEASURED_REG_ID:    // RPM
         {
-            uint16_t rpm;
+            uint16_t rpm;   // but payload length is 0x05
             int32_t rawRPM = *((int32_t*) rxPayload);
             if(rawRPM >= 0)
             {
                 rpm = (uint16_t) (rawRPM & 0xFFFF);
+                rpmStatus = 1;  // when rpm is >= 0
             }
-            else  // **** what if rawRPM is negative??? e.g. pushing the E-scooter in reverse.  Then rawRPM would be negative!!!
+            else  // **** if rawRPM is negative, e.g. pushing the E-scooter in reverse, No power shall be delivered to motor.
             {
                 rpm = (uint16_t) (-rawRPM & 0xFFFF);
+                rpmStatus = 0;  // when rpm < 0
             }
             // **** store rpm in MCUArray.speed_rpm
             MCUDArray.speed_rpm = rpm;
+            MCUDArray.rpm_status = rpmStatus;
             break;
         }
 // ********************    Need to create new REG_IDs
     case STM32MCP_MOTOR_TEMPERATURE_REG_ID:
         {
-            uint8_t motorTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF) + TEMPERATUREOFFSET;     // temperature can be a negative value, unless it is in Kelvin
-            MCUDArray.motorTempOffset50_Celcius = 20;//motorTemperature_Celcius;    // +50
+            uint8_t motorTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
+            MCUDArray.motorTempOffset50_Celcius = 70;//motorTemperature_Celcius + TEMPERATUREOFFSET;    // +50
 
             break;
         }
     case STM32MCP_CONTROLLER_ERRORCODE_REG_ID:
         {
+            controller_error_code = (*((uint8_t*) rxPayload) & 0xFF);     //
 
             //
             break;
         }
     case STM32MCP_CONTROLLER_PHASEVOLTAGE_REG_ID:
         {
-
+//            uint16_t voltage_mV = *((uint16_t*) rxPayload) * 1000; // rxPayload in V, voltage in mV
+        /**** store voltage_mV in MCUArray.phase_voltage_mV ***/
+//            MCUDArray.phase_voltage_mV = voltage_mV;
             //
             break;
         }
     case STM32MCP_CONTROLLER_PHASECURRENT_REG_ID:
         {
-
+//            uint16_t current_mA = *((uint8_t*) rxPayload) * 1000;
+        /**** store current_mA in MCUArray.phase_current_mV   ***/
+//            MCUDArray.phase_current_mA = 3000;//current_mA;
             //
             break;
         }
@@ -231,7 +239,6 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     }
 
 }
-
 
 /*********************************************************************
  * @fn      motorcontrol_rxMsgCb
@@ -346,3 +353,132 @@ static void motorcontrol_erMsgCb(uint8_t errorCode)
     }
 }
 
+/*********************************************************************
+ * @fn      motor_control_setIQvalue
+ *
+ * @brief   When the brake and throttle completed the adc conversion, it sends message here to communicate with STM32
+ *
+ * @param   throttlePercent - how much speed or torque in percentage the escooter should reach
+ *          errorMsg - The error Msg
+ *
+ * @return  None.
+ */
+uint16_t execute_rpm;
+//static void motor_control_setIQvalue(uint16_t allowableSpeed, uint16_t IQValue, uint8_t errorMsg)
+extern void motor_control_setIQvalue()
+{
+    if(STM32MCDArray.error_msg == BRAKE_AND_THROTTLE_NORMAL)
+    {
+        /*When driver accelerates / decelerates by twisting the throttle, the IQ signal with max. speed will be sent to the motor controller.
+         * */
+#ifdef MOTOR_CONNECT
+
+        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_speed, STM32MCDArray.IQ_value);
+
+#endif //MOTOR_CONNECT
+
+    }
+    else
+    {
+        /*In case the brake and throttle are in malfunction, for safety, the E-Scooter stops operation. User
+         *has to check the wire connections.
+         *You have to ensure the wires are connected properly!
+         * */
+#ifdef MOTOR_CONNECT
+
+        //STM32MCP_executeCommandFrame(STM32MCP_MOTOR_1_ID, STM32MCP_STOP_MOTOR_COMMAND_ID);
+        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_speed, 0);
+
+#endif //MOTOR_CONNECT
+
+        /*Sends Error Report to STM32 Motor Controller --> Transition to EMERGENCY STOP state*/
+    }
+
+}
+
+/*********************************************************************
+ * @fn      motor_control_speedModeChg
+ *
+ * @brief   When there is a speed mode change, it sends message here to communicate with STM32
+ *
+ * @param   speed mode parameters
+ *
+ *
+ * @return  None.
+ */
+//static void motor_control_speedModeChg(uint16_t torqueIQ, uint16_t allowableSpeed, uint16_t rampRate)
+extern void motor_control_speedModeChg()
+
+{
+#ifdef MOTOR_CONNECT
+
+    /*** send speed mode change parameters to motor control   ***/
+    STM32MCP_setSpeedModeConfiguration(STM32MCDArray.speed_mode_IQmax, STM32MCDArray.allowable_speed, STM32MCDArray.ramp_rate);
+
+#endif //MOTOR_CONNECT
+
+}
+
+/*********************************************************************
+ * @fn      motor_control_brakeStatusChg
+ *
+ * @brief   When the brake status is changed, it sends command to STM32 to cut power to motor
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+extern void motor_control_brakeStatusChg()
+{
+    uint8_t brake_debugID;
+    if (STM32MCDArray.brake_status)
+    {
+        brake_debugID = STM32MCP_ESCOOTER_BRAKE_PRESS;
+    }
+    else if (!(STM32MCDArray.brake_status))
+    {
+        brake_debugID = STM32MCP_ESCOOTER_BRAKE_RELEASE;
+    }
+
+#ifdef MOTOR_CONNECT
+
+    STM32MCP_setEscooterControlDebugFrame(brake_debugID);
+
+#endif //MOTOR_CONNECT
+
+}
+
+/*********************************************************************
+ * @fn      motor_control_taillightStatusChg
+ *
+ * @brief   When the brake status is changed, it sends command to STM32 to cut power to motor
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+extern void motor_control_taillightStatusChg()
+{
+    uint8_t light_sysCmdId = STM32MCDArray.tail_light_status;
+
+#ifdef MOTOR_CONNECT
+
+    STM32MCP_setSystemControlConfigFrame(light_sysCmdId);
+
+#endif //MOTOR_CONNECT
+
+}
+
+/*********************************************************************
+ * @fn      motor_control_signRpmRegister
+ *
+ * @brief   Returns the pointer to rpmStatus to the calling function
+ *
+ * @param   None.
+ *
+ * @return  None.
+ */
+//extern void* motor_control_signRpmRegister()
+//{
+//    return (&rpmStatus);
+//}

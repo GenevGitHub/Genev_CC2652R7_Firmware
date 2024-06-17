@@ -29,10 +29,14 @@ extern "C"
 /* ********************************************************************
  * API FUNCTIONS
  */
-#ifdef veml6030
-extern uint8_t ALS_control_getIntR();
-extern void ALS_control_init();
+extern uint8_t ALS_control_init();
+extern void* ALS_control_flagbRegister(void);
 extern uint8_t ALS_control_calculateLux();
+
+#ifdef veml6030
+
+extern uint8_t ALS_control_getIntR();
+
 #endif
 
 #ifdef _cplusplus

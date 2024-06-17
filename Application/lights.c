@@ -5,9 +5,9 @@
  *      Author: Chee
  */
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/STM32MCP.h"
 
 #include "Application/lights.h"
-
 #include "Application/ALS_control.h"
 #include "Application/led_display.h"
 #include "UDHAL/UDHAL_PWM.h"
@@ -28,6 +28,8 @@ static void (*lightModeArray[3])(void) = {lights_MODE_OFF, lights_MODE_ON, light
 uint8_t     light_mode;
 uint8_t     light_mode_Index;
 uint8_t     light_status = LIGHT_STATUS_INITIAL;
+uint8_t     taillightStatus = STM32MCP_TAIL_LIGHT_OFF;
+
 uint8_t     lightStatusNew = LIGHT_STATUS_INITIAL;
 
 uint16_t    lightControl_pwmPeriod = 1000;
@@ -36,6 +38,7 @@ uint8_t     lightControl_pwmOpenStatus = 0;
 
 profileCharVal_t    *ptr_lights_profileCharVal;
 static uint8_t      *ptr_charVal;
+STM32MCPD_t *ptr_lights_STM32MCPDArray;
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -74,11 +77,17 @@ extern void lights_ALSFxn() {
  *
  * @return  None
  *********************************************************************/
-void lights_init( uint8_t lights_i2cOpenStatus, uint8_t lightmodeInit )
+uint8_t lights_uart2ErrorStatus = 0;
+uint8_t *ptr_lights_flagb;
+uint8_t lights_sampleBits = 0;
+
+void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_t lightmodeInit )
 {
     ptr_lights_profileCharVal = profile_charVal_profileCharValRegister();
+    lights_uart2ErrorStatus = uart2ErrorStatus;
+    ptr_lights_flagb = ALS_control_flagbRegister();
 
-    ALS_control_init();
+    lights_sampleBits = ALS_control_init();
 
     /** I2C must be initiated before lightControl */
     /** At every POWER ON (SYSTEM START-UP), "IF I2C communication is SUCCESSFUL", the light control is in auto mode (LIGHT_MODE_INITIAL), light is off (LIGHT_STATUS_INITIAL).
@@ -93,10 +102,27 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t lightmodeInit )
         light_mode = LIGHT_MODE_OFF;        // if i2c did not start successfully, light mode default is OFF
         light_mode_Index = 1;               // if i2c did not start successfully, AUTO light mode will not be available - only ON or OFF light mode is available
     }
-    light_status = LIGHT_STATUS_INITIAL;
-    lightStatusNew = LIGHT_STATUS_INITIAL;
+
+    if (light_mode == LIGHT_MODE_ON)
+    {
+        light_status = LIGHT_STATUS_ON;
+        *ptr_lights_flagb = lights_sampleBits;
+        taillightStatus = STM32MCP_TAIL_LIGHT_ON;
+    }
+    else
+    {
+        light_status = LIGHT_STATUS_OFF;
+        *ptr_lights_flagb = 0;
+        taillightStatus = STM32MCP_TAIL_LIGHT_OFF;
+    }
+
+    lightStatusNew = light_status;
+    /** set light mode on LED display **/
     led_display_setLightMode( light_mode );
-    led_display_setLightStatus( light_status );
+
+    /** command light and set light status and LED power on LED display **/
+    /* led_display_init() must be before lights_init() */
+    lights_statusChg();     //    led_display_setLEDPower() & led_display_setLightStatus( light_status );
 
 }
 
@@ -109,12 +135,19 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t lightmodeInit )
  *
  * @return  light_status
  *********************************************************************/
-
 void lights_MODE_AUTO()
 {
     if (light_status != lightStatusNew)
     {
         light_status = lightStatusNew;
+        if (light_status == LIGHT_STATUS_ON)
+        {
+            taillightStatus = STM32MCP_TAIL_LIGHT_ON;
+        }
+        else
+        {
+            taillightStatus = STM32MCP_TAIL_LIGHT_OFF;
+        }
         lights_statusChg();
     }
 }
@@ -133,6 +166,9 @@ void lights_MODE_OFF()
     if (light_status != LIGHT_STATUS_OFF)
     {
         light_status = LIGHT_STATUS_OFF;
+        *ptr_lights_flagb = 0;
+        taillightStatus = STM32MCP_TAIL_LIGHT_OFF;
+
         lights_statusChg();
     }
 }
@@ -151,6 +187,8 @@ void lights_MODE_ON()
     if (light_status != LIGHT_STATUS_ON)
     {
         light_status = LIGHT_STATUS_ON;
+        *ptr_lights_flagb = lights_sampleBits;
+        taillightStatus = STM32MCP_TAIL_LIGHT_ON;
         lights_statusChg();
     }
 }
@@ -169,25 +207,30 @@ void lights_statusChg(void)
 {
     /* switch LED display brightness depending on light status */
     uint16_t lights_PWMDuty;
-    uint8_t ledPower;
+    uint8_t  ledPower;
+
     switch(light_status)
     {
     case LIGHT_STATUS_ON:
             {
-                /* when light status is on, led power set to led_power_light_on  */
+                /* when light status is on (ambient light must be low), led power set to led_power_light_on (a low power value)  */
                 ledPower = LED_POWER_LIGHT_ON;
+
     #ifdef CC2652R7_LAUNCHXL
                 lights_PWMDuty = LIGHT_PWM_DUTY;
-    #endif
+    #endif  //CC2652R7_LAUNCHXL
+
                 break;
             }
     case LIGHT_STATUS_OFF:
             {
-                /* when light status is of led power set to led_power_light_off  */
+                /* when light status is off (ambient light must be high), led power set to led_power_light_off (a high power value)  */
                 ledPower = LED_POWER_LIGHT_OFF;
+
     #ifdef CC2652R7_LAUNCHXL
                 lights_PWMDuty = 0;
-    #endif
+    #endif  //CC2652R7_LAUNCHXL
+
                 break;
             }
     default:
@@ -195,17 +238,23 @@ void lights_statusChg(void)
     }
 
     #ifdef CC2652R7_LAUNCHXL
+    /*** activate headlight ***/
     UDHAL_PWM_setHLDutyAndPeriod(lights_PWMDuty);
+
+    /**** send new tail light status to motor_controller to command tail light ****/
+    ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
+
+    if (lights_uart2ErrorStatus == 0)// if no uart error
+    {
+        motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
+    }
+
     #endif
 
     /* updates light status Characteristic Value -> Mobile App */
-    /******  Dashboard services
-    *************************************/
-    /********** Example Only: Update characteristics Value in dashboard Profile  ************/
-//    ptr_charVal = (ptr_lights_DCVArray->ptr_lightStatus );
-
+    /******  Dashboard services  *************************************/
     ptr_charVal = (ptr_lights_profileCharVal->ptr_dash_charVal->ptr_lightStatus);
-    profile_setCharVal(ptr_charVal, DASHBOARD_LIGHT_STATUS_LEN, light_status);       // where is application_setCharVal(address, length, payload)????
+    profile_setCharVal(ptr_charVal, DASHBOARD_LIGHT_STATUS_LEN, light_status);
 
     led_display_setLEDPower(ledPower);
     led_display_setLightStatus(light_status);
@@ -230,6 +279,7 @@ uint8_t lights_lightModeChange()
         light_mode = 0;
         lightStatusNew =  LIGHT_STATUS_ON;
     }
+
     /* send light_mode to led display */
     led_display_setLightMode( light_mode );
 
@@ -252,8 +302,21 @@ uint8_t lights_lightModeChange()
  *
  * @return  light_status
  *********************************************************************/
-uint8_t lights_getLightStatus(void){
-    return light_status;
+uint8_t lights_getLightStatus(){
+    return (light_status);
+}
+
+/*********************************************************************
+ * @fn      lights_lightStatusRegister
+ *
+ * @brief   call this function to return the pointer to light status to the calling function
+ *
+ * @param   None
+ *
+ * @return  pointer to light_status
+ *********************************************************************/
+extern void* lights_lightStatusRegister(){
+    return (&light_status);
 }
 
 /*********************************************************************
@@ -267,4 +330,11 @@ uint8_t lights_getLightStatus(void){
  *********************************************************************/
 extern void* lights_lightModeRegister(){
     return (&light_mode);
+}
+
+
+
+extern void lights_STM32MCPDArrayRegister(STM32MCPD_t *ptrSTM32MCDArray)
+{
+    ptr_lights_STM32MCPDArray = ptrSTM32MCDArray;
 }

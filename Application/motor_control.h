@@ -43,11 +43,24 @@ typedef struct mcuData{
         uint16_t    phase_voltage_mV;
         uint16_t    phase_current_mA;
         uint16_t    speed_rpm;
+        uint8_t     rpm_status;
         uint8_t     heatSinkTempOffset50_Celcius;
         uint8_t     motorTempOffset50_Celcius;
         uint8_t     count_hf;
 }MCUD_t;
 
+// This set of data is stored in ram. It contains variables that commands the Motor Controller Unit
+typedef struct STM32MCPData{
+        uint16_t    allowable_speed;
+        uint16_t    speed_mode_IQmax;
+        uint16_t    IQ_value;
+        uint16_t    ramp_rate;
+        uint16_t    brake_percent;
+        uint8_t     error_msg;
+        uint8_t     brake_status;
+        uint8_t     tail_light_status;
+        uint8_t     speed_mode;
+}STM32MCPD_t;
 /* ********************************************************************
 * MACROS
 */
@@ -57,10 +70,11 @@ typedef struct mcuData{
  */
 extern uint8_t Boot();
 extern void motor_control_init(void);
-extern void motorcontrol_registerCB(simplePeripheral_bleCBs_t *obj);
+extern void motor_control_setIQvalue();
+extern void motor_control_speedModeChg();
+extern void motor_control_brakeStatusChg();
+extern void motor_control_taillightStatusChg();
 
-extern void motor_control_speedModeChgCB(uint16_t torqueIQ, uint16_t allowableSpeed, uint16_t rampRate);
-//extern void motor_control_dataAnalysis_sampling(uint8_t x_hf);
 /*********************************************************************
 *********************************************************************/
 

@@ -30,6 +30,9 @@ extern "C"
  *********************************************************************************************/
 #define SNV_BUFFER_SIZE     32
 
+#define RESETCODE01              123456789
+#define RESETCODE02              987654321
+
 /*********************************************************************
  * TYPEDEFS
  */
@@ -48,7 +51,7 @@ extern "C"
 /*********************************************************************
  * FUNCTIONS
  *********************************************************************/
-extern void snv_internal_dummyUDArray();  // Usage Data (UD) Array
+extern void snv_internal_resetSNVdata();  // Usage Data (UD) Array
 extern uint8_t snv_internal_getInitSpeedMode(void);
 extern uint8_t snv_internal_getInitLightMode(void);
 extern uint8_t snv_internal_getInitLightMode(void);

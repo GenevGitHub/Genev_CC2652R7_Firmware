@@ -66,20 +66,19 @@ extern void led_display_registerLedDisplay( led_display_ledDisplayManager_t *led
 */
 extern void led_display_init( void );
 extern void led_display_deinit(void);
-//static void led_display_taskFxn(UArg a0, UArg a1);
 
 extern void led_display_setAllOn( void );                                // Led All On
 extern void led_display_setAllOff( void );                               // Led All Off
 extern void led_display_setDashSpeed( uint8_t dashSpeed );               // Set Speed Digit 1 and Digit 2
 extern void led_display_changeDashSpeed();
 extern void led_display_setBatteryStatus( uint8_t batteryStatus );       // Set battery level
-extern void led_display_changeBatteryStatus(uint16_t gpt_taskCounter);
+extern void led_display_changeBatteryStatus(uint32_t gptCounter);
 extern void led_display_setSpeedMode( uint8_t speedMode );               // Set speed mode
-extern void led_display_changeSpeedMode();
+extern void led_control_setControlLaw(uint8_t controlLaw);                    // Set control law value
+extern void led_display_changeSpeedMode(uint32_t gptCounter);
 extern void led_display_setUnitSelectDash( uint8_t UnitSelectDash );     // Set Unit
 extern void led_display_changeUnit();
-//extern void led_display_setBLEStatus( uint8_t BLEStatus );               // Set BLE status
-extern void led_display_changeBLE(uint16_t gpt_taskCounter);
+extern void led_display_changeBLE(uint32_t gptCounter);
 extern void led_display_ErrorPriority(uint8_t error_code);
 extern uint8_t led_display_ErrorDisplay();
 extern void led_display_setLightMode( uint8_t light_mode );           // Set light mode
@@ -88,7 +87,7 @@ extern void led_display_setLightStatus( uint8_t light_status );          // Set 
 extern void led_display_changeLightStatus();
 extern void led_display_setLEDPower( uint8_t ledPower );                 // Set LED Power Level / Brightness
 extern void led_display_changeLEDPower();
-extern uint8_t led_display_getError( void );
+extern void* led_display_errorPriorityRegister();
 
 extern void led_display_opcodeRegister( uint8_t *ptr_opcode );
 extern void led_display_advertiseFlagRegister(uint8_t *ptr_advertiseFlag);

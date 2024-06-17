@@ -71,10 +71,20 @@ uint8_t ii = 0;
 void ALS_control_setLight();
 
 
+/** @fun:   ALS_control_flagbRegister
+ *
+ *  @brief  return the pointer to flagb to the calling function
+ *
+ * **/
+extern void* ALS_control_flagbRegister(void)
+{
+    return (&flagb);
+}
+
 /***************************************************
  * ALS_control_init()
  */
-void ALS_control_init()
+uint8_t ALS_control_init()
 {
     /* Power up light sensors */
 #ifdef veml6030
@@ -100,6 +110,8 @@ void ALS_control_init()
     for (uint8_t jj = 0; jj < SampleSize; jj++ ){
         sampleBits = sampleBits | (0x01 << jj);
     }
+
+    return (sampleBits);
 }
 
 /***************************************************

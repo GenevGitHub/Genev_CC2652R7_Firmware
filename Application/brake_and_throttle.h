@@ -19,6 +19,8 @@ extern "C"
 #include <stdint.h>
 #include <math.h>
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/STM32MCP.h"
+
 #include "Application/motor_control.h"
 
 
@@ -53,30 +55,25 @@ extern "C"
 #define BRAKE_AND_THROTTLE_RAMPRATE_LEISURE                       2250      // 3000
 #define BRAKE_AND_THROTTLE_RAMPRATE_SPORTS                        1500      // 2000
 
-//Speed mode Torque IQ value
-#define BRAKE_AND_THROTTLE_TORQUEIQ_MAX                           20000     // IQ 16000 = 14.222 Amp
-
-//Hard braking definition   (What is Hard Braking? why is this necessary?)
-#define HARD_BRAKING_THROTTLE_PERCENTAGE                          5
-#define HARD_BRAKING_BRAKE_PERCENTAGE                             5
-#define BRAKEPERCENTTHRESHOLD                                     30
-#define THROTTLEPERCENTTHRESHOLD                                  30
+//Brake and Throttle dynamic threshold in percentage - used to trigger brake status and throttle status during dynamic conditions
+#define BRAKEPERCENTTHRESHOLD                                     30    //%
+#define THROTTLEPERCENTTHRESHOLD                                  30    //%
 
 //Throttle calibration values = value range the throttle ADC is conditioned to be within
-#define THROTTLE_ADC_CALIBRATE_H                                  2350
-#define THROTTLE_ADC_CALIBRATE_L                                  850
+#define THROTTLE_ADC_CALIBRATE_H                                  2300
+#define THROTTLE_ADC_CALIBRATE_L                                  830
 
 //Throttle error thresholds = values that should not be possible under nominal operation
 #define THROTTLE_ADC_THRESHOLD_H                                  2700
-#define THROTTLE_ADC_THRESHOLD_L                                  600
+#define THROTTLE_ADC_THRESHOLD_L                                  700
 
 //Brake calibration values = value range the Brake ADC is conditioned to be within
-#define BRAKE_ADC_CALIBRATE_H                                     2350
-#define BRAKE_ADC_CALIBRATE_L                                     850
+#define BRAKE_ADC_CALIBRATE_H                                     2300
+#define BRAKE_ADC_CALIBRATE_L                                     830
 
 //Brake error thresholds = values that should not be possible under nominal operation
 #define BRAKE_ADC_THRESHOLD_H                                     2700
-#define BRAKE_ADC_THRESHOLD_L                                     600
+#define BRAKE_ADC_THRESHOLD_L                                     700
 
 //Error message
 #define BRAKE_AND_THROTTLE_NORMAL                                 0x00
@@ -88,20 +85,20 @@ extern "C"
  * MACROS
  */
 
+
 /*********************************************************************
  * FUNCTIONS
  */
 /*
  * Task creation function for the Simple Peripheral.
  */
-static void brake_and_throttle_normalLawControl();
-extern void brake_and_throttle_motorControl_rpm(uint16_t *ptrBrakeAndThrottleRPM);
+extern void brake_and_throttle_STM32MCDArrayRegister(STM32MCPD_t *ptrSTM32MCPDArray);
 
 extern void brake_and_throttle_init();
 extern uint8_t* bat_dashboardErrorCodeStatusRegister();
 extern void brake_and_throttle_MCUArrayRegister(MCUD_t *ptrMCUDArray);
 
-extern void brake_and_throttle_setSpeedMode(uint8_t speed_Mode);
+extern void brake_and_throttle_setSpeedMode(uint8_t speed_mode);
 extern uint8_t brake_and_throttle_getSpeedMode();
 extern uint8_t brake_and_throttle_toggleSpeedMode();
 
@@ -110,7 +107,7 @@ extern uint16_t brake_and_throttle_getThrottlePercent();
 extern uint16_t brake_and_throttle_getBrakePercent();
 
 extern uint8_t brake_and_throttle_getControlLaw();
-extern void brake_and_throttle_setControlLaw(uint8_t newControlLaw);
+extern void brake_and_throttle_setControlLaw(uint8_t control_law);
 
 /*********************************************************************
 *********************************************************************/

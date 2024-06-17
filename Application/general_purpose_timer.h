@@ -39,10 +39,11 @@ extern "C"
 // Task configuration
 #define GPT_TASK_PRIORITY           5
 #ifndef GPT_TASK_STACK_SIZE
-#define GPT_TASK_STACK_SIZE         1024 // 416  //400 //360    // Stack size must be multiples of 8
+#define GPT_TASK_STACK_SIZE         1024    // Stack size must be multiples of 8
 #endif
 
-#define GPT_TIME                    150      // milli-seconds
+/** GPT_TIME is the smallest time interval unit in General Purpose Timer **/
+#define GPT_TIME                    100      // in milli-seconds
 #define GPT_INACTIVE                0
 #define GPT_ACTIVE                  1
 

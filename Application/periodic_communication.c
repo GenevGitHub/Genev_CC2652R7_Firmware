@@ -18,8 +18,8 @@
 * LIBRARIES
 */
 #include "Hardware/gGo_device_params.h"
-
 #include "Application/periodic_communication.h"
+
 #include "Application/motor_control.h"
 #include "Application/data_analytics.h"
 

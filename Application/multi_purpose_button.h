@@ -38,7 +38,7 @@ extern "C"
 // Task configuration
 #define MPB_TASK_PRIORITY           4
 #ifndef MPB_TASK_STACK_SIZE
-#define MPB_TASK_STACK_SIZE         416  //400 //360    // Stack size must be multiples of 8
+#define MPB_TASK_STACK_SIZE         512  //400 //360    // Stack size must be multiples of 8
 #endif
 
 //Constants for timing duration

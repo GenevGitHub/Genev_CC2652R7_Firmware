@@ -41,6 +41,9 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
+//The absolute  maximum Torque IQ value for this MCU
+#define STM32MCP_TORQUEIQ_MAX                                                              20000     // IQ 16000 = 14.222 Amp
+
 //Heart beat period (in ms)
 #define STM32MCP_HEARTBEAT_PERIOD                                                            600
 
@@ -169,6 +172,8 @@ extern "C"
 #define STM32MCP_CONTROLLER_ERRORCODE_REG_ID                                                 0x72
 #define STM32MCP_CONTROLLER_PHASEVOLTAGE_REG_ID                                              0x73
 #define STM32MCP_CONTROLLER_PHASECURRENT_REG_ID                                              0x74
+#define STM32MCP_CONTROLLER_BUSVOLTAGE_REG_ID                                                0x75
+#define STM32MCP_CONTROLLER_BUSCURRENT_REG_ID                                                0x76
 
 //Payload length for regID
 #define STM32MCP_TARGET_MOTOR_PAYLOAD_LENGTH                                                 0x02
@@ -224,10 +229,12 @@ extern "C"
 #define STM32MCP_RAMP_DURATION_PAYLOAD_LENGTH                                                0x03
 
 //self defined PAYLOAD_LENGTH
-#define STM32MCP_MOTOR_TEMPERATURE_PAYLOAD_LENGTH                                            0x03
+#define STM32MCP_MOTOR_TEMPERATURE_PAYLOAD_LENGTH                                            0x02
 #define STM32MCP_CONTROLLER_ERRORCODE_PAYLOAD_LENGTH                                         0x02
-#define STM32MCP_CONTROLLER_PHASEVOLTAGE_LENGTH                                              0x03
+#define STM32MCP_CONTROLLER_PHASEVOLTAGE_LENGTH                                              0x04
 #define STM32MCP_CONTROLLER_PHASECURRENT_LENGTH                                              0x04
+#define STM32MCP_CONTROLLER_BUSCURRENT_LENGTH                                                0x04
+#define STM32MCP_CONTROLLER_BUSVOLTAGE_LENGTH                                                0x04
 
 //Command list
 #define STM32MCP_START_MOTOR_COMMAND_ID                                                      0x01
@@ -252,8 +259,8 @@ extern "C"
 #define STM32MCP_ESCOOTER_BRAKE_RELEASE                                                      0x02
 #define STM32MCP_ESCOOTER_DRIVE_MODE_CONFIG                                                  0x03
 
-#define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE                                                      41700  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
-#define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE                                                      30000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack
+#define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE                                                      48000  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
+#define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE                                                      28000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack
 /*********************************************************************
  * MACROS
  */

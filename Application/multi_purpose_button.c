@@ -30,6 +30,7 @@
 #include "Application/data_analytics.h"
 #include "Application/buzzer.h"
 #include "Application/power_on_time.h"
+#include "Application/led_display.h"
 
 #include "UDHAL/UDHAL_Timer3.h"
 
@@ -79,12 +80,12 @@ void* mpb_powerOnRegister(void){
  * @return  pointer to mpb_GAPflag
  */
 static uint8_t *ptr_GAPopcode;
-static uint8_t *ptr_advertiseFlag;
+static uint8_t *ptr_mpb_advertiseFlag;
 uint8_t mpb_GAPflag = 0;
 
 extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag){
     ptr_GAPopcode = ptr_opcode;
-    ptr_advertiseFlag = ptr_advertiseFlag;
+    ptr_mpb_advertiseFlag = ptr_advertiseFlag;
     return (&mpb_GAPflag);
 }
 
@@ -128,27 +129,10 @@ uint8_t         mpb_errorStatus = 0xFF;
 
 void mpb_taskFxn(UArg a0, UArg a1)
 {
-//    UDHAL_TIMER3_init();
-//    UDHAL_TIMER3_params_init();   // moved to UDHAL_init() by Chee
 
     mpb_timerManager = UDHAL_TIMER3_mpbTimerRegister();
 
     mpb_init();
-
-    if (!(POWER_ON))
-    {
-        /*****   power off actions - write codes here   *****/
-        /* Note: must not disable or delete clock
-         *       if clock deleted, interrupt will not
-         *       work to wake up the system.
-         */
-
-        // Actions required:
-        // 1: terminate BLE connection
-        // 2: execute data_analytics and write data to snv_internal_80.  (Done)
-        // 3: save snv_internal_80 to snv.                               (Done)
-
-    }
 
 }
 
@@ -166,9 +150,10 @@ void mpb_taskFxn(UArg a0, UArg a1)
  */
 void mpb_init()
 {
+
     gpt_powerOnRegister(&POWER_ON);
     pot_powerOnRegister(&POWER_ON);
-    data_analytics_buzzerStatusRegister(&mpb_buzzerStatus);
+    buzzer_buzzerStatusRegister(&mpb_buzzerStatus);
     ptr_dashunit = data_analytics_ptrUnitSelectDash();
     ptr_dashboardErrorCodeStatus = bat_dashboardErrorCodeStatusRegister();
 
@@ -281,14 +266,12 @@ void mpb_processTimerOv()
 #ifdef CC2652R7_LAUNCHXL
     /* reset buzzer to off here */
     buzzer_buttonHandler(0);
-//    dataAnalysis_singleButtonBuzzerStatus(0);
 #endif
 
     timerPeriod = MPB_TIMER_OV_TIME_LONG;     // resets to "SINGLE_BUTTON_TIMER_OV_TIME_LONG" after each overflow
     risingEdgeCount = 0;                         // reset to 0
     fallingEdgeCount = 0;                        // reset to 0
     mpb_buttonState = MPB_WAITING_STATE;          // reset to 0
-//    mpbCBs -> mpbCB_t(buttonEvent);
     mpb_execute_event(buttonEvent);         /* calls motorcontrol_mpbCB(buttonEvent) to execute the buttonEvent */
 }
 
@@ -320,6 +303,7 @@ void mpb_execute_event(uint8_t messageID) {
             {
 
                 POWER_ON = 0;
+                /*  gracefully disable / exit relevant tasks and put system in sleep mode  */
 
             }
             /**** if Powering Off -> switch to Power On ****/
@@ -327,6 +311,7 @@ void mpb_execute_event(uint8_t messageID) {
             {
 
                 POWER_ON = 1;
+                /* restart firmware  */
 
             }
         // ICallPlatform_pwrNotify(unsigned int eventType, uintptr_t eventArg, uintptr_t clientArg)
@@ -346,13 +331,13 @@ void mpb_execute_event(uint8_t messageID) {
 
             if((*ptr_GAPopcode == GAP_DEVICE_INIT_DONE_EVENT) || ( *ptr_GAPopcode == GAP_LINK_TERMINATED_EVENT))
             {
-                if ((mpb_GAPflag != 1 ) && (*ptr_advertiseFlag != 1))// if not already advertising and if GAPflag is not already 1
+                if ((mpb_GAPflag != 1 ) && (*ptr_mpb_advertiseFlag != 1))// if not already advertising and if GAPflag is not already 1
                 {
                     mpb_GAPflag = 1;
                 }
             }
 
-            if ((*ptr_advertiseFlag) && (mpb_GAPflag)) // if advertising is 1 and if GAPflag is 1, reset GAPflag to 0
+            if (*ptr_mpb_advertiseFlag) // if advertising is 1, reset GAPflag to 0
             {
                 mpb_GAPflag = 0;
             }
@@ -388,17 +373,18 @@ void mpb_execute_event(uint8_t messageID) {
             switch_check = 6;
 
             /*****  toggles control law  *****/
-            uint8_t currentControlLaw = brake_and_throttle_getControlLaw();
-            if (currentControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+            uint8_t mpbControlLaw = brake_and_throttle_getControlLaw();
+            if (mpbControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
             {
-                currentControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
+                mpbControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
             }
             else
             {
-                currentControlLaw = BRAKE_AND_THROTTLE_NORMALLAW;
+                mpbControlLaw = BRAKE_AND_THROTTLE_NORMALLAW;
             }
-            /* send currentControlLaw to brakeAndThrotte.c */
-            brake_and_throttle_setControlLaw(currentControlLaw);
+            /* send mpbControlLaw to brakeAndThrotte.c */
+            brake_and_throttle_setControlLaw(mpbControlLaw);
+            led_control_setControlLaw(mpbControlLaw);
 
             break;
         }

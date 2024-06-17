@@ -180,7 +180,7 @@ static uint8_t Controller_Error_CodeVal[CONTROLLER_ERROR_CODE_LEN] = {0};
 // Characteristic "Controller_Motor_RPM" Value variable
 static uint8_t Controller_Motor_RPM_Val[CONTROLLER_MOTOR_RPM_LEN] = {0};
 // Characteristic "Controller_Motor_Speed" Value variable
-static uint8_t Controller_Motor_SpeedVal[CONTROLLER_MOTOR_SPEED_LEN] = {0}; // round(Controller_Motor_RPM_Val * 2 * (float) M_PI / 60 * WHEELRADIUS);
+static uint8_t Controller_Motor_SpeedVal[CONTROLLER_MOTOR_SPEED_LEN] = {0};
 // Characteristic "Controller_Total_Distance_Travelled" Value variable
 uint8_t Controller_Total_Distance_TravelledVal[CONTROLLER_TOTAL_DISTANCE_TRAVELLED_LEN] = {0};
 // Characteristic "Controller_Total_Energy_Consumption" Value variable
@@ -433,7 +433,7 @@ static gattAttribute_t ControllerAttrTbl[] =
                 { ATT_BT_UUID_SIZE, Controller_Motor_SpeedUUID },
                 GATT_PERMIT_READ,
                 0,
-                Controller_Motor_SpeedVal  //round(Controller_Motor_RPM_Val * 2 * (float) M_PI / 60 * WHEELRADIUS)
+                Controller_Motor_SpeedVal
               },
                           // Controller_Motor_Speed CCCD
                           {
