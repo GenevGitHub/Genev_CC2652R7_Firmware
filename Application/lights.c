@@ -1,9 +1,12 @@
 /*
- * lights.c
+ *  lights.c
+ *
+ *  Lights.c contains codes, commands and controls for head light and tail light
  *
  *  Created on: 7 May 2024
  *      Author: Chee
  */
+
 #include "Hardware/gGo_device_params.h"
 #include "Hardware/STM32MCP.h"
 

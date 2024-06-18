@@ -51,7 +51,7 @@ typedef struct mcuData{
 
 // This set of data is stored in ram. It contains variables that commands the Motor Controller Unit
 typedef struct STM32MCPData{
-        uint16_t    allowable_speed;
+        uint16_t    allowable_rpm;
         uint16_t    speed_mode_IQmax;
         uint16_t    IQ_value;
         uint16_t    ramp_rate;
@@ -71,7 +71,7 @@ typedef struct STM32MCPData{
 extern uint8_t Boot();
 extern void motor_control_init(void);
 extern void motor_control_setIQvalue();
-extern void motor_control_speedModeChg();
+extern void motor_control_speedModeParamsChg();
 extern void motor_control_brakeStatusChg();
 extern void motor_control_taillightStatusChg();
 

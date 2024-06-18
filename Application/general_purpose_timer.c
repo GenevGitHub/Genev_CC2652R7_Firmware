@@ -39,8 +39,6 @@ static uint8_t  *ptr_gpt_initComplete_flag = GPT_INACTIVE;  // static enables th
 static uint8_t  *ptr_gpt_dashboardErrorCodeStatus;
 static sysFatalError_t *ptr_sysFatalError;
 
-//uint32_t    gpt_power_on_time_ms;
-
 // Power On Status Variable
 static bool     *ptr_POWER_ON;
 
@@ -141,9 +139,10 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
       /***** Do nothing until (*ptr_gpt_initComplet_flag) == 1 *****/
       if (*ptr_gpt_initComplete_flag)
       {
-          /*******   N = 1  ********************
-           * Use for controlling MCU and Motor */
-          /* Read rpm every GPT_TIME */
+          /**************************   N = 1  ********************
+           * N = 1 executes codes at the fundamental time interval unit for general purpose timer - GPT_TIME
+           * N = 1 is Use for reading motor rpm, brake and throttle, controlling MCU and Motor */
+          /************** Read rpm every GPT_TIME *************************/
           periodic_communication_MCUSamplingRPM();
 
           /* Motor Control Section */
@@ -169,13 +168,14 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 
 
           /*********************************************************************************
-           * Executes after every N_data_analytics sleeps
+           * Executes after every N_data_analytics intervals
            *
-           * @ GPT_TIME = 0.100 seconds,
-           * Must be consistent with data_analytics.c
-           *    data_analytics_sampling_time = GPT_TIME * N_data_analytics;
-           *                                 = 0.100 seconds x 3  = 0.300 seconds
-           * Use to control data_analytics and Ambient light sensor
+           * if GPT_TIME = 0.100 seconds,
+           * then
+           *    N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME ;
+           *                     = 0.300 / 0.100  = 3
+           * N_data_analytics is used to control data_analytics and Ambient light sensor executions
+           *
            ********************************************************************************/
           if (gpt_counter % N_data_analytics == 0) // N = N_data_analytics
           {
@@ -202,11 +202,13 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           }
 
           /***************************************************************
-           * Executes after every 5 sleeps
-           * do this if gpt_count is divisible by 5. N = 5
-           * GPT_TIME = 0.100 seconds, 5 x 0.100 seconds = 0.500 seconds
+           * Executes at every 2 intervals
+           *
+           * if GPT_TIME = 0.100 seconds, execution time = 2 x 0.100 seconds = 0.200 seconds
+           * LED display and buzzer are refreshed/executed every 0.200 seconds
+           *
            **************************************************************/
-          if (gpt_counter % 2 == 0)     // N = 2
+          if (gpt_counter % 2 == 0)     // execute only when gpt_counter is an even number
           {
               gpt_counter2++;
 
@@ -218,12 +220,17 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   led_display_changeLightMode();
                   led_display_changeLightStatus();
 
-                  led_display_changeSpeedMode(gpt_counter);    // control law is indicated by flashing or non-falshing speed mode indicator
+                  /*** control law selection is indicated by flashing or non-falshing speed mode indicator
+                   *    flashing indicates direct law is selected
+                   *    non-flashing indicates normal law is selected
+                   ***************************************************************************************/
+                  led_display_changeSpeedMode(gpt_counter2);
 
                   led_display_changeUnit();
+
                   /*****  BLE indicator flashes on and off when advertising, solid light with connected, off when disconnected  *****/
-                  led_display_changeBLE(gpt_counter);
-                  led_display_changeBatteryStatus(gpt_counter);
+                  led_display_changeBLE(gpt_counter2);
+                  led_display_changeBatteryStatus(gpt_counter2);
 
               }
 
@@ -236,10 +243,8 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 
           }
 
-
           /**** counter only active if (*ptr_gpt_initComplete_flag) == 1  *****/
           gpt_counter++;
-//          gpt_power_on_time_ms = gpt_counter * GPT_TIME;  // for comparison purposes only
 
           /******************************************************************************
            * When instructed to Power Off, the programme enters here to exit for loop
@@ -285,7 +290,6 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 void GeneralPurposeTimer_init( void )
 {
     ptr_sysFatalError = UDHAL_sysFatalErrorRegister();
-    led_display_gptCounterRegister(&gpt_counter);
     ptr_gpt_dashboardErrorCodeStatus = bat_dashboardErrorCodeStatusRegister();
 
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;

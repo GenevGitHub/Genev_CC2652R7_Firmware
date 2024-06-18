@@ -19,7 +19,7 @@
 /*********************************************************************
  * CONSTANTS
  */
-#define DUMMY_NVS                    1
+//#define RESET_NVS                    1
 //#undef  DUMMY_NVS
 
 /*********************************************************************
@@ -36,8 +36,8 @@
  */
 
 /* Buffer placed in RAM to hold bytes read from non-volatile storage. */
-static uint32_t UDBuffer[SNV_BUFFER_SIZE] = {0};
-static uint32_t (*ptrReadBuffer)[SNV_BUFFER_SIZE];
+static uint32_t UDBuffer[SNV_BUFFER_SIZE] = {0};    // UDBuffer contains the reset data
+static uint32_t (*ptrReadBuffer)[SNV_BUFFER_SIZE];  // snvBuffer contains the data stored in memory
 /*
  * Some devices have a minimum FLASH write size of 4-bytes (1 word). Trying
  * to write a non-multiple of 4 amount of data will fail. This array is
@@ -51,16 +51,16 @@ static uint32_t (*ptrReadBuffer)[SNV_BUFFER_SIZE];
 */
 
 /** set/get address register of readBuffer and turns the address of UDBuffer to the calling function  **/
-extern void* snv_internal_setReadBuffer(uint32_t (*ptr_readBuffer)[])
+extern void* snv_internal_setReadBuffer(uint32_t (*ptr_snvBuffer)[])
 {
-    ptrReadBuffer = ptr_readBuffer;
+    ptrReadBuffer = ptr_snvBuffer;
     return (&UDBuffer);
 }
 
-extern void* snv_internal_getUDBuffer()
-{
-    return (&UDBuffer);
-}
+//extern void* snv_internal_getUDBuffer()
+//{
+//    return (&UDBuffer);
+//}
 
 /***********************************************************************************************************
  * @fn      snv_internal_getInitSpeedMode
@@ -96,8 +96,8 @@ extern void snv_internal_resetSNVdata()
      *  UDBuffer[1] store the UDCounter, which is the number of UDTrigger
      *  UDBuffer[2] to UDbuffer[N - 7] stores the previous 10 Accumulated Distance traveled and Accumulated Energy Consumed data
      *  UDBuffer[N - 6] to UDbuffer[N - 5] stores a pair of codes for triggering reset
-     *  UDBuffer[N - 6] has a value of 123456789
-     *  UDbuffer[N - 5] has a value of 987654321
+     *  UDBuffer[N - 6] has a value of RESETCODE01
+     *  UDbuffer[N - 5] has a value of RESETCODE02
      *  UDBuffer[N - 4] stores the selected speed mode
      *  UDBuffer[N - 3] stores the selected dashboard unit
      *  UDBuffer[N - 2] stores the selected light mode
@@ -105,17 +105,17 @@ extern void snv_internal_resetSNVdata()
      *
      **/
 
-// ************* dummy data for resetting snv internal memory or testing assigning data to array storage **************
+// ************* Data for resetting snv internal memory or testing assigning data to array storage **************
 // **** NOTE:  osal_snv_read at every power on -> at first time initialization, the nvs should be zeros.
 
         /***** RESET NVS CASE: case 00 *****/
-#ifndef DUMMY_NVS
+#ifdef ZERO_NVS    // RESET_NVS defines in simple peripheral
     UDBuffer[26] = RESETCODE01;        // reset code 1
     UDBuffer[27] = RESETCODE02;        // reset code 2
-#endif  // DUMMY_NVS
+#endif  // ZERO_NVS
 
         /***** TEST CASE: case 01 (SETSIZE = 2) *****/
-#ifdef DUMMY_NVS
+#ifdef DUMMY_NVS    // DUMMY_NVS defines in simple peripheral
 
         UDBuffer[0]  = 1439;      // ADDataCounter = number of integration completed (each integration contains N = data_analysis_points)
         UDBuffer[1]  = 51;        // UDCounter = number of UDTrigger.  UDCounter plus 1 when ADDataCounter = multiples of UDTrigger

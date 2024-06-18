@@ -49,7 +49,6 @@ uint16_t    throttlePercent;        // Actual throttle applied in percentage
 uint16_t    throttlePercent0 = 0;
 uint16_t    IQ_input;               // Iq value input by rider
 uint16_t    IQ_applied = 0;             // Iq value command sent to STM32 / motor Controller
-uint16_t    rpm_limit = REG_MAXP_RPM;
 uint16_t    brakePercent;           // brake applied in percentage
 uint16_t    brakeStatus = 0;
 
@@ -94,7 +93,7 @@ uint32_t        limit_exceedance_flag = 0;    // a flag for indicating rpm limit
 static uint16_t speedModeIQmax;
 static uint8_t  reductionRatio;
 static uint16_t rampRate;
-static uint16_t allowableSpeed;
+uint16_t allowableRPM;
 
 MCUD_t          *ptr_bat_MCUDArray;
 
@@ -102,9 +101,6 @@ MCUD_t          *ptr_bat_MCUDArray;
 /*********************************************************************
 * FUNCTIONS
 */
-static void brake_and_throttle_normalLawControl();
-
-
 /**** obtain/register the pointer to MCUDArray   ****/
 extern void brake_and_throttle_MCUArrayRegister(MCUD_t *ptrMCUDArray)
 {
@@ -121,7 +117,7 @@ extern void brake_and_throttle_STM32MCDArrayRegister(STM32MCPD_t *ptrSTM32MCPDAr
 /**********************************************************************
  *  Local functions
  */
-static void brake_and_throttle_getSpeedModeParams();
+static void brake_and_throttle_normalLawControl();
 
 /*********************************************************************
  * @fn      brake_and_throttle_init
@@ -145,13 +141,8 @@ void brake_and_throttle_init()
     uint8_t speedModeinit;
     speedModeinit = data_analytics_getSpeedmodeInit();
     speedMode = speedModeinit;
-    /* Initiate and Get speed mode parameters */
+    /* Initiate, Get and Update STM32 speed mode Params speed mode parameters */
     brake_and_throttle_getSpeedModeParams();
-
-    ptr_bat_STM32MCPDArray->speed_mode = speedMode;
-    ptr_bat_STM32MCPDArray->speed_mode_IQmax = speedModeIQmax;
-    ptr_bat_STM32MCPDArray->ramp_rate = rampRate;
-    ptr_bat_STM32MCPDArray->allowable_speed = allowableSpeed;
 
     for (uint8_t ii = 0; ii < BRAKE_AND_THROTTLE_SAMPLES; ii++)
     {
@@ -188,6 +179,8 @@ uint16_t    bat_count = 0;
 uint16_t    RPM_prev;
 uint16_t    IQapp_prev = 0;
 float       drpmdIQ;
+int         drpm;
+int         dIQ;
 uint16_t    IQ_maxPout = 0xFFFF;
 
 void brake_and_throttle_ADC_conversion()
@@ -339,17 +332,15 @@ void brake_and_throttle_ADC_conversion()
 
     /********************************************************************************************************************************
      *  brakePercent is in percentage - has value between 0 - 100 %
-     ********************************************************************************************************************************/
-    brakePercent = (brakeADCAvg - BRAKE_ADC_CALIBRATE_L) * 100 / (BRAKE_ADC_CALIBRATE_H - BRAKE_ADC_CALIBRATE_L);
-    /********************************************************************************************************************************
      *  throttlePercent is in percentage - has value between 0 - 100 %
-     ********************************************************************************************************************************/
+     *********************************************************************************************************************************/
+    brakePercent = (brakeADCAvg - BRAKE_ADC_CALIBRATE_L) * 100 / (BRAKE_ADC_CALIBRATE_H - BRAKE_ADC_CALIBRATE_L);
     throttlePercent = (throttleADCAvg - THROTTLE_ADC_CALIBRATE_L) * 100 / (THROTTLE_ADC_CALIBRATE_H - THROTTLE_ADC_CALIBRATE_L);
 
     /*****  update brakeAndThrottle_errorMsg on STM32MCPDArray.error_msg  *****/
     ptr_bat_STM32MCPDArray->error_msg = brakeAndThrottle_errorMsg;
 
-    /********************** Brake Power Off Protect State Machine  *******************************************************************************
+    /********************** Brake Power Cut Off Protect State Machine  *******************************************************************************
      *              if brake is engaged, defined as brakePercent being greater than say 50%,
      *              dashboard will instruct motor controller to cut power to motor for safety precautions.
      *              Once power to motor is cut, both the brake & throttle must be fully released before power delivery can be resumed
@@ -384,14 +375,16 @@ void brake_and_throttle_ADC_conversion()
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
 
     /******** compute drpm / dIQ  -  For studying purposes only   **********/
+    drpm = (RPM_temp - RPM_prev);
+    dIQ = (IQ_applied - IQapp_prev);
     if (((IQ_applied - IQapp_prev) == 0) || ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) >= 0xFFFF) ||
             ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) <= -0xFFFF))
     {
-        drpmdIQ = 0xFFFF;
+        drpmdIQ = 0;
     }
     else
     {
-        drpmdIQ = (RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
+        drpmdIQ = (float)(RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
     }
 
     IQapp_prev = IQ_applied;                            // for studying purposes only
@@ -402,12 +395,12 @@ void brake_and_throttle_ADC_conversion()
      *  Calculating the IQ Value
      *  Notes: Power is delivered to the motor if:
      *   (1) brake is not engaged
-     *   (2) RPM is above the REG_MINP_RPM
+     *   (2) RPM is not negative or is greater than the REG_MINP_RPM
      *  These features are for safety reasons
      **********************************************************************************/
     if ((!throttle_errorStatus) || (ptr_bat_MCUDArray->rpm_status))
     {
-        if ((brakeStatus)||(RPM_temp < REG_MINP_RPM))
+        if ((brakeStatus) || (RPM_temp < REG_MINP_RPM))
         {
         /*The E-Scooter Stops*/
         /*DRIVE_START = 0 --> Then we don't need to send dynamic Iq messages to the motor controller in order to relieve the UART loads*/
@@ -448,11 +441,11 @@ void brake_and_throttle_ADC_conversion()
 
 
     /********************************************************************************************************************************
-     * Data required by STM32MCP to command Motor Controller
+     * Update IQ_applied to STM32MCPDArray.IQ_value fot commanding Motor via motor controller
      ********************************************************************************************************************************/
     ptr_bat_STM32MCPDArray->IQ_value = IQ_applied;
 
-    // in "brakeAndThrottle_CB(allowableSpeed, IQ_input, brakeAndThrottle_errorMsg)", brakeAndThrottle_errorMsg is sent to the motor control unit for error handling if necessary.
+    // in "brakeAndThrottle_CB(allowableRPM, IQ_input, brakeAndThrottle_errorMsg)", brakeAndThrottle_errorMsg is sent to the motor control unit for error handling if necessary.
     // Add one more conditions in order to fed the power into the motor controller
     // if DRIVE_START == 1 -> then run the command for dynamic Iq, otherwise: ignore it!
 //#ifdef CC2640R2_GENEV_5X5_ID
@@ -486,53 +479,63 @@ static void brake_and_throttle_normalLawControl()
     uint16_t RPM_0;
     if (RPM_temp < 1)
     {
-        RPM_0 = 1;
+        RPM_0 = 1;  // for preventing division by 0 only
     }
     else
     {
         RPM_0 = RPM_temp;
     }
-    speedModFactor = pow((rpm_limit/(float)RPM_0), exponent);
 
-    /***   Speed limiter  ****/
+    /***   1. Speed limit Protection  ****/
     if (IQ_input == 0)
     {
         IQ_applied = IQ_input;
     }
     else // (IQ_input > 0)    // i.e. (IQ_input != 0)
     {
-        if (( RPM_temp < rpm_limit ) && (!limit_exceedance_flag))
+        if (( RPM_temp < allowableRPM ) && (!limit_exceedance_flag))
         {
             IQ_applied = IQ_input;
         }
-        else if (( RPM_temp >= rpm_limit ) && (!limit_exceedance_flag))
+        else if (( RPM_temp >= allowableRPM ) && (!limit_exceedance_flag))
         {
+            speedModFactor = pow((allowableRPM/(float)RPM_0), exponent);
             IQ_applied = (float)speedModFactor * IQ_input;
             limit_exceedance_flag = 1;
         }
-        else if (( RPM_temp >= rpm_limit ) && (limit_exceedance_flag))
+        else if (( RPM_temp >= allowableRPM ) && (limit_exceedance_flag))
         {
+            speedModFactor = pow((allowableRPM/(float)RPM_0), exponent);
             IQ_applied = (float)speedModFactor * IQ_applied;
         }
-        else if ((RPM_temp < rpm_limit) && (limit_exceedance_flag))    // when (RPM_temp >= rpm_limit), speedModFactor is less than or equal to 1.
+        else if ((RPM_temp < allowableRPM) && (limit_exceedance_flag))    // when (RPM_temp >= allowableRPM), speedModFactor is less than or equal to 1.
         {
             IQ_applied = IQ_input * 0.5;
             limit_exceedance_flag = 0;
         }
-
-        /***  Power Output Limiter  *****/
-        IQ_maxPout = REG_MAXPOUT / (RPM_temp * 2 * PI_CONSTANT / 60) / KT_CONSTANT / KIQ_CONSTANT;
-        if (IQ_applied > IQ_maxPout)
-        {
-            IQ_applied = IQ_maxPout;
-        }
-
-        if (IQ_applied >= IQ_input)
-        {
-            IQ_applied = IQ_input;
-        }
-
     }
+
+    /***  2. Output Power Limit Protection  *****/
+    if ((REG_MAXPOUT / (RPM_0 * 2 * PI_CONSTANT / 60) / KT_CONSTANT / KIQ_CONSTANT) > 0xFFFF)
+    {
+        IQ_maxPout = 0xFFFF;    // caps the maximum IQ_maxPout value to 0xFFFF
+    }
+    else
+    {
+        IQ_maxPout = REG_MAXPOUT / (RPM_0 * 2 * PI_CONSTANT / 60) / KT_CONSTANT / KIQ_CONSTANT;
+    }
+
+    if (IQ_applied > IQ_maxPout)
+    {
+        IQ_applied = IQ_maxPout;    // making sure IQ applied will not exceed regulatory output power limit
+    }
+
+    /***  3. Input and applied IQ comparator - making sure applied is never greater than user input  *****/
+    if (IQ_applied > IQ_input)
+    {
+        IQ_applied = IQ_input;
+    }
+
     normalLaw_count++;  // for debugging
 
 }
@@ -547,37 +550,69 @@ static void brake_and_throttle_normalLawControl()
  *
  * @return  none
  *********************************************************************/
-static void brake_and_throttle_getSpeedModeParams()
+extern void brake_and_throttle_getSpeedModeParams()
 {
     switch(speedMode)
     {
     case BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE:                   // Amble mode
         {
-            reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
-            speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+            if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+            }
+            else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
+            }
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-            allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
             break;
         }
     case BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE:                 // Leisure mode
         {
-            reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE;
-            speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+            if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+            }
+            else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
+            }
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
-            allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
             break;
         }
     case BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS:                  // Sports mode
         {
-            reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
-            speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+            if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+            }
+            else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
+            }
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_SPORTS;
-            allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
             break;
         }
     default:
         break;
     }
+    speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+
+    /* Send updated speed mode parameters to motor control unit */
+    /*  these following codes are necessary for control law change  */
+    ptr_bat_STM32MCPDArray->speed_mode = speedMode;
+    ptr_bat_STM32MCPDArray->speed_mode_IQmax = speedModeIQmax;
+    ptr_bat_STM32MCPDArray->ramp_rate = rampRate;
+    ptr_bat_STM32MCPDArray->allowable_rpm = allowableRPM;
+    /* call to update and execute speed mode change on MCU */
+    motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
+
 }
 
 /*********************************************************************
@@ -591,56 +626,89 @@ static void brake_and_throttle_getSpeedModeParams()
  */
 uint8_t brake_and_throttle_toggleSpeedMode()
 {
-    if (brake_errorStatus == 0)
+    if (brake_errorStatus == 0) // no brake error
     {
         if (throttleADCsample <= THROTTLE_ADC_CALIBRATE_L)                                    // Only allow speed mode change when no throttle is applied - will by-pass if throttle is applied
         {
-            if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE)                       // Amble mode to Leisure mode
+            if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE)  // if Amble mode, change to Leisure mode
             {
                 speedMode = BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE;
-                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE;
-                speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+                if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+                }
+                else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
+                }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
-                allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
+
             }
-            else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE)                 // Leisure mode to Sports mode
+            else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE) // if Leisure mode, change to Sports mode
             {
                 speedMode = BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS;
-                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
-                speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+                if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+                }
+                else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
+                }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_SPORTS;
-                allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
+
             }
-            else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS)                  // Sports mode back to Amble mode
+            else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS) // if Sports mode, change back to Amble mode
             {
                 speedMode = BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE;
-                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
-                speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+                if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+                }
+                else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+                {
+                    reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                    allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
+                }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-                allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
+
             }
         }
     }
-    else
+    else    // brake error
     {
         if(speedMode != BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE)        // This condition prevents unnecessary repetitive changes that does nothing
         {
             speedMode = BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE;
-            reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
-            speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
+            if (ControlLaw == BRAKE_AND_THROTTLE_DIRECTLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS * 1.5;
+            }
+            else if (ControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
+            {
+                reductionRatio = BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;
+                allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
+            }
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-            allowableSpeed = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
         }
     }
+
+    speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
 
     /* Send updated speed mode parameters to motor control unit */
     ptr_bat_STM32MCPDArray->speed_mode = speedMode;
     ptr_bat_STM32MCPDArray->speed_mode_IQmax = speedModeIQmax;
     ptr_bat_STM32MCPDArray->ramp_rate = rampRate;
-    ptr_bat_STM32MCPDArray->allowable_speed = allowableSpeed;
+    ptr_bat_STM32MCPDArray->allowable_rpm = allowableRPM;
 
-    /* call and execute change to MCU */
-    motor_control_speedModeChg();   // Note STM32MCP function commented out for debugging purposes
+    /* call to update and execute speed mode change on MCU */
+    motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
 
     /* updates led display */
     led_display_setSpeedMode(speedMode);    // update led display

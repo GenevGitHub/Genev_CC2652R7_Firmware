@@ -181,15 +181,13 @@ extern void* pot_uptimeMinute()
     return (&deviceUptimeMinutes);
 }
 
-/*** receive the initial device uptime in minutes at start up ***/
+/*** receive the device total uptime in minutes from memory at start up ***/
 extern void pot_setDeviceUpTime(uint32_t uptimeMinutes)
 {
     deviceUptimeMinutes = uptimeMinutes;
 }
 
-
-
-
+/*** register the pointer to simple peripheral initiation flag ***/
 extern void pot_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
 {
     ptr_pot_initComplete_flag = ptr_initComplete_flag;

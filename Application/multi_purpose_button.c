@@ -253,7 +253,7 @@ void mpb_processTimerOv()
     else if (risingEdgeCount == 3 && fallingEdgeCount == 3){
         buttonEvent = 0x05;
     }
-    // TOGGLE CONTROL LAW (4 short + 1 long presses)
+    // TOGGLE CONTROL LAW (4 short + 1 long presses) - enable normal law override in the event of normal law malfunction / mis-behave
     else if (risingEdgeCount == 4 && fallingEdgeCount == 5){
         buttonEvent = 0x06;
     }
@@ -268,10 +268,10 @@ void mpb_processTimerOv()
     buzzer_buttonHandler(0);
 #endif
 
-    timerPeriod = MPB_TIMER_OV_TIME_LONG;     // resets to "SINGLE_BUTTON_TIMER_OV_TIME_LONG" after each overflow
-    risingEdgeCount = 0;                         // reset to 0
-    fallingEdgeCount = 0;                        // reset to 0
-    mpb_buttonState = MPB_WAITING_STATE;          // reset to 0
+    timerPeriod = MPB_TIMER_OV_TIME_LONG;       // resets to "SINGLE_BUTTON_TIMER_OV_TIME_LONG" after each overflow
+    risingEdgeCount = 0;                        // reset to 0
+    fallingEdgeCount = 0;                       // reset to 0
+    mpb_buttonState = MPB_WAITING_STATE;         // reset to 0
     mpb_execute_event(buttonEvent);         /* calls motorcontrol_mpbCB(buttonEvent) to execute the buttonEvent */
 }
 
@@ -385,11 +385,13 @@ void mpb_execute_event(uint8_t messageID) {
             /* send mpbControlLaw to brakeAndThrotte.c */
             brake_and_throttle_setControlLaw(mpbControlLaw);
             led_control_setControlLaw(mpbControlLaw);
+            /**** update control law change speed mode parameters ****/
+            brake_and_throttle_getSpeedModeParams();
 
             break;
         }
     default:
-        {    // case 0x00 and all other cases
+        {    // case 0x00 for all unrecognized cases
             switch_check = 0;
             // mpb_unrecognised_Press_flag = 1;
 

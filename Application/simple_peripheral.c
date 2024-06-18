@@ -621,9 +621,9 @@ static void SimplePeripheral_init(void)
   //                           db_charValue2);
   //    Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN,
   //                           &db_charValue3);
-      uint8 db_charValue4[DASHBOARD_POWER_ON_TIME_LEN] = {(power_on_time_init_val & 0xFF), ((power_on_time_init_val >> 8) & 0xFF)};
-      Dashboard_SetParameter(DASHBOARD_POWER_ON_TIME, DASHBOARD_POWER_ON_TIME_LEN,
-                             db_charValue4);
+//      uint8 db_charValue4[DASHBOARD_POWER_ON_TIME_LEN] = {(power_on_time_init_val & 0xFF), ((power_on_time_init_val >> 8) & 0xFF)};
+//      Dashboard_SetParameter(DASHBOARD_POWER_ON_TIME, DASHBOARD_POWER_ON_TIME_LEN,
+//                             db_charValue4);
   }
 
   /************** Register callback with Dashboard profile, Battery profile, Controller profile ***************/
@@ -712,7 +712,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       ptrUDBuffer = snv_internal_setReadBuffer(&snv_internal_80);   // pass the pointer to snv_internal_80 to snv_internal and get the pointer to UDArray in return
 
-      data_analytics_setReadBuffer(&snv_internal_80);               // pass the pointer to snv_internal_80 to data_analytics
+      data_analytics_setSNVBufferRegister(&snv_internal_80);               // pass the pointer to snv_internal_80 to data_analytics
 
       ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to powerOn in return
 
@@ -726,22 +726,26 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       SimplePeripheral_init();
 
-  /**************** Non-Volatile Storage via SNV *****************************/
+  /********************************************************
+   *            Non-Volatile Storage via SNV
+   * ******************************************************/
   /* clear and set Buffer SNV_NV_ID80 for the first time */
+      /*  Firstly, read the memory in SNV_NV_ID80 sector  */
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);
-      // RESET NVS if the following conditions are not met
+      /* RESET NVS if the following conditions (RESET CODES) are not met */
       if ((snv_internal_80[SNV_BUFFER_SIZE - 6] != RESETCODE01) && (snv_internal_80[SNV_BUFFER_SIZE - 5] != RESETCODE02))
       {
-          //#ifdef RESET_NVS
-          snv_internal_resetSNVdata();
+#ifdef RESET_NVS
+          snv_internal_resetSNVdata();      // option available for zero reset or dummy reset
           snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
-          //#endif // RESET_NVS
+#endif // RESET_NVS
       }
-
-  /****    reads from memory at SNV ID 80 and stores the read in buffer snv_internal    ****/
+  /****    read memory again after reset     ****/
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);
 
-  /**************** End Non-Volatile Storage via SNV *****************************/
+  /**************** End Non-Volatile Storage via SNV **********
+   ************************************************************/
+
 
     /**************************************************************************
      *  Initialize UDHAL (GPIO, I2C, ADC, UART)

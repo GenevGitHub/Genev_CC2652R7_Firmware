@@ -1508,10 +1508,10 @@ void led_display_setBatteryStatus(uint8_t batteryStatus)
  *
  * @return  none
  *********************************************************************/
-void led_display_changeBatteryStatus(uint32_t gptCounter)
+void led_display_changeBatteryStatus(uint32_t eventcounter)
 {
     /*  Enables flashing when battery status is critically low (batteryStatus = 0) */
-    if ((ledBatteryStatus == 0) && (gptCounter % 6 == 0))
+    if ((ledBatteryStatus == 0) && (eventcounter % 3 == 0))
     {
         if(battery_bar1_status == 1)
         {
@@ -1577,9 +1577,9 @@ void led_display_setSpeedMode(uint8_t speedMode)
  *
  * @return  none
  *********************************************************************/
-void led_display_changeSpeedMode(uint32_t gptCounter)
+void led_display_changeSpeedMode(uint32_t eventcounter)
 {
-    if ((!led_controlLaw) && (gptCounter % 6 == 0)) // gpt_counter % 5 == 0   // if not normal law -> flashing speed mode indicator
+    if ((!led_controlLaw) && (eventcounter % 3 == 0)) // gpt_counter % 5 == 0   // if not normal law -> flashing speed mode indicator
     {
         if (led_controlLaw_ledStatus)   // turn off speed mode led indicator
         {
@@ -1689,9 +1689,9 @@ void led_display_changeUnit()
  *********************************************************************/
 uint8_t *ptr_led_opcode;
 uint8_t *ptr_led_advertiseFlag;
-uint32_t *ptr_led_gpt_counter;
+//uint32_t *ptr_led_gpt_counter;
 
-void led_display_changeBLE(uint32_t gptCounter)
+void led_display_changeBLE(uint32_t eventcounter)
 {
     /******  if advertiseFlag == 1 -> flash BLE indicator.  BLE indicator light is flashing   ****/
 
@@ -1709,7 +1709,7 @@ void led_display_changeBLE(uint32_t gptCounter)
         ledBLEStatus = 0;
     }
 
-    if ((ledBLEStatus == 2) && (gptCounter % 6 == 0))
+    if ((ledBLEStatus == 2) && (eventcounter % 3 == 0))
     {
         if(BLE_flash_status == 1)
                 {
@@ -1997,17 +1997,3 @@ extern void led_display_advertiseFlagRegister(uint8_t *ptr_advertiseFlag)
     ptr_led_advertiseFlag = ptr_advertiseFlag;
 }
 
-
-/*********************************************************************
- * @fn      led_display_advertiseFlagRegister
- *
- * @brief   Register for sp_advertiseFlag
- *
- * @param   none
- *
- * @return  none
- *********************************************************************/
-extern void led_display_gptCounterRegister(uint32_t *ptr_gpt_counter)
-{
-    ptr_led_gpt_counter = ptr_gpt_counter;
-}

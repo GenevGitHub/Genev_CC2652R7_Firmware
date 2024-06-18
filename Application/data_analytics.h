@@ -98,22 +98,20 @@ typedef struct appData{                                 // is appData needed her
 /*********************************************************************
  * FUNCTIONS
  *********************************************************************/
-extern void data_analytics_init();
-extern void data_analytics_buzzerStatusRegister(uint8_t *ptrbuzzerStatus);
+extern void data_analytics_init(void);
+//extern void data_analytics_buzzerStatusRegister(uint8_t *ptrbuzzerStatus);
 
-extern void data_analytics_setReadBuffer(uint32_t (*ptrsnvbuf)[]);
-extern uint8_t data_analytics_getSpeedmodeInit();
-extern uint8_t data_analytics_getLightmodeInit();
-extern uint8_t data_analytics_getDashunitInit();
-
+extern void data_analytics_setSNVBufferRegister(uint32_t (*ptrsnvbuf)[]);
 extern void data_analytics_MCUDArrayRegister(MCUD_t (*ptrMCUD));
 extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErrorCodeStatus);
+extern uint8_t data_analytics_getSpeedmodeInit(void);
+extern uint8_t data_analytics_getLightmodeInit(void);
+extern uint8_t data_analytics_getDashunitInit(void);
 
-//Battery status related Function declaration
+//Battery and Unit status related Function declaration
 static uint8_t computeBatteryPercentage( void );
 static uint8_t determineBatteryStatus( void );
-
-extern void* data_analytics_ptrUnitSelectDash();
+extern void* data_analytics_ptrUnitSelectDash(void);
 extern void data_analytics_changeUnitSelectDash(void);
 
 //Global Functions declaration
@@ -121,9 +119,8 @@ extern void data_analytics_init( void );
 extern void data_analytics_LEDSpeed();
 extern void data_analytics( void );
 extern void data2UDArray( void );
-extern void data_analytics_sampling();
+extern void data_analytics_sampling(void);
 extern void data_analytics_Main( void );
-extern void data_analytics_timerInterruptHandler( void );
 
 
 #ifdef __cplusplus

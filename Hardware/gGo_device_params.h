@@ -67,63 +67,16 @@ extern "C"
 #define FRICTION_TORQUE                     0.1919
 #define DAMPING_CONSTANT                    0.003443
 
-///*********************************************************************************************
-// *  Battery Status Constants
-// *********************************************************************************************/
-//#define BATTERY_PERCENTAGE_INITIAL      100             // Remove this if calculated using start up voltage
-//#define BATTERY_PERCENTAGE_LL           5               // battery low percentage at which buzzer alert starts
-//#define BATTERY_PERCENTAGE_LH           8               // battery low percentage at which buzzer alert stops
-//
-///* Battery specification parameters     40.7V */
-//#ifdef BATTERY_40700mV_S11P2
-//#define BATTERY_CEILING_VOLTAGE         47000
-//// if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
-//#define BATTERY_NOMINAL_VOLTAGE         40700
-//#define BATTERY_MAX_VOLTAGE             46200
-//#define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
-//#define BATTERY_CRITICALLY_LOW          30000
-//#define BATTERY_MAX_CAPACITY            390720          // mW-hr
-//#define LEVEL45                         43560           // equivalent to 80%
-//#define LEVEL34                         41316           // equivalent to 63%
-//#define LEVEL23                         38940           // equivalent to 45%
-//#define LEVEL12                         36696           // equivalent to 28%
-//#define LEVEL01                         33000           // equivalent to  0%
-//#endif // BATTERY_S11P2
-//
-///* Battery specification parameters     37.0V */
-//#ifdef BATTERY_37000mV_S10P2
-//#define BATTERY_CEILING_VOLTAGE         42700
-//// if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
-//#define BATTERY_NOMINAL_VOLTAGE         37000           // 10 x 3.7V
-//#define BATTERY_MAX_VOLTAGE             42000
-//#define BATTERY_MIN_VOLTAGE             30000           // the battery voltage assumed at 0% charged
-//#define BATTERY_CRITICALLY_LOW          26000
-//#define BATTERY_MAX_CAPACITY            355200          // mW-hr
-//#define LEVEL45                         39600           // equivalent to 80%
-//#define LEVEL34                         37560           // equivalent to 63%
-//#define LEVEL23                         35400           // equivalent to 45%
-//#define LEVEL12                         33360           // equivalent to 28%
-//#define LEVEL01                         30000           // equivalent to  0%
-//#endif // BATTERY_S10P2
-//
-//#define VOLTAGE_DROP_COEFFICIENT        0.269           // for Cest Power 37V 9.6Ah Battery pack Voltage drop empirical coefficient
-//
-//#define LEVEL45PERCENT                  80              // 80%
-//#define LEVEL34PERCENT                  63              // 63%
-//#define LEVEL23PERCENT                  45              // 45%
-//#define LEVEL12PERCENT                  28              // 28%
-//#define LEVEL01PERCENT                  0               // 0%
-
 /*********************************************************************************************
  *  Battery Status Colours
  *********************************************************************************************/
-#define GLOWING_AQUA                    0x05
-#define GLOWING_GREEN                   0x04
-#define YELLOW                          0x03
-#define ORANGE                          0x02
-#define RED                             0x01
-#define FLASHING_RED                    0x00
-#define BATTERY_STATUS_INITIAL          0x05
+#define GLOWING_AQUA                        0x05
+#define GLOWING_GREEN                       0x04
+#define YELLOW                              0x03
+#define ORANGE                              0x02
+#define RED                                 0x01
+#define FLASHING_RED                        0x00
+#define BATTERY_STATUS_INITIAL              0x05
 
 /*********************************************************************************************
  *  Light Settings
@@ -195,15 +148,15 @@ extern "C"
  *  Regional / Regulation Settings
  *********************************************************************************************/
 #ifdef REGION0
-#define REG_MAXPOUT                                             65535 //Watt
-#define REG_MAXP_SPEED                                          250  // km/hr
-#define REG_MAXP_RPM                                            6630 // rpm
-#define REG_MINP_SPEED                                          3
-#define REG_MINP_RPM                                            80
+#define REG_MAXPOUT                                          65535 //Watt
+#define REG_MAXP_SPEED                                       250  // km/hr
+#define REG_MAXP_RPM                                         6630 // rpm
+#define REG_MINP_SPEED                                       3
+#define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                       2650       // 100 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                     4770       // 180 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                      6630       // 250 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    2650       // 100 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  4770       // 180 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 250 Km/hr
 
 #endif // REGION1
 
@@ -216,7 +169,8 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477       // 18 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   663       // 25 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   636       // 24 Km/hr.  We can set sports mode max speed to different value than regulation.
+                                                                                // The set value must be less than or equal to regulation max speed.
 
 #endif // REGION1
 
@@ -229,7 +183,7 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       //  10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477       //  18 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   663       //  25 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       //  25 Km/hr
 
 #endif // REGION2
 
@@ -242,7 +196,7 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       //  = 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  451       //  = 17 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   636       //  = 24 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       //  = 24 Km/hr
 
 #endif // REGION3
 
@@ -255,7 +209,7 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 275 RPM = 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  398       // 488 RPM = 15 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   530       // 530 RPM = 20 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 530 RPM = 20 Km/hr
 
 #endif // REGION4
 
@@ -268,7 +222,7 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 275 RPM = 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477       // 488 RPM = 18 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   663       // 674 RPM = 25 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 674 RPM = 25 Km/hr
 
 #endif // REGION5
 
@@ -276,7 +230,6 @@ extern "C"
 #ifdef _cplusplus
 }
 #endif
-
 
 
 #endif /* HARDWARE_GGO_DEVICE_PARAMS_H_ */

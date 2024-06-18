@@ -451,8 +451,8 @@ extern void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId);
 extern void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID);
 
 /*==========================================================E-SCOOTER Control Functions ==============================================================*/
-extern void STM32MCP_setSpeedModeConfiguration(int32_t torqueIQ, int32_t allowableSpeed, uint16_t rampRate);
-extern void STM32MCP_setDynamicCurrent(int16_t allowableSpeed, int16_t IQValue);
+extern void STM32MCP_setSpeedModeConfiguration(int16_t torqueIQ, int16_t max_speed, uint16_t ramp);
+extern void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue);
 /*==========================================================E-SCOOTER Shutdown Functions ==============================================================*/
 extern void STM32MCP_EscooterShutdown(uint8_t sysCmdId);
 

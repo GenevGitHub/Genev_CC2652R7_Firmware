@@ -40,10 +40,11 @@ MCUD_t MCUDArray = {LEVEL45,
                     1,  // rpm_status. 1 = 0 or positive, 0 = negative
                     70,
                     70,
-                    0   };
+                    0
+                    };
 
 /** STM32MCDArray contains data for commanding / controlling the MCU and hence Motor **/
-// initial values for {allowable_speed, speed_mode_IQmax, IQ_value, ramp_rate, brake_percent, error_msg, brake_status, light_status, speed_mode}
+// initial values for {allowable_rpm, speed_mode_IQmax, IQ_value, ramp_rate, brake_percent, error_msg, brake_status, light_status, speed_mode}
 STM32MCPD_t STM32MCDArray = {BRAKE_AND_THROTTLE_MAXSPEED_AMBLE,
                              14000,
                              0,
@@ -52,7 +53,8 @@ STM32MCPD_t STM32MCDArray = {BRAKE_AND_THROTTLE_MAXSPEED_AMBLE,
                              0,
                              0,
                              LIGHT_STATUS_OFF,
-                             BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE  };
+                             BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE
+                             };
 
 /**********************************************************************
  *  Local functions
@@ -373,7 +375,7 @@ extern void motor_control_setIQvalue()
          * */
 #ifdef MOTOR_CONNECT
 
-        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_speed, STM32MCDArray.IQ_value);
+        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_rpm, STM32MCDArray.IQ_value);
 
 #endif //MOTOR_CONNECT
 
@@ -387,7 +389,7 @@ extern void motor_control_setIQvalue()
 #ifdef MOTOR_CONNECT
 
         //STM32MCP_executeCommandFrame(STM32MCP_MOTOR_1_ID, STM32MCP_STOP_MOTOR_COMMAND_ID);
-        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_speed, 0);
+        STM32MCP_setDynamicCurrent(STM32MCDArray.allowable_rpm, 0);
 
 #endif //MOTOR_CONNECT
 
@@ -397,7 +399,7 @@ extern void motor_control_setIQvalue()
 }
 
 /*********************************************************************
- * @fn      motor_control_speedModeChg
+ * @fn      motor_control_speedModeParamsChg
  *
  * @brief   When there is a speed mode change, it sends message here to communicate with STM32
  *
@@ -406,14 +408,13 @@ extern void motor_control_setIQvalue()
  *
  * @return  None.
  */
-//static void motor_control_speedModeChg(uint16_t torqueIQ, uint16_t allowableSpeed, uint16_t rampRate)
-extern void motor_control_speedModeChg()
-
+//static void motor_control_speedModeParamsChg(uint16_t torqueIQ, uint16_t allowableSpeed, uint16_t rampRate)
+extern void motor_control_speedModeParamsChg()
 {
 #ifdef MOTOR_CONNECT
 
     /*** send speed mode change parameters to motor control   ***/
-    STM32MCP_setSpeedModeConfiguration(STM32MCDArray.speed_mode_IQmax, STM32MCDArray.allowable_speed, STM32MCDArray.ramp_rate);
+    STM32MCP_setSpeedModeConfiguration(STM32MCDArray.speed_mode_IQmax, STM32MCDArray.allowable_rpm, STM32MCDArray.ramp_rate);
 
 #endif //MOTOR_CONNECT
 
@@ -469,16 +470,3 @@ extern void motor_control_taillightStatusChg()
 
 }
 
-/*********************************************************************
- * @fn      motor_control_signRpmRegister
- *
- * @brief   Returns the pointer to rpmStatus to the calling function
- *
- * @param   None.
- *
- * @return  None.
- */
-//extern void* motor_control_signRpmRegister()
-//{
-//    return (&rpmStatus);
-//}

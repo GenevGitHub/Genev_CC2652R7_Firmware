@@ -46,9 +46,9 @@ extern "C"
 #define BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS                      0x02
 
 //Speed mode TORQUEIQ reduction ratio
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       60        //60%   Pout = 240 W
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     70        //70%   Pout = 270 W
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      80        //80%   Pout = 300 W
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       60        //60%   Normal law IQ applied max = 16000, Direct law Pout = 240 W
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     70        //70%   Normal law IQ applied max = 16000, Direct law Pout = 270 W
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      80        //80%   Normal law IQ applied max = 16000, Direct law Pout = 300 W
 
 //Speed mode ramp rate (acceleration) in milliseconds
 #define BRAKE_AND_THROTTLE_RAMPRATE_AMBLE                         3000      // 4000
@@ -101,6 +101,7 @@ extern void brake_and_throttle_MCUArrayRegister(MCUD_t *ptrMCUDArray);
 extern void brake_and_throttle_setSpeedMode(uint8_t speed_mode);
 extern uint8_t brake_and_throttle_getSpeedMode();
 extern uint8_t brake_and_throttle_toggleSpeedMode();
+extern void brake_and_throttle_getSpeedModeParams();
 
 extern void brake_and_throttle_ADC_conversion();
 extern uint16_t brake_and_throttle_getThrottlePercent();

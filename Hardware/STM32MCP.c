@@ -693,12 +693,12 @@ void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID)
  *          as well as acceleration and deceleration ramps.
  *
  * @param   torqueIQ :      maximum allowable torques (s16A)
- *          allowableSpeed: maximum allowable speed  (RPM)
- *          rampRate:       time durations for acceleration / deceleration in milliseconds
+ *          max_speed: maximum allowable speed  (RPM)
+ *          ramp:       time durations for acceleration / deceleration in milliseconds
  *
  * @return  None
  */
-void STM32MCP_setSpeedModeConfiguration(int32_t torqueIQ, int32_t allowableSpeed, uint16_t rampRate)
+void STM32MCP_setSpeedModeConfiguration(int16_t torqueIQ, int16_t max_speed, uint16_t ramp)
 {
     if(communicationState == STM32MCP_COMMUNICATION_ACTIVE)
     {
@@ -708,14 +708,14 @@ void STM32MCP_setSpeedModeConfiguration(int32_t torqueIQ, int32_t allowableSpeed
         txFrame[1]   = STM32MCP_SET_DRIVING_MODE_CONFIG_PAYLOAD_LENGTH;
         txFrame[2]   = torqueIQ               & 0xFF;
         txFrame[3]   = (torqueIQ >> 8)        & 0xFF;
-        txFrame[4]   = (torqueIQ >> 16)       & 0xFF;
-        txFrame[5]   = (torqueIQ >> 24)       & 0xFF;
-        txFrame[6]   =  allowableSpeed        & 0xFF;
-        txFrame[7]   = (allowableSpeed >> 8)  & 0xFF;
-        txFrame[8]   = (allowableSpeed >> 16) & 0xFF;
-        txFrame[9]   = (allowableSpeed >> 24) & 0xFF;
-        txFrame[10]  =  rampRate              & 0xFF;
-        txFrame[11]  = (rampRate >> 8)        & 0xFF;
+        txFrame[4]   = (torqueIQ >> 16)       & 0xFF;//0
+        txFrame[5]   = (torqueIQ >> 24)       & 0xFF;//0
+        txFrame[6]   =  max_speed        & 0xFF;
+        txFrame[7]   = (max_speed >> 8)  & 0xFF;
+        txFrame[8]   = (max_speed >> 16) & 0xFF;//0
+        txFrame[9]   = (max_speed >> 24) & 0xFF;//0
+        txFrame[10]  =  ramp              & 0xFF;
+        txFrame[11]  = (ramp >> 8)        & 0xFF;
         txFrame[12]  = STM32MCP_calChecksum(txFrame,12);
         if(STM32MCP_queueIsEmpty())
         {
@@ -734,12 +734,12 @@ void STM32MCP_setSpeedModeConfiguration(int32_t torqueIQ, int32_t allowableSpeed
  *
  * @brief   It is used for changing the IQ instantly in order to change the Motor's speed
  *
- * @param   allowableSpeed:      maximum allowable torques (RPM)
+ * @param   max_speed:      maximum allowable torques (RPM)
  *          IQValue:             instant Current  (s16A)
  *
  * @return  None
  */
-void STM32MCP_setDynamicCurrent(int16_t allowableSpeed, int16_t IQValue)
+void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue)
 {
     if(communicationState == STM32MCP_COMMUNICATION_ACTIVE)
     {
@@ -747,14 +747,14 @@ void STM32MCP_setDynamicCurrent(int16_t allowableSpeed, int16_t IQValue)
         uint8_t *txFrame = (uint8_t*)malloc(sizeof(uint8_t)*(STM32MCP_SET_DYNAMIC_TORQUE_FRAME_PAYLOAD_LENGTH + 3));
         txFrame[0]   = STM32MCP_MOTOR_1_ID | STM32MCP_SET_DYNAMIC_TORQUE_FRAME_ID;
         txFrame[1]   = STM32MCP_SET_DYNAMIC_TORQUE_FRAME_PAYLOAD_LENGTH;
-        txFrame[2]  =  allowableSpeed         & 0xFF;
-        txFrame[3]  = (allowableSpeed >> 8)   & 0xFF;
-        txFrame[4]  = (allowableSpeed >> 16)  & 0xFF;
-        txFrame[5]  = (allowableSpeed >> 24)  & 0xFF;
+        txFrame[2]  =  max_speed         & 0xFF;
+        txFrame[3]  = (max_speed >> 8)   & 0xFF;
+        txFrame[4]  = (max_speed >> 16)  & 0xFF;//0
+        txFrame[5]  = (max_speed >> 24)  & 0xFF;//0
         txFrame[6]  =  IQValue        & 0xFF;
         txFrame[7]  = (IQValue >> 8)  & 0xFF;
-        txFrame[8]  = (IQValue >> 16) & 0xFF;
-        txFrame[9]  = (IQValue >> 24) & 0xFF;
+        txFrame[8]  = (IQValue >> 16) & 0xFF;//0
+        txFrame[9]  = (IQValue >> 24) & 0xFF;//0
         txFrame[10] = STM32MCP_calChecksum(txFrame,10);
         if(STM32MCP_queueIsEmpty())
         {

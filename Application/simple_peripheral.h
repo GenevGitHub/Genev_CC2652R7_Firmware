@@ -65,7 +65,7 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
-// time interval to perform periodic event (in ms)
+// periodic event time interval (in ms) - the interval between BLE refresh/updates. 6 (Strava) to 10 seconds are common.
 #define SP_PERIODIC_EVT_PERIOD               6000
 
 // Task configuration
@@ -75,19 +75,19 @@ extern "C"
 #define SP_TASK_STACK_SIZE                   1024
 #endif
 
-//#define RESET_NVS                            1
-#undef RESET_NVS
+#define RESET_NVS                            1
+//#undef RESET_NVS
+#define ZERO_NVS                             1
+//#undef ZERO_NVS
+//#define DUMMY_NVS                            1
+#undef  DUMMY_NVS
 
 #define SP_ADVERTISING_TIMEOUT               3000  // each tick is in 10 ms, hence 3000 x 10 ms = 30 seconds
 
 /*********************************************************************
  * MACROS
  */
-//typedef uint8_t (*engueueMsg_t)(uint8_t event, uint8_t state, uint8_t *pData);
-//typedef struct
-//{
-//    engueueMsg_t enqueueMsg;
-//}simplePeripheral_bleCBs_t;
+
 
 /*********************************************************************
  * FUNCTIONS

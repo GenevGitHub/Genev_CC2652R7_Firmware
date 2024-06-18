@@ -54,7 +54,6 @@ static uint16_t data_analytics_sampling_time = DATA_ANALYTICS_INTERVAL;
 
 /********   NVS  ********************/
 static uint32_t (*ptr_snvBuffer)[SNV_BUFFER_SIZE];  // pointer register to snvBuffer
-static uint32_t (*ptr_UDBuffer)[SNV_BUFFER_SIZE];   // pointer register to UDBuffer
 
 
 // Simpson's 1/3 rule coefficients
@@ -88,8 +87,7 @@ uint8_t   motorTemperature_C[DATA_ANALYSIS_POINTS] = {0};           // temperatu
 
 
 /*** ADArray is a temporary holder in data_analytics for the calculated parameters of BLE profile variables  *****/
-AD_t            ADArray = {0};                            //Since this data set is temporary, array struct is not necesary.  ADArray data that are displayed on the mobile app.
-//static AD_t     (*ptrADArray) = &ADArray;                 // Provides a pointer option
+static AD_t            ADArray = {0};                            //Since this data set is temporary, array struct is not necesary.  ADArray data that are displayed on the mobile app.
 
 uint16_t        dA_Count = 1;
 static uint32_t UDDataCounter = 0;           // At new or reset, UDDataCounter = 0
@@ -98,7 +96,7 @@ static uint16_t UDIndexPrev;
 
 static float    lenConvFactorDash;
 static uint8_t  batteryStatus;
-static uint32_t avgBatteryVoltage_mV = BATTERY_MAX_VOLTAGE;
+uint32_t avgBatteryVoltage_mV = BATTERY_MAX_VOLTAGE;
 static uint8_t  avgBatteryPercent = BATTERY_PERCENTAGE_INITIAL;
 static bool     batteryLow = 0;
 
@@ -143,7 +141,7 @@ static uint32_t computeCO2Saved( void ); // in g
 static int8_t   computeMotorTemperature( void ); // in degrees Celsius
 
 /***********************************************************************************************************
- * @fn      data_analytics_setReadBuffer
+ * @fn      data_analytics_setSNVBufferRegister
  *
  * @brief   register and assign pointer of snv_buff to ptr_snvBuffer
  *
@@ -151,7 +149,7 @@ static int8_t   computeMotorTemperature( void ); // in degrees Celsius
  *
  * @return  Nil
 ******************************************************************************************************/
-void data_analytics_setReadBuffer(uint32_t (*ptrsnvbuf)[]){
+void data_analytics_setSNVBufferRegister(uint32_t (*ptrsnvbuf)[]){
     ptr_snvBuffer = ptrsnvbuf;
 }
 
@@ -192,7 +190,6 @@ extern void data_analytics_init()
     /******************************************************
      *  get pointer / registers to all BLE profile Characteristic Values
      ******************************************************/
-    ptr_UDBuffer = snv_internal_getUDBuffer();
     ptr_lightmode = lights_lightModeRegister();
     ptr_da_profileCharVal = profile_charVal_profileCharValRegister();
     ptr_uptimeMinutes = pot_uptimeMinute();
@@ -289,8 +286,8 @@ uint8_t tempIndex;
 
 static void data_analytics_setUDArrayData()
 {
-    ADDataCounter = (*ptr_snvBuffer)[0]; //UDBuffer[0];
-    UDDataCounter = (*ptr_snvBuffer)[1]; //UDBuffer[1];
+    ADDataCounter = (*ptr_snvBuffer)[0];
+    UDDataCounter = (*ptr_snvBuffer)[1];
     UDIndexPrev = UDDataCounter % UDARRAYSIZE;      // UDIndexPrev is the remainder of UDDataCounter / UDARRAYSIZE
     if (UDIndexPrev >= (UDARRAYSIZE - 1)) {
             UDIndex = 0;
@@ -302,14 +299,125 @@ static void data_analytics_setUDArrayData()
     // SETSIZE = 2
     tempIndex = 2 + UDIndex * SETSIZE + 0;  // for debug purposes only
 
-    totalMileage0_dm = (*ptr_snvBuffer)[2 + UDIndex * SETSIZE + 0];                  //UDBuffer[2 + UDIndex * SETSIZE + 0];
-    totalPowerConsumed0_mWh = (*ptr_snvBuffer)[2 + UDIndex * SETSIZE + 1];           //UDBuffer[2 + UDIndex * SETSIZE + 1];
-    totalMileagePrev_dm = (*ptr_snvBuffer)[2 + UDIndexPrev * SETSIZE + 0];           //UDBuffer[2 + UDIndexPrev * SETSIZE + 0];
-    totalPowerConsumedPrev_mWh = (*ptr_snvBuffer)[2 + UDIndexPrev * SETSIZE + 1];    //UDBuffer[2 + UDIndexPrev * SETSIZE + 1];
+    totalMileage0_dm = (*ptr_snvBuffer)[2 + UDIndex * SETSIZE + 0];
+    totalPowerConsumed0_mWh = (*ptr_snvBuffer)[2 + UDIndex * SETSIZE + 1];
+    totalMileagePrev_dm = (*ptr_snvBuffer)[2 + UDIndexPrev * SETSIZE + 0];
+    totalPowerConsumedPrev_mWh = (*ptr_snvBuffer)[2 + UDIndexPrev * SETSIZE + 1];
 
-    speedmode_init = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 4];   //UDBuffer[28];
-    UnitSelectDash = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 3];   //UDBuffer[29];
-    lightmode_init = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 2];   //UDBuffer[30];      // this is not necessary since light mode will always be resets to auto mode at power on
+    speedmode_init = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 4];
+    UnitSelectDash = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 3];
+    lightmode_init = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 2];
+
+}
+
+
+/******************************************************************************************************
+ * @fn      dataAnalysis_sampling
+ *
+ * @brief   Simulates data obtaining from MCU
+ *
+ * @param   jj
+ *
+ * @return  Nil
+******************************************************************************************************/
+extern void data_analytics_sampling()
+{
+    dA_Count = ptr_MCUDArray->count_hf;
+
+    rpm[dA_Count] = ptr_MCUDArray->speed_rpm; // get RPM from MCU:  unit in rpm,  188 rpm @ r = 0.1016m => 200 cm/sec = 7 km/hr
+    speed_cmps[dA_Count] = round(rpm[dA_Count] * 2 * (float) M_PI / 60 * WHEELRADIUS_CM);      // Unit in cm / sec
+    batteryCurrent_mA[dA_Count] = ptr_MCUDArray->bat_current_mA;
+    batteryVoltage_mV[dA_Count] = ptr_MCUDArray->bat_voltage_mV;
+//    phaseCurrent_mA[dA_Count] = ptr_MCUDArray->phase_current_mA;
+//    phaseVoltage_mV[dA_Count] = ptr_MCUDArray->phase_voltage_mV;
+    heatSinkTemperature_C[dA_Count] = ptr_MCUDArray->heatSinkTempOffset50_Celcius;  // +50
+    motorTemperature_C[dA_Count] = ptr_MCUDArray->motorTempOffset50_Celcius;    // +50
+
+    /*****  Send speed to led display  *****/
+    data_analytics_LEDSpeed();       // covert speed to the selected dashboard unit (dashSpeed) then sent to led display
+
+}
+
+/******************************************************************************************************
+ * @fn      data_analytics_Main
+ *
+ * @brief   Main data analytics function
+ *
+ * @param   Nil
+ *
+ * @return  Nil
+******************************************************************************************************/
+extern void data_analytics_Main( void )
+{
+    /******  if dA_Count = (DATA_ANALYSIS_POINTS -1), triggers data_analytics()  *********/
+    if (dA_Count == (DATA_ANALYSIS_POINTS - 1)) // and also when Power OFF // Caution of the case where dA_Count >= DATA_ANALYSIS_POINTS & POWER OFF
+    {
+        /***** data_analytics() carries out all the data analytics *****/
+        data_analytics();
+
+        led_display_setBatteryStatus(ADArray.batteryStatus);                     // Send battery status and errorCode to led display
+        avgBatteryVoltage_mV = ADArray.avgBatteryVoltage_mV;                     // declared globally for debugging only
+
+        // send analytics data to Mobile App
+        data_analytics_setCharVal();
+
+        //batteryPercentage
+        if ((batteryLow == 0) && (ADArray.batteryPercentage < BATTERY_PERCENTAGE_LL))
+        {
+            batteryLow = 1;
+        }
+        if ((batteryLow == 1) && (ADArray.batteryPercentage > BATTERY_PERCENTAGE_LH))
+        {
+            batteryLow = 0;
+        }
+
+        if (UDTriggerCounter >= UDTRIGGER)      // save data to NVS Buffer
+        {
+            data2UDArray(); // This is called to update the data in snvBuffer
+        }
+
+    }
+
+}
+
+/***************************************************************************************************
+ * @fn      data_analytics
+ *
+ * @brief   Data Evaluation function:  Call by dataSim() and when Power-OFF
+ *
+ * @param   Nil
+ *
+ * @return  Nil
+******************************************************************************************************/
+uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
+AD_t aa;
+extern void data_analytics()
+{
+//    uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
+    ADDataCounter++;
+    ADArray.ADCounter = ADDataCounter;                // Why not ADDataCounter + 1?              // totalDataCount is total count of all computed datasets
+    deltaPowerConsumption_mWh = computePowerConsumption();
+    deltaMileage_dm = computeDistanceTravelled();
+    sumDeltaPowerConsumed_mWh += deltaPowerConsumption_mWh;
+    sumDeltaMileage_dm += deltaMileage_dm;
+    ADArray.accumPowerConsumption_mWh = totalPowerConsumedPrev_mWh + sumDeltaPowerConsumed_mWh;
+    ADArray.accumMileage_dm = totalMileagePrev_dm + sumDeltaMileage_dm;
+    ADArray.avgSpeed_kph = computeAvgSpeed(deltaMileage_dm);
+    ADArray.HeatSinkTempOffset50_C = computeAvgHeatSinkTemperature();
+    ADArray.controllererrorCode = 0;                                                  // error code algorithm to be defined
+    ADArray.avgBatteryVoltage_mV = computeAvgBatteryVoltage();
+    ADArray.avgBatteryCurrent_mA = 0;
+    ADArray.batteryPercentage = computeBatteryPercentage(); // battery percentage must be called before battery status
+    ADArray.batteryStatus = determineBatteryStatus();
+    ADArray.instantEconomy_100Whpk = computeInstantEconomy(deltaPowerConsumption_mWh, deltaMileage_dm);
+    ADArray.economy_100Whpk = computeEconomy();
+    ADArray.range_m = computeRange();
+    ADArray.co2Saved_g = computeCO2Saved();
+    ADArray.motorTempOffset50_C = computeMotorTemperature();
+
+    re_Initialize();    // Re-initialize rpm, speed, batteryVoltage and batteryCurrent arrays after data analysis
+
+    UDTriggerCounter++;     // When UDTriggerCounter = UDTrigger, UDArray is saved to flash memory
 
 }
 
@@ -476,7 +584,8 @@ int8_t computeMotorTemperature()
  *
  * @return  AvgBatteryVoltage in milli-Volt
 ******************************************************************************************************/
-uint32_t computeAvgBatteryVoltage() {
+uint32_t computeAvgBatteryVoltage()
+{
     avgBatteryVoltage_mV = 0;
     uint32_t    sumBatteryVoltage_mV = 0;
 
@@ -681,137 +790,10 @@ uint32_t computeCO2Saved() {
     return co2Saved_g;                                      // in grams -> convert to the desired unit before displaying on App
 }
 
-
-/***********************************************************************************************************
- * @fn      data_analytics_getErrorPriority
- *
- * @brief   ledControl.c sends error priority to dataAnalysis.c
- *
- * @param   Nil
- *
- * @return  Nil
-******************************************************************************************************/
-uint8_t data_analytics_errorPriority = SYSTEM_NORMAL_PRIORITY;
-
-//extern void* data_analytics_getErrorPriority( uint8_t errorStatus )
-//{
-//    data_analytics_errorPriority = led_display_getError();
-//}
-
-/******************************************************************************************************
- * @fn      dataAnalysis_sampling
- *
- * @brief   Simulates data obtaining from MCU
- *
- * @param   jj
- *
- * @return  Nil
-******************************************************************************************************/
-extern void data_analytics_sampling()
-{
-    dA_Count = ptr_MCUDArray->count_hf;
-
-    rpm[dA_Count] = ptr_MCUDArray->speed_rpm; // get RPM from MCU:  unit in rpm,  188 rpm @ r = 0.1016m => 200 cm/sec = 7 km/hr
-    speed_cmps[dA_Count] = round(rpm[dA_Count] * 2 * (float) M_PI / 60 * WHEELRADIUS_CM);      // Unit in cm / sec
-    batteryCurrent_mA[dA_Count] = ptr_MCUDArray->bat_current_mA;
-    batteryVoltage_mV[dA_Count] = ptr_MCUDArray->bat_voltage_mV;
-//    phaseCurrent_mA[dA_Count] = ptr_MCUDArray->phase_current_mA;
-//    phaseVoltage_mV[dA_Count] = ptr_MCUDArray->phase_voltage_mV;
-    heatSinkTemperature_C[dA_Count] = ptr_MCUDArray->heatSinkTempOffset50_Celcius;  // +50
-    motorTemperature_C[dA_Count] = ptr_MCUDArray->motorTempOffset50_Celcius;    // +50
-
-    /*****  Send speed to led display  *****/
-    data_analytics_LEDSpeed();       // covert speed to the selected dashboard unit (dashSpeed) then sent to led display
-
-}
-
-/******************************************************************************************************
- * @fn      data_analytics_Main
- *
- * @brief   Main data analytics function
- *
- * @param   Nil
- *
- * @return  Nil
-******************************************************************************************************/
-extern void data_analytics_Main( void )
-{
-    /******  if dA_Count = (DATA_ANALYSIS_POINTS -1), triggers data_analytics()  *********/
-    if (dA_Count == (DATA_ANALYSIS_POINTS - 1)) // and also when Power OFF // Caution of the case where dA_Count >= DATA_ANALYSIS_POINTS & POWER OFF
-    {
-        /***** data_analytics() carries out all the data analytics *****/
-        data_analytics();
-
-        led_display_setBatteryStatus(ADArray.batteryStatus);                     // Send battery status and errorCode to led display
-        avgBatteryVoltage_mV = ADArray.avgBatteryVoltage_mV;                     // declared globally for debugging only
-
-        // send analytics data to Mobile App
-        data_analytics_setCharVal();
-
-        //batteryPercentage
-        if ((batteryLow == 0) && (ADArray.batteryPercentage < BATTERY_PERCENTAGE_LL))
-        {
-            batteryLow = 1;
-        }
-        if ((batteryLow == 1) && (ADArray.batteryPercentage > BATTERY_PERCENTAGE_LH))
-        {
-            batteryLow = 0;
-        }
-
-        if (UDTriggerCounter >= UDTRIGGER)      // save data to NVS Buffer
-        {
-            data2UDArray(); // This is called to update the data in snvBuffer
-        }
-
-    }
-
-}
-
-/***************************************************************************************************
- * @fn      data_analytics
- *
- * @brief   Data Evaluation function:  Call by dataSim() and when Power-OFF
- *
- * @param   Nil
- *
- * @return  Nil
-******************************************************************************************************/
-uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
-AD_t aa;
-extern void data_analytics()
-{
-//    uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
-    ADDataCounter++;
-    ADArray.ADCounter = ADDataCounter;                // Why not ADDataCounter + 1?              // totalDataCount is total count of all computed datasets
-    deltaPowerConsumption_mWh = computePowerConsumption();
-    deltaMileage_dm = computeDistanceTravelled();
-    sumDeltaPowerConsumed_mWh += deltaPowerConsumption_mWh;
-    sumDeltaMileage_dm += deltaMileage_dm;
-    ADArray.accumPowerConsumption_mWh = totalPowerConsumedPrev_mWh + sumDeltaPowerConsumed_mWh;
-    ADArray.accumMileage_dm = totalMileagePrev_dm + sumDeltaMileage_dm;
-    ADArray.avgSpeed_kph = computeAvgSpeed(deltaMileage_dm);
-    ADArray.HeatSinkTempOffset50_C = computeAvgHeatSinkTemperature();
-    ADArray.controllererrorCode = 0;                                                  // error code algorithm to be defined
-    ADArray.avgBatteryVoltage_mV = computeAvgBatteryVoltage();
-    ADArray.avgBatteryCurrent_mA = 0;
-    ADArray.batteryStatus = determineBatteryStatus();
-    ADArray.batteryPercentage = computeBatteryPercentage();
-    ADArray.instantEconomy_100Whpk = computeInstantEconomy(deltaPowerConsumption_mWh, deltaMileage_dm);
-    ADArray.economy_100Whpk = computeEconomy();
-    ADArray.range_m = computeRange();
-    ADArray.co2Saved_g = computeCO2Saved();
-    ADArray.motorTempOffset50_C = computeMotorTemperature();
-
-    re_Initialize();    // Re-initialize rpm, speed, batteryVoltage and batteryCurrent arrays after data analysis
-
-    UDTriggerCounter++;     // When UDTriggerCounter = UDTrigger, UDArray is saved to flash memory
-
-}
-
 /******************************************************************************************************
  * @fn      data2UDArray
  *
- * @brief   Save data to UDArray or UDBuffer and save UDArray to nvsinternal:  Called by data_analytics() and when Power-OFF
+ * @brief   Save data to snvBuffer and save snvBuffer to nvsinternal:  Called by data_analytics() and when Power-OFF
  *
  * @param   Nil
  *
@@ -823,7 +805,7 @@ extern void data2UDArray()
     UDDataCounter++;
 
     /******************************************************************************************************
-     * Stored data to UDBuffer
+     * Stored data to snvBuffer
      ******************************************************************************************************/
     (*ptr_snvBuffer)[0] = ADArray.ADCounter;
     (*ptr_snvBuffer)[1] = UDDataCounter;
