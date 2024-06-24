@@ -123,12 +123,12 @@ Application/multi_purpose_button.o: ../Application/multi_purpose_button.c \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/STM32MCP.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/motor_control.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/buzzer.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/power_on_time.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h \
@@ -378,8 +378,6 @@ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/m
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h:
-
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h:
@@ -389,6 +387,8 @@ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/cont
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/buzzer.h:
 

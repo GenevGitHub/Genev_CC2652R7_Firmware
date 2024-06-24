@@ -21,7 +21,6 @@
 #include "Profiles/profile_charVal.h"
 
 #include "Application/led_display.h"
-#include "Application/data_analytics.h"
 #include "Application/snv_internal.h"
 #include "Application/periodic_communication.h"
 
@@ -41,7 +40,7 @@
  */
 uint8_t     ControlLaw = BRAKE_AND_THROTTLE_NORMALLAW; // BRAKE_AND_THROTTLE_NORMALLAW or BRAKE_AND_THROTTLE_DIRECTLAW; //
 
-uint8_t     speedMode = BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE;
+uint8_t     speedMode;
 
 uint16_t    adcValues[2];
 uint16_t    adc2Result;             // adc2Result is a holder of the throttle ADC reading
@@ -52,12 +51,15 @@ uint16_t    IQ_applied = 0;             // Iq value command sent to STM32 / moto
 uint16_t    brakePercent;           // brake applied in percentage
 uint16_t    brakeStatus = 0;
 
-uint8_t     dashboardErrorCodeStatus = 0xFF;
+uint8_t     dashboardErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
 
 /********************************************************************
  *  when brakeAndThrottle_errorMsg is true (=1),
- *  it generally means either (1) brake signal is not connected and/or (2) throttle signal is not connect
- *  IQ_input is set to 0 = zero throttle by default
+ *  it generally means either
+ *  (1) brake signal is not connected and/or
+ *  (2) throttle signal is not connect
+ *
+ *  IQ_input is set to 0
  */
 uint8_t brakeAndThrottle_errorMsg = BRAKE_AND_THROTTLE_NORMAL;
 uint8_t throttle_errorStatus = 0;   // 0 indicates normal (no error)
@@ -77,6 +79,7 @@ uint8_t brake_errorStatus = 0;      // 0 indicates normal (no error)
  */
 profileCharVal_t *ptr_bat_profileCharVal;
 static uint8_t   *ptr_charVal;
+uint8_t *ptr_bat_errorPriority;
 
 //static uint8_t  state = 0;
 static uint8_t  brakeAndThrottleIndex = 0;
@@ -84,10 +87,13 @@ static uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        RPM_array[BRAKE_AND_THROTTLE_SAMPLES];
 
-/** Speed limiter variables **/
-uint8_t         exponent  = 3;
+/** Speed limiter control variables **/
+static uint8_t         exponent  = 3; // adjust exponent to adjust the influence of speedModFactor
 float           speedModFactor = 1;
-uint32_t        limit_exceedance_flag = 0;    // a flag for indicating rpm limit was exceeded
+uint32_t        limit_exceedance_flag = 0; // a flag for indicating rpm limit was exceeded
+uint16_t        IQ_applied_old = 0;
+static uint8_t         NN_counter = 1;
+uint8_t         NN_max = 20; // adjust NN_max to adjust sensitivity to IQ_applied transition between exceeding and falling below the speed limit
 
 /**  Speed mode parameters  **/
 static uint16_t speedModeIQmax;
@@ -95,8 +101,9 @@ static uint8_t  reductionRatio;
 static uint16_t rampRate;
 uint16_t allowableRPM;
 
+/**  Data structs  **/
 MCUD_t          *ptr_bat_MCUDArray;
-
+AD_t            *ptr_bat_ADArray;
 
 /*********************************************************************
 * FUNCTIONS
@@ -105,6 +112,12 @@ MCUD_t          *ptr_bat_MCUDArray;
 extern void brake_and_throttle_MCUArrayRegister(MCUD_t *ptrMCUDArray)
 {
     ptr_bat_MCUDArray = ptrMCUDArray;
+}
+
+/**** obtain/register the pointer to ADArray   ****/
+extern void brake_and_throttle_ADArrayRegister(AD_t *ptrADArray)
+{
+    ptr_bat_ADArray = ptrADArray;
 }
 
 /**** obtain/register the pointer to STM32MCPDArray   ****/
@@ -130,18 +143,18 @@ static void brake_and_throttle_normalLawControl();
  *********************************************************************/
 void brake_and_throttle_init()
 {
-
+    /**  Set up registers  **/
     ptr_bat_profileCharVal = profile_charVal_profileCharValRegister();
-
     UDHAL_ADC_ptrADCValues(&adcValues);
-
-    data_analytics_dashErrorCodeStatusRegister(&dashboardErrorCodeStatus);
+    data_analytics_dashErrorCodeStatusRegister(&dashboardErrorCodePriority);
+    ptr_bat_errorPriority = led_display_errorPriorityRegister();
 
     /* Get initial speed mode */
     uint8_t speedModeinit;
     speedModeinit = data_analytics_getSpeedmodeInit();
     speedMode = speedModeinit;
-    /* Initiate, Get and Update STM32 speed mode Params speed mode parameters */
+
+    /* Initiate, obtain and update STM32 speed mode parameters */
     brake_and_throttle_getSpeedModeParams();
 
     for (uint8_t ii = 0; ii < BRAKE_AND_THROTTLE_SAMPLES; ii++)
@@ -151,7 +164,7 @@ void brake_and_throttle_init()
         RPM_array[ii] = 0;
     }
 
-    /* led_display_init() must be before brake_and_throttle_init() */
+    /* led_display_init() must be executed before brake_and_throttle_init() */
     led_display_setSpeedMode(speedMode);  // update speed mode on dashboard led display
     led_control_setControlLaw(ControlLaw);
 
@@ -175,6 +188,7 @@ uint8_t     brake_error_count = 0;
 uint16_t    throttleADCsample = 0;  //throttleADCsample
 uint16_t    brakeADCsample = 0;     //brakeADCsample
 
+/**  for study purposes - evaluating speed and IQ **/
 uint16_t    bat_count = 0;
 uint16_t    RPM_prev;
 uint16_t    IQapp_prev = 0;
@@ -182,7 +196,15 @@ float       drpmdIQ;
 int         drpm;
 int         dIQ;
 uint16_t    IQ_maxPout = 0xFFFF;
+/*******************************************************/
 
+/***    This is the main function of brake_and_throttle.c
+ *      This function
+ *          reads the brake and throttle ADC values,
+ *          checks the brake and throttle values and range for abnormality and errors
+ *          calculates throttle and brake percentage
+ *          Calculate and modulate the IQ values
+ ********************************************************************************/
 void brake_and_throttle_ADC_conversion()
 {
     /************************************************************************************
@@ -219,11 +241,12 @@ void brake_and_throttle_ADC_conversion()
 
             /******  Dashboard services *************************************/
             /* updates error code Characteristic Value -> Mobile App */
-            if (dashboardErrorCodeStatus > THROTTLE_ERROR_PRIORITY)
+            if (dashboardErrorCodePriority > THROTTLE_ERROR_PRIORITY)
             {
-                dashboardErrorCodeStatus = THROTTLE_ERROR_PRIORITY;
+                dashboardErrorCodePriority = THROTTLE_ERROR_PRIORITY;
+                ptr_bat_ADArray->dashboardErrorCode = THROTTLE_ERROR_CODE;
                 ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_dashErrorCode);
-                profile_setCharVal(ptr_charVal, DASHBOARD_ERROR_CODE_LEN, THROTTLE_ERROR_CODE);
+                profile_setCharVal(ptr_charVal, DASHBOARD_ERROR_CODE_LEN, ptr_bat_ADArray->dashboardErrorCode);
             }
         }
     }   // -> This set of codes determines if throttle error is present
@@ -236,12 +259,10 @@ void brake_and_throttle_ADC_conversion()
     {
         throttleADCsample = THROTTLE_ADC_CALIBRATE_H;
     }
-
     if ((throttleADCsample < THROTTLE_ADC_CALIBRATE_L))
     {
         throttleADCsample = THROTTLE_ADC_CALIBRATE_L;
     }
-
     throttleADCSamples[ brakeAndThrottleIndex ] = throttleADCsample;
 
     /*******************************************************************************************************************************
@@ -284,11 +305,12 @@ void brake_and_throttle_ADC_conversion()
 
             /******  Dashboard services *************************************/
             /* updates error code Characteristic Value -> Mobile App */
-            if (dashboardErrorCodeStatus > BRAKE_ERROR_PRIORITY)
+            if (dashboardErrorCodePriority > BRAKE_ERROR_PRIORITY)
             {
-                dashboardErrorCodeStatus = BRAKE_ERROR_PRIORITY;
+                dashboardErrorCodePriority = BRAKE_ERROR_PRIORITY;
+                ptr_bat_ADArray->dashboardErrorCode = BRAKE_ERROR_CODE;
                 ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_dashErrorCode);
-                profile_setCharVal(ptr_charVal, DASHBOARD_ERROR_CODE_LEN, BRAKE_ERROR_CODE);
+                profile_setCharVal(ptr_charVal, DASHBOARD_ERROR_CODE_LEN, ptr_bat_ADArray->dashboardErrorCode);
             }
         }
     }   // this set of codes checks for brake error
@@ -301,12 +323,10 @@ void brake_and_throttle_ADC_conversion()
     {
         brakeADCsample = BRAKE_ADC_CALIBRATE_H;
     }
-
     if((brakeADCsample < BRAKE_ADC_CALIBRATE_L))
     {
         brakeADCsample = BRAKE_ADC_CALIBRATE_L;
     }
-
     brakeADCSamples[ brakeAndThrottleIndex ] = brakeADCsample;
 
     /*******************************************************************************************************************************
@@ -341,8 +361,8 @@ void brake_and_throttle_ADC_conversion()
     ptr_bat_STM32MCPDArray->error_msg = brakeAndThrottle_errorMsg;
 
     /********************** Brake Power Cut Off Protect State Machine  *******************************************************************************
-     *              if brake is engaged, defined as brakePercent being greater than say 50%,
-     *              dashboard will instruct motor controller to cut power to motor for safety precautions.
+     *              Brake is considered engaged when brakePercent is greater than BRAKEPERCENTTHRESHOLD,
+     *              dashboard will instruct motor controller to cut power to motor.
      *              Once power to motor is cut, both the brake & throttle must be fully released before power delivery can be resumed
     **********************************************************************************************************************************************/
     if (brake_errorStatus == 0)
@@ -364,14 +384,13 @@ void brake_and_throttle_ADC_conversion()
     }
 
     /**************************************************************************************
-     *       if Brake is engaged -> cut power to motor and activate brake light
+     *       Send / update brake% and brake status in STM32MCPDArray
      **************************************************************************************/
     ptr_bat_STM32MCPDArray->brake_percent = brakePercent;
     ptr_bat_STM32MCPDArray->brake_status = brakeStatus;
 
     /******** Get RPM from mcu  ******************/
-    RPM_prev = RPM_temp;                                // this is the previous RPM_temp value.  For studying purposes only
-
+    RPM_prev = RPM_temp;        // this is the previous RPM_temp value.  For studying purposes only
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
 
     /******** compute drpm / dIQ  -  For studying purposes only   **********/
@@ -386,7 +405,6 @@ void brake_and_throttle_ADC_conversion()
     {
         drpmdIQ = (float)(RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
     }
-
     IQapp_prev = IQ_applied;                            // for studying purposes only
 
     /******** End compute drpm / dIQ  -  For investigation only   **********/
@@ -396,9 +414,13 @@ void brake_and_throttle_ADC_conversion()
      *  Notes: Power is delivered to the motor if:
      *   (1) brake is not engaged
      *   (2) RPM is not negative or is greater than the REG_MINP_RPM
+     *   (3) no detected critical hardware / firmware errors
      *  These features are for safety reasons
      **********************************************************************************/
-    if ((!throttle_errorStatus) || (ptr_bat_MCUDArray->rpm_status))
+//    throttlePercent = 30;// dummy throttle percent for testing
+
+    /**       if rpm is positive       and   if error is not fatal or critical errors  **/
+    if ((ptr_bat_MCUDArray->rpm_status) && (*ptr_bat_errorPriority >= BRAKE_ERROR_PRIORITY))
     {
         if ((brakeStatus) || (RPM_temp < REG_MINP_RPM))
         {
@@ -439,7 +461,6 @@ void brake_and_throttle_ADC_conversion()
         IQ_applied = IQ_input;
     }
 
-
     /********************************************************************************************************************************
      * Update IQ_applied to STM32MCPDArray.IQ_value fot commanding Motor via motor controller
      ********************************************************************************************************************************/
@@ -472,11 +493,10 @@ void brake_and_throttle_ADC_conversion()
  *
  * @return  Nil
  *********************************************************************/
-uint32_t    normalLaw_count = 0;
-
 static void brake_and_throttle_normalLawControl()
 {
     uint16_t RPM_0;
+    /** To get here, RPM status must be 1, i.e., RPM is positive **/
     if (RPM_temp < 1)
     {
         RPM_0 = 1;  // for preventing division by 0 only
@@ -486,7 +506,7 @@ static void brake_and_throttle_normalLawControl()
         RPM_0 = RPM_temp;
     }
 
-    /***   1. Speed limit Protection  ****/
+    /*******************************   1. Speed limit Protection  **************************************/
     if (IQ_input == 0)
     {
         IQ_applied = IQ_input;
@@ -496,29 +516,40 @@ static void brake_and_throttle_normalLawControl()
         if (( RPM_temp < allowableRPM ) && (!limit_exceedance_flag))
         {
             IQ_applied = IQ_input;
+
         }
         else if (( RPM_temp >= allowableRPM ) && (!limit_exceedance_flag))
         {
             speedModFactor = pow((allowableRPM/(float)RPM_0), exponent);
             IQ_applied = (float)speedModFactor * IQ_input;
-            limit_exceedance_flag = 1;
+            limit_exceedance_flag = 1;  // flag = 1 indicates speed limit is "crossed" from a below limit to above limit
+
         }
         else if (( RPM_temp >= allowableRPM ) && (limit_exceedance_flag))
         {
             speedModFactor = pow((allowableRPM/(float)RPM_0), exponent);
             IQ_applied = (float)speedModFactor * IQ_applied;
+
         }
         else if ((RPM_temp < allowableRPM) && (limit_exceedance_flag))    // when (RPM_temp >= allowableRPM), speedModFactor is less than or equal to 1.
         {
-            IQ_applied = IQ_input * 0.5;
-            limit_exceedance_flag = 0;
+            /* The following codes ensures a smooth transition and gradual change in the IQ_applied value
+             *  when RPM changes from greater than the speed limit and falling below the speed limit
+             *  The sensitivity is adjusted by changing NN_max.                                          */
+            IQ_applied = (IQ_input * NN_counter + IQ_applied_old * (NN_max - NN_counter)) / NN_max;
+            NN_counter++;
+            if (NN_counter > NN_max) // remains in this condition for NN_max number of counts/loops before it can exit
+            {
+                limit_exceedance_flag = 0;  // exit this condition // flag = 0 indicates speed has "crossed" from above limit to below the speed limit
+                NN_counter = 1;             // reset NN_counter
+            }
         }
     }
 
-    /***  2. Output Power Limit Protection  *****/
-    if ((REG_MAXPOUT / (RPM_0 * 2 * PI_CONSTANT / 60) / KT_CONSTANT / KIQ_CONSTANT) > 0xFFFF)
+    /**********************  2. Output Power Limit Protection  **********************************************/
+    if ((REG_MAXPOUT / (RPM_0 * 2 * PI_CONSTANT / 60) / KT_CONSTANT / KIQ_CONSTANT) > (STM32MCP_TORQUEIQ_MAX / 100 * BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS))
     {
-        IQ_maxPout = 0xFFFF;    // caps the maximum IQ_maxPout value to 0xFFFF
+        IQ_maxPout = STM32MCP_TORQUEIQ_MAX / 100 * BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS;    // make sure the maximum IQ_maxPout value never exceeds STM32MCP_TORQUEIQ_MAX
     }
     else
     {
@@ -530,13 +561,16 @@ static void brake_and_throttle_normalLawControl()
         IQ_applied = IQ_maxPout;    // making sure IQ applied will not exceed regulatory output power limit
     }
 
-    /***  3. Input and applied IQ comparator - making sure applied is never greater than user input  *****/
+    /************  3. Input and applied IQ comparator - making sure applied is never greater than user input  *****/
     if (IQ_applied > IQ_input)
     {
         IQ_applied = IQ_input;
     }
 
-    normalLaw_count++;  // for debugging
+    if (( RPM_temp >= allowableRPM ) && (limit_exceedance_flag))
+    {
+        IQ_applied_old = IQ_applied;
+    }
 
 }
 
@@ -613,6 +647,12 @@ extern void brake_and_throttle_getSpeedModeParams()
     /* call to update and execute speed mode change on MCU */
     motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
 
+    /* updates led display */
+    led_display_setSpeedMode(speedMode);    // update led display
+    /******  Dashboard services *************************************/
+    /* updates speed mode Characteristic Value -> Mobile App */
+    ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_speedMode);
+    profile_setCharVal(ptr_charVal, DASHBOARD_SPEED_MODE_LEN, speedMode);
 }
 
 /*********************************************************************
@@ -628,7 +668,7 @@ uint8_t brake_and_throttle_toggleSpeedMode()
 {
     if (brake_errorStatus == 0) // no brake error
     {
-        if (throttleADCsample <= THROTTLE_ADC_CALIBRATE_L)                                    // Only allow speed mode change when no throttle is applied - will by-pass if throttle is applied
+        if (throttleADCsample <= THROTTLE_ADC_CALIBRATE_L)    // Fully release throttle to change speed mode,  no change when throttle is applied - will by-pass if throttle is not zero
         {
             if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE)  // if Amble mode, change to Leisure mode
             {
@@ -644,7 +684,6 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
                 }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
-
             }
             else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE) // if Leisure mode, change to Sports mode
             {
@@ -660,7 +699,6 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
                 }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_SPORTS;
-
             }
             else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS) // if Sports mode, change back to Amble mode
             {
@@ -676,7 +714,6 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
                 }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-
             }
         }
     }
@@ -806,16 +843,16 @@ uint16_t brake_and_throttle_getBrakePercent()
 }
 
 /*********************************************************************
- * @fn      bat_dashboardErrorCodeStatusRegister
+ * @fn      bat_dashboardErrorCodePriorityRegister
  *
- * @brief   Return the point to dashboardErrorCodeStatus to the calling function
+ * @brief   Return the point to dashboardErrorCodePriority to the calling function
  *
  * @param   none
  *
- * @return  &dashboardErrorCodeStatus
+ * @return  &dashboardErrorCodePriority
  */
-extern uint8_t* bat_dashboardErrorCodeStatusRegister()
+extern uint8_t* bat_dashboardErrorCodePriorityRegister()
 {
-    return (&dashboardErrorCodeStatus);
+    return (&dashboardErrorCodePriority);
 }
 

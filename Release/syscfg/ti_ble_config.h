@@ -101,7 +101,7 @@ extern void setBondManagerParameters();
 // Advertisement Set Number 1
 extern GapAdv_params_t advParams1;
 extern uint8_t advData1[16];
-extern uint8_t scanResData1[20];
+extern uint8_t scanResData1[25];
 
 
 // SDAA parameters

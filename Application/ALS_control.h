@@ -21,8 +21,7 @@ extern "C"
 * CONSTANTS
 */
 /** #define the ambient light sensor chip that is in use **/
-#define veml6030            1
-//#define veml3235            1
+// defined in gGo_device_params.h
 
 #define ALS_NUMSAMPLES      5    // The number of samples used for light intensity evaluation --> must be 8
 

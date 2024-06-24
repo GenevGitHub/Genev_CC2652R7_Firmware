@@ -118,7 +118,7 @@ extern uint8_t Boot()
 //            }
 //        }
 //    }
-    return bootStatus;
+    return (bootStatus);
 }
 
 /*********************************************************************
@@ -183,7 +183,7 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
         {
             uint8_t heatSinkTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
         // **** store heatSinkTemperature_Celcius in MCUArray.heatSinkTemperature_Celcius
-            MCUDArray.heatSinkTempOffset50_Celcius = 65;//heatSinkTemperature_Celcius + TEMPERATUREOFFSET;  // +50
+            MCUDArray.heatSinkTempOffset50_Celcius = 70;//heatSinkTemperature_Celcius + TEMPERATUREOFFSET;  // +50
             break;
         }
     case STM32MCP_SPEED_MEASURED_REG_ID:    // RPM
@@ -209,7 +209,7 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     case STM32MCP_MOTOR_TEMPERATURE_REG_ID:
         {
             uint8_t motorTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
-            MCUDArray.motorTempOffset50_Celcius = 70;//motorTemperature_Celcius + TEMPERATUREOFFSET;    // +50
+            MCUDArray.motorTempOffset50_Celcius = 68;//motorTemperature_Celcius + TEMPERATUREOFFSET;    // +50
 
             break;
         }

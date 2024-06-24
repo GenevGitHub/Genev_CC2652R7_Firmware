@@ -79,7 +79,7 @@ extern void led_display_changeSpeedMode(uint32_t eventcounter);
 extern void led_display_setUnitSelectDash( uint8_t UnitSelectDash );     // Set Unit
 extern void led_display_changeUnit();
 extern void led_display_changeBLE(uint32_t eventcounter);
-extern void led_display_ErrorPriority(uint8_t error_code);
+extern uint8_t led_display_ErrorPriority(uint8_t error_code);
 extern uint8_t led_display_ErrorDisplay();
 extern void led_display_setLightMode( uint8_t light_mode );           // Set light mode
 extern void led_display_changeLightMode();

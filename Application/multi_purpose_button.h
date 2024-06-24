@@ -36,7 +36,7 @@ extern "C"
  *********************************************************************/
 //#define TIMER_INTERVAL              200  //
 // Task configuration
-#define MPB_TASK_PRIORITY           4
+#define MPB_TASK_PRIORITY           3
 #ifndef MPB_TASK_STACK_SIZE
 #define MPB_TASK_STACK_SIZE         512  //400 //360    // Stack size must be multiples of 8
 #endif

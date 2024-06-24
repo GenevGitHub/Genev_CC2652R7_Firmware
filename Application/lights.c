@@ -293,7 +293,7 @@ uint8_t lights_lightModeChange()
 
     (*lightModeArray[light_mode])();
 
-    return light_mode;
+    return (light_mode);
 }
 
 /*********************************************************************
@@ -305,7 +305,7 @@ uint8_t lights_lightModeChange()
  *
  * @return  light_status
  *********************************************************************/
-uint8_t lights_getLightStatus(){
+extern uint8_t lights_getLightStatus(){
     return (light_status);
 }
 

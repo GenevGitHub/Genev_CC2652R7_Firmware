@@ -49,7 +49,7 @@ mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 
 uint8_t             mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
-static uint8_t      *ptr_dashboardErrorCodeStatus;
+static uint8_t      *ptr_dashboardErrorCodePriority;
 
 void mpb_execute_event(uint8_t messageID);
 void mpb_taskFxn(UArg a0, UArg a1);
@@ -131,7 +131,6 @@ void mpb_taskFxn(UArg a0, UArg a1)
 {
 
     mpb_timerManager = UDHAL_TIMER3_mpbTimerRegister();
-
     mpb_init();
 
 }
@@ -150,12 +149,12 @@ void mpb_taskFxn(UArg a0, UArg a1)
  */
 void mpb_init()
 {
-
     gpt_powerOnRegister(&POWER_ON);
     pot_powerOnRegister(&POWER_ON);
+    da_powerOnRegister(&POWER_ON);
     buzzer_buzzerStatusRegister(&mpb_buzzerStatus);
     ptr_dashunit = data_analytics_ptrUnitSelectDash();
-    ptr_dashboardErrorCodeStatus = bat_dashboardErrorCodeStatusRegister();
+    ptr_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
 
 }
 

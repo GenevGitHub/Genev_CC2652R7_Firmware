@@ -24,9 +24,7 @@
 
 /* Hardware Header files */
 #ifdef veml6030
-
 #include <Hardware/veml6030.h>
-
 #endif
 
 #ifdef veml3235

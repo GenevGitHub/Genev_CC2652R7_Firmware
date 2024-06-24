@@ -72,38 +72,41 @@ typedef struct appData{                                 // is appData needed her
         uint32_t    range_m;                               // length = 4 . App display input - require device parameters
         uint32_t    co2Saved_g;                            // length = 4 . App display input
         uint32_t    economy_100Whpk;                       // length = 4 . App display input - require retrieving saved data
-        uint16_t    instantEconomy_100Whpk;                // length = 2 . Disable for now  // App display input - require retrieving saved data
-        uint16_t    phaseVoltage_mV;                       // Controller Phase Current
-        uint16_t    phaseCurrent_mA;                       // Controller Phase Current - no need to display current on the mobile app
 
+        uint16_t    instantEconomy_100Whpk;                // length = 2 .
+
+        uint16_t    avgPhaseVoltage_mV;                    // Controller Phase Current
+        uint16_t    avgPhaseCurrent_mA;                    // Controller Phase Current - no need to display current on the mobile app
         uint16_t    avgBatteryVoltage_mV;                  // length = 2 . to Cloud - require device parameters
-        uint16_t    avgBatteryCurrent_mA;
-        uint8_t     controllererrorCode;                             // length = 2 . to Cloud, Both LED display and App Display (May have to separate error code into their respective services)
-        uint8_t     avgSpeed_kph;                           // length = 1 . to Cloud - require device parameters
+        uint16_t    avgBusCurrent_mA;
+
+        uint16_t    avgSpeed_100kph;                       // length = 2 . to Cloud - require device parameters
+
+        uint8_t     controllerErrorCode;                   // length = 1 .
         uint8_t     HeatSinkTempOffset50_C;                // temperature can be sub-zero
-        uint8_t     motorTempOffset50_C;                      // temperature can be sub-zero
-        uint8_t     dashboarderrorCode;
-        uint8_t     batteryerrorCode;
+        uint8_t     motorTempOffset50_C;                   // temperature can be sub-zero
+
+        uint8_t     dashboardErrorCode;
+
+        uint8_t     batteryCode;
         uint8_t     batteryPercentage;                      // length = 1 (0-100%). App display input - require device parameters
         uint8_t     batteryStatus;                          // length = 1 . Both LED display and App display input - require device parameters
         uint8_t     batteryTempOffset50_C;
 
-        uint8_t     speedmode;
-        uint8_t     lightmode;
-        uint8_t     lightstatus;
-
-}AD_t;        // 4-4-4-4-4-2-2-2-2-2-2-1-1-1-1-1 decreasing byte size minimizes the amount of struct padding
+}AD_t;        // 4-4-4-4-4-4-2-2-2-2-2-2-1-1-1-1-1-1-1-1 decreasing byte size minimizes the amount of struct padding
 
 
 /*********************************************************************
  * FUNCTIONS
  *********************************************************************/
 extern void data_analytics_init(void);
-//extern void data_analytics_buzzerStatusRegister(uint8_t *ptrbuzzerStatus);
+extern void da_powerOnRegister(bool *ptrpoweron);
 
 extern void data_analytics_setSNVBufferRegister(uint32_t (*ptrsnvbuf)[]);
 extern void data_analytics_MCUDArrayRegister(MCUD_t (*ptrMCUD));
-extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErrorCodeStatus);
+
+extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErrorCodePriority);
+
 extern uint8_t data_analytics_getSpeedmodeInit(void);
 extern uint8_t data_analytics_getLightmodeInit(void);
 extern uint8_t data_analytics_getDashunitInit(void);
@@ -118,7 +121,7 @@ extern void data_analytics_changeUnitSelectDash(void);
 extern void data_analytics_init( void );
 extern void data_analytics_LEDSpeed();
 extern void data_analytics( void );
-extern void data2UDArray( void );
+extern void data2snvBuffer( void );
 extern void data_analytics_sampling(void);
 extern void data_analytics_Main( void );
 

@@ -40,13 +40,15 @@ extern "C"
 #define DASHBOARD_LIGHT_MODE                    3
 #define DASHBOARD_POWER_ON_TIME                 4
 #define DASHBOARD_ADCOUNTER                     5
+#define DASHBOARD_DEVICE_UPTIME                 6
 
 #define DASHBOARD_SPEED_MODE_UUID               0x6801
 #define DASHBOARD_LIGHT_STATUS_UUID             0x6802
 #define DASHBOARD_LIGHT_MODE_UUID               0x6803
-#define DASHBOARD_POWER_ON_TIME_UUID            0x6804
+#define DASHBOARD_POWER_ON_TIME_UUID            DEVICE_TIME_UUID
 #define DASHBOARD_ADCOUNTER_UUID                0x6805
-#define DASHBOARD_ERROR_CODE_UUID               0x6806  //0x2A43
+#define DASHBOARD_ERROR_CODE_UUID               ALERT_STATUS_UUID  //0x2A43
+#define DASHBOARD_DEVICE_UPTIME_UUID            0x6807
 
 #define DASHBOARD_ERROR_CODE_LEN                1
 #define DASHBOARD_SPEED_MODE_LEN                1
@@ -54,6 +56,7 @@ extern "C"
 #define DASHBOARD_LIGHT_MODE_LEN                1
 #define DASHBOARD_POWER_ON_TIME_LEN             2
 #define DASHBOARD_ADCOUNTER_LEN                 4
+#define DASHBOARD_DEVICE_UPTIME_LEN             4
 
 // Dashboard Error Codes
 #define DASHBOARD_NORMAL                        40
@@ -71,6 +74,7 @@ typedef struct dashboardCharVal{
     uint8*    ptr_speedMode;
     uint8*    ptr_lightStatus;
     uint8*    ptr_lightMode;
+    uint8*    ptr_deviceUpTime;
 }dashboardCharVal_t;
 
 /*********************************************************************

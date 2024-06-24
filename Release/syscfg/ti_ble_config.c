@@ -10,7 +10,7 @@
 // The GAP profile role
 uint8_t profileRole = GAP_PROFILE_PERIPHERAL;
 // GAP GATT Service (GGS) parameters
-uint8_t attDeviceName[GAP_DEVICE_NAME_LEN]= "Genev gGo";
+uint8_t attDeviceName[GAP_DEVICE_NAME_LEN]= "Genev gGo ES01";
 
 uint8_t pRandomAddress[B_ADDR_LEN] = {0};
 
@@ -118,7 +118,7 @@ uint8_t advData1[] =
 
 uint8_t scanResData1[] =
 {
-  0x0a,
+  0x0f,
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
   'G',
   'e',
@@ -129,6 +129,11 @@ uint8_t scanResData1[] =
   'g',
   'G',
   'o',
+  ' ',
+  'E',
+  'S',
+  '0',
+  '1',
 
   0x02,
   GAP_ADTYPE_POWER_LEVEL,

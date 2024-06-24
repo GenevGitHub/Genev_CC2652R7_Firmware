@@ -22,6 +22,7 @@ extern "C"
 #include "Hardware/STM32MCP.h"
 
 #include "Application/motor_control.h"
+#include "Application/data_analytics.h"
 
 
 //#include "motor_control.h"
@@ -95,8 +96,9 @@ extern "C"
 extern void brake_and_throttle_STM32MCDArrayRegister(STM32MCPD_t *ptrSTM32MCPDArray);
 
 extern void brake_and_throttle_init();
-extern uint8_t* bat_dashboardErrorCodeStatusRegister();
+extern uint8_t* bat_dashboardErrorCodePriorityRegister();
 extern void brake_and_throttle_MCUArrayRegister(MCUD_t *ptrMCUDArray);
+extern void brake_and_throttle_ADArrayRegister(AD_t *ptrADArray);
 
 extern void brake_and_throttle_setSpeedMode(uint8_t speed_mode);
 extern uint8_t brake_and_throttle_getSpeedMode();

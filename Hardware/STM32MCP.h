@@ -42,7 +42,7 @@ extern "C"
  * CONSTANTS
  */
 //The absolute  maximum Torque IQ value for this MCU
-#define STM32MCP_TORQUEIQ_MAX                                                              20000     // IQ 16000 = 14.222 Amp
+#define STM32MCP_TORQUEIQ_MAX                                                              20000     // IQ_max x 80% = IQ 16000, which is approximately 14222 milli-Amp
 
 //Heart beat period (in ms)
 #define STM32MCP_HEARTBEAT_PERIOD                                                            600

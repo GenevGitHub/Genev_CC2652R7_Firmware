@@ -77,10 +77,10 @@ extern "C"
 
 #define RESET_NVS                            1
 //#undef RESET_NVS
-#define ZERO_NVS                             1
-//#undef ZERO_NVS
-//#define DUMMY_NVS                            1
-#undef  DUMMY_NVS
+//#define ZERO_NVS                             1
+#undef ZERO_NVS
+#define DUMMY_NVS                            1
+//#undef  DUMMY_NVS
 
 #define SP_ADVERTISING_TIMEOUT               3000  // each tick is in 10 ms, hence 3000 x 10 ms = 30 seconds
 

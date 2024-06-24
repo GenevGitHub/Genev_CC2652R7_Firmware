@@ -2,7 +2,7 @@
  * lights.h
  *
  *  Created on: 7 May 2024
- *      Author: yuche
+ *      Author: Chee
  */
 
 #ifndef APPLICATION_LIGHTS_H_
@@ -44,7 +44,7 @@ extern "C"
 #define LIGHT_PWM_DUTY                                  75     //  in percentage, 50%
 
 
-//ALS is an abbreviation for Ambient Light Sensor
+//ALS is abbreviation for Ambient Light Sensor
 /* ********************************************************************
  * TYPEDEFS
 */
@@ -68,6 +68,7 @@ static void lights_MODE_ON( void );
 extern void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_t lightmodeInit );
 extern void lights_ALSFxn();
 extern void lights_statusChg(void);
+extern uint8_t lights_getLightStatus();
 extern uint8_t lights_lightModeChange( void );
 
 #ifdef _cplusplus

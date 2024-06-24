@@ -72,16 +72,21 @@ CONST uint8 Dashboard_Light_ModeUUID[ATT_BT_UUID_SIZE] =
 };
 
 // Dashboard_Power_On_Time UUID
-
 CONST uint8 Dashboard_Power_On_TimeUUID[ATT_BT_UUID_SIZE] =
 {
-  LO_UINT16(DEVICE_TIME_UUID), HI_UINT16(DEVICE_TIME_UUID)
+  LO_UINT16(DASHBOARD_POWER_ON_TIME_UUID), HI_UINT16(DASHBOARD_POWER_ON_TIME_UUID)
 };
 
 // Dashboard_ADCounter UUID
 CONST uint8 Dashboard_ADCounterUUID[ATT_BT_UUID_SIZE] =
 {
   LO_UINT16(DASHBOARD_ADCOUNTER_UUID), HI_UINT16(DASHBOARD_ADCOUNTER_UUID)
+};
+
+// Dashboard_Device_UpTime UUID
+CONST uint8 Dashboard_Device_UpTimeUUID[ATT_BT_UUID_SIZE] =
+{
+  LO_UINT16(DASHBOARD_DEVICE_UPTIME_UUID), HI_UINT16(DASHBOARD_DEVICE_UPTIME_UUID)
 };
 /*********************************************************************
  * LOCAL VARIABLES
@@ -110,11 +115,13 @@ static uint8 Dashboard_Light_ModeProps = GATT_PROP_READ | GATT_PROP_WRITE | GATT
 static uint8 Dashboard_Power_On_TimeProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 // Characteristic "Dashboard_ADCounter" Properties (for declaration)
 static uint8 Dashboard_ADCounterProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
+// Characteristic "Dashboard_Device_UpTime" Properties (for declaration)
+static uint8 Dashboard_Device_UpTimeProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 
 
 /**************************  Characteristic Values ******************************/
 // Characteristic "Dashboard_Error_Code" Value variable and declares initial values
-uint8 Dashboard_Error_CodeVal[DASHBOARD_ERROR_CODE_LEN] = {0};
+uint8 Dashboard_Error_CodeVal[DASHBOARD_ERROR_CODE_LEN] = {0xFF};  // "error code" - not error priority
 // Characteristic "Dashboard_Speed_Mode" Value variable and declares initial values
 uint8 Dashboard_Speed_ModeVal[DASHBOARD_SPEED_MODE_LEN] = {1};
 // Characteristic "Dashboard_Light_Status" Value variable and declares initial values
@@ -122,26 +129,28 @@ uint8 Dashboard_Light_StatusVal[DASHBOARD_LIGHT_STATUS_LEN] = {0};
 // Characteristic "Dashboard_Light_Mode" Value variable and declares initial values
 uint8 Dashboard_Light_ModeVal[DASHBOARD_LIGHT_MODE_LEN] = {2};
 // Characteristic "Dashboard_Power_On_Time" Value variable  and declares initial values - little Endian {low byte, high byte}
-uint8 Dashboard_Power_On_TimeVal[DASHBOARD_POWER_ON_TIME_LEN] = {0x3C, 0x00};
+uint8 Dashboard_Power_On_TimeVal[DASHBOARD_POWER_ON_TIME_LEN] = {0x00, 0x00};
 // Characteristic "Dashboard_ADCounter" Value variable and declares initial values - little Endian {low byte, high byte}
 uint8 Dashboard_ADCounterVal[DASHBOARD_ADCOUNTER_LEN] = {0, 0, 0, 0};
-
+// Characteristic "Dashboard_Device_UpTime" Value variable  and declares initial values - little Endian {low byte, high byte}
+uint8 Dashboard_Device_UpTimeVal[DASHBOARD_DEVICE_UPTIME_LEN] = {0x00, 0x00, 0x00, 0x00};
 
 
 /**************************  User Descriptions ******************************/
 // Simple Profile Characteristic 1 User Description
 static uint8 Dashboard_Error_CodeUserDesp[17] = "Dashboard Alert";
-// Simple Profile Characteristic 1 User Description
+// Simple Profile Characteristic 2 User Description
 static uint8 Dashboard_Speed_ModeUserDesp[17] = "Speed Mode";
-// Simple Profile Characteristic 1 User Description
+// Simple Profile Characteristic 3 User Description
 static uint8 Dashboard_Light_StatusUserDesp[17] = "Light Status";
-// Simple Profile Characteristic 1 User Description
+// Simple Profile Characteristic 4 User Description
 static uint8 Dashboard_Light_ModeUserDesp[17] = "Light Mode";
-// Simple Profile Characteristic 1 User Description
+// Simple Profile Characteristic 5 User Description
 static uint8 Dashboard_Power_On_TimeUserDesp[17] = "Device On Time";
-// Simple Profile Characteristic 1 User Description
+// Simple Profile Characteristic 6 User Description
 static uint8 Dashboard_ADCounterUserDesp[17] = "AD Data ID";
-
+// Simple Profile Characteristic 7 User Description
+static uint8 Dashboard_Device_UpTimeUserDesp[17] = "Device Uptime";
 
 /**************************  Client Characteristic ******************************/
 // Characteristic "Dashboard_Error_Code" CCCD
@@ -156,7 +165,8 @@ static gattCharCfg_t *Dashboard_Light_ModeConfig;
 static gattCharCfg_t *Dashboard_Power_On_TimeConfig;
 // Characteristic "Dashboard_ADCounter" CCCD
 static gattCharCfg_t *Dashboard_ADCounterConfig;
-
+// Client Characteristic Configuration
+static gattCharCfg_t *Dashboard_Device_UpTimeConfig;
 
 /********* Declare Struct of Dashboard Characteristic Values ****************/
 dashboardCharVal_t DCVArray;
@@ -359,7 +369,39 @@ static gattAttribute_t DashboardAttrTbl[] =
             GATT_PERMIT_READ,
             0,
             Dashboard_ADCounterUserDesp    //"Data ID"
-      }
+      },
+
+
+  /********* Characteristic: DEVICE UPTIME *********/
+  // Dashboard_Device_UpTime Characteristic Declaration
+  {
+    { ATT_BT_UUID_SIZE, characterUUID },
+        GATT_PERMIT_READ,
+        0,
+        &Dashboard_Device_UpTimeProps
+  },
+    // Dashboard_Device_UpTime Characteristic Value
+    {
+      { ATT_BT_UUID_SIZE, Dashboard_Device_UpTimeUUID },
+          GATT_PERMIT_READ,
+          0,
+          Dashboard_Device_UpTimeVal
+    },
+        // Dashboard_Device_UpTime : Client Characteristic Configuration Description
+                    {
+                      { ATT_BT_UUID_SIZE, clientCharCfgUUID },
+                          GATT_PERMIT_READ | GATT_PERMIT_WRITE,
+                          0,
+                          (uint8 *)&Dashboard_Device_UpTimeConfig
+                    },
+    // Dashboard_Device_UpTime user descriptor
+    {
+      {ATT_BT_UUID_SIZE, charUserDescUUID},
+          GATT_PERMIT_READ,
+          0,
+          Dashboard_Device_UpTimeUserDesp    //"Device UpTime (minutes)"
+    }
+
 };
 
 /*********************************************************************
@@ -398,6 +440,7 @@ extern void Dashboard_profile_init(){
     DCVArray.ptr_speedMode = Dashboard_Speed_ModeVal;
     DCVArray.ptr_lightMode = Dashboard_Light_ModeVal;
     DCVArray.ptr_lightStatus = Dashboard_Light_StatusVal;
+    DCVArray.ptr_deviceUpTime = Dashboard_Device_UpTimeVal;
 }
 
 
@@ -469,6 +512,15 @@ bStatus_t Dashboard_AddService( void )
     }
     // Initialize Client Characteristic Configuration attributes
     GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Dashboard_ADCounterConfig );
+
+    /******* Allocate Client Characteristic Configuration table ********/
+    Dashboard_Device_UpTimeConfig = (gattCharCfg_t *)ICall_malloc( sizeof(gattCharCfg_t) *
+                                                                   MAX_NUM_BLE_CONNS );
+    if ( Dashboard_Device_UpTimeConfig == NULL ) {
+        return ( bleMemAllocError );
+    }
+    // Initialize Client Characteristic Configuration attributes
+    GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Dashboard_Device_UpTimeConfig );
 
     // Register GATT attribute list and CBs with GATT Server App
     status = GATTServApp_RegisterService( DashboardAttrTbl,
@@ -571,36 +623,50 @@ bStatus_t Dashboard_SetParameter( uint8 param, uint8 len, void *value )
         }
         break;
     case DASHBOARD_POWER_ON_TIME:
-            if ( len == DASHBOARD_POWER_ON_TIME_LEN )
-            {
-              memcpy(Dashboard_Power_On_TimeVal, value, len);
-              // Try to send notification.
-              GATTServApp_ProcessCharCfg( Dashboard_Power_On_TimeConfig, Dashboard_Power_On_TimeVal,
-                                          FALSE, DashboardAttrTbl, GATT_NUM_ATTRS( DashboardAttrTbl ),
-                                          INVALID_TASK_ID,  Dashboard_ReadAttrCB);
-            }
-            else
-            {
-              ret = bleInvalidRange;
-            }
-            break;
+        if ( len == DASHBOARD_POWER_ON_TIME_LEN )
+        {
+          memcpy(Dashboard_Power_On_TimeVal, value, len);
+          // Try to send notification.
+          GATTServApp_ProcessCharCfg( Dashboard_Power_On_TimeConfig, Dashboard_Power_On_TimeVal,
+                                      FALSE, DashboardAttrTbl, GATT_NUM_ATTRS( DashboardAttrTbl ),
+                                      INVALID_TASK_ID,  Dashboard_ReadAttrCB);
+        }
+        else
+        {
+          ret = bleInvalidRange;
+        }
+        break;
     case DASHBOARD_ADCOUNTER:
-            if ( len == DASHBOARD_ADCOUNTER_LEN )
-            {
-              memcpy(Dashboard_ADCounterVal, value, len);
-              // Try to send notification.
-              GATTServApp_ProcessCharCfg( Dashboard_ADCounterConfig, Dashboard_ADCounterVal,
-                                          FALSE, DashboardAttrTbl, GATT_NUM_ATTRS( DashboardAttrTbl ),
-                                          INVALID_TASK_ID,  Dashboard_ReadAttrCB);
-            }
-            else
-            {
-              ret = bleInvalidRange;
-            }
-            break;
+        if ( len == DASHBOARD_ADCOUNTER_LEN )
+        {
+          memcpy(Dashboard_ADCounterVal, value, len);
+          // Try to send notification.
+          GATTServApp_ProcessCharCfg( Dashboard_ADCounterConfig, Dashboard_ADCounterVal,
+                                      FALSE, DashboardAttrTbl, GATT_NUM_ATTRS( DashboardAttrTbl ),
+                                      INVALID_TASK_ID,  Dashboard_ReadAttrCB);
+        }
+        else
+        {
+          ret = bleInvalidRange;
+        }
+        break;
+    case DASHBOARD_DEVICE_UPTIME:
+        if ( len == DASHBOARD_DEVICE_UPTIME_LEN )
+        {
+          memcpy(Dashboard_Device_UpTimeVal, value, len);
+          // Try to send notification.
+          GATTServApp_ProcessCharCfg( Dashboard_Device_UpTimeConfig, Dashboard_Device_UpTimeVal,
+                                      FALSE, DashboardAttrTbl, GATT_NUM_ATTRS( DashboardAttrTbl ),
+                                      INVALID_TASK_ID,  Dashboard_ReadAttrCB);
+        }
+        else
+        {
+          ret = bleInvalidRange;
+        }
+        break;
     default:
-      ret = INVALIDPARAMETER;
-      break;
+        ret = INVALIDPARAMETER;
+        break;
   }
   return ret;
 }
@@ -632,6 +698,9 @@ bStatus_t Dashboard_GetParameter( uint8 param, void *value )
         break;
   case DASHBOARD_ADCOUNTER:
           memcpy(value, Dashboard_ADCounterVal, DASHBOARD_ADCOUNTER_LEN);
+        break;
+  case DASHBOARD_DEVICE_UPTIME:
+          memcpy(value, Dashboard_Device_UpTimeVal, DASHBOARD_DEVICE_UPTIME_LEN);
         break;
     default:
       ret = INVALIDPARAMETER;
@@ -734,6 +803,19 @@ static bStatus_t Dashboard_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr
     else
     {
       *pLen = MIN(maxLen, DASHBOARD_ADCOUNTER_LEN - offset);  // Transmit as much as possible
+      memcpy(pValue, pAttr->pValue + offset, *pLen);
+    }
+  }
+  // See if request is regarding the Dashboard_Device_UpTime Characteristic Value
+  else if (! memcmp(pAttr->type.uuid, Dashboard_Device_UpTimeUUID, pAttr->type.len) )
+  {
+    if ( offset > DASHBOARD_DEVICE_UPTIME_LEN )  // Prevent malicious ATT ReadBlob offsets.
+    {
+      status = ATT_ERR_INVALID_OFFSET;
+    }
+    else
+    {
+      *pLen = MIN(maxLen, DASHBOARD_DEVICE_UPTIME_LEN - offset);  // Transmit as much as possible
       memcpy(pValue, pAttr->pValue + offset, *pLen);
     }
   }

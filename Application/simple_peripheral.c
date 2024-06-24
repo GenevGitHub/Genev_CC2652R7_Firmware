@@ -607,12 +607,13 @@ static void SimplePeripheral_init(void)
   // http://software-dl.ti.com/lprf/ble5stack-latest/
   {
       /******* only if the initial characteristic values need changing  *********/
-      uint32_t    ADCounter_init_val = 0;
-      uint16_t    power_on_time_init_val = 60;
-      uint8_t     error_code_init_val = 0;
-      uint8_t     speed_mode_init_val = 0;
-      uint8_t     light_mode_init_val = 2;
-      uint8_t     light_status_init_val = 0;
+//      uint32_t    ADCounter_init_val = 0;
+//      uint16_t    power_on_time_init_val = 60;
+//      uint8_t     error_code_init_val = 0;
+//      uint8_t     speed_mode_init_val = 0;
+//      uint8_t     light_mode_init_val = 2;
+//      uint8_t     light_status_init_val = 0;
+//      uint32_t    device_uptime_init_val = 1355;
 
       /*********************** for demo purposes only **************************/
   //    uint8_t db_charValue2[DASHBOARD_LIGHT_STATUS_LEN] = {1};
@@ -693,16 +694,16 @@ static void SimplePeripheral_init(void)
  *
  * @param   a0, a1 - not used.
  */
-uint8_t         sp_initComplete_flag = GPT_INACTIVE;
+static uint8_t         sp_initComplete_flag = GPT_INACTIVE;
 static bool     *ptr_sp_POWER_ON;       // register for POWER_ON status
 static sysFatalError_t *ptr_sysFatalError;
 static uint8_t  *ptr_snvWriteFlag;
 
-uint8_t     sp_counter = 0;
-uint8_t     sp_i2cOpenStatus;
-bStatus_t   check_enableStatus;       // for debugging purpose only
-uint8_t     check_snvWriteFlag = 0;   // for debugging purpose only
-static uint8_t     *ptr_sp_dashboardErrorCodeStatus;
+static uint8_t     sp_counter = 0;
+static uint8_t     sp_i2cOpenStatus;
+static bStatus_t   check_enableStatus;       // for debugging purpose only
+static uint8_t     check_snvWriteFlag = 0;   // for debugging purpose only
+static uint8_t     *ptr_sp_dashboardErrorCodePriority;
 
 static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 {
@@ -722,7 +723,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       ptr_snvWriteFlag = snvWriteFlageRegister();                   // call snvWriteFlagRegister to get pointer to snvWriteFlag
 
-      ptr_sp_dashboardErrorCodeStatus = bat_dashboardErrorCodeStatusRegister(); // call bat_dashboardErrorCodeStatusRegister to get pointer to sp_dashboardErrorCodeStatus
+      ptr_sp_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister(); // call bat_dashboardErrorCodePriorityRegister to get pointer to sp_dashboardErrorCodePriority
 
       SimplePeripheral_init();
 
@@ -758,8 +759,8 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       sp_i2cOpenStatus = UDHAL_init();
 
       /* Set up initial data values after reading from NVS memory  */
-      brake_and_throttle_setSpeedMode(snv_internal_80[SNV_BUFFER_SIZE - 4]);   // set initial speedMode = snv_internal_80[28]
-      pot_setDeviceUpTime(snv_internal_80[SNV_BUFFER_SIZE - 1]);    // read and set initial device uptime
+      brake_and_throttle_setSpeedMode(snv_internal_80[SNV_BUFFER_SIZE - 4]);   // set initial speedMode = snv_internal_80[28] in brake_and_throttle.c
+      pot_setDeviceUpTime(snv_internal_80[SNV_BUFFER_SIZE - 1]);    // read and set initial device uptime in power_on_time.c
 
       /********* motor_contol_init must be before data_analytics_init **********/
       STM32MCP_init();  // -> timer2_Start
@@ -784,9 +785,9 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       {
           led_display_ErrorPriority(SYS_FATAL_ERROR_PRIORITY);
 
-          if (*ptr_sp_dashboardErrorCodeStatus > SYS_FATAL_ERROR_PRIORITY)
+          if (*ptr_sp_dashboardErrorCodePriority > SYS_FATAL_ERROR_PRIORITY)
           {
-              *ptr_sp_dashboardErrorCodeStatus = SYS_FATAL_ERROR_PRIORITY;
+              *ptr_sp_dashboardErrorCodePriority = SYS_FATAL_ERROR_PRIORITY;
               ptr_charVal = (ptr_sp_profileCharVal->ptr_dash_charVal->ptr_dashErrorCode);
               profile_setCharVal(ptr_charVal, DASHBOARD_ERROR_CODE_LEN, SYS_FATAL_ERROR_CODE);
           }
@@ -817,7 +818,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
         events = Event_pend(syncEvent, Event_Id_NONE, SP_ALL_EVENTS,
                             ICALL_TIMEOUT_FOREVER);
 
-        /***** Handles BLE enable when user selects BLE on from MPB    *****/
+        /***** Handles GapAdv_enable when user turns on BLE from MPB    *****/
         if( (sp_opcode == GAP_LINK_TERMINATED_EVENT) || (sp_opcode == GAP_DEVICE_INIT_DONE_EVENT) )
         {
             if (*ptr_GAPflag)
@@ -879,7 +880,9 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
               }
         }
 
-        /***** Handles write to NVS and shut down protocols when user selects POWER OFF from MPB *****/
+        /***************************************************************************************************
+         *  Handles POWER OFF, write to NVS and shut down protocols when user POWER OFF the device from MPB
+         *  ************************************************************************************************/
         if (!(*ptr_sp_POWER_ON)) // i.e. if power off
         {
             /*** If power off, the following actions are executed before shut down  ***/
@@ -911,8 +914,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
         }
 
-    }   // FOR loop
-
+    }   // main FOR loop
 
 }
 
@@ -1551,6 +1553,11 @@ static void SimplePeripheral_performPeriodicTask(void)
       Dashboard_SetParameter(DASHBOARD_ADCOUNTER, DASHBOARD_ADCOUNTER_LEN, arrayToCopy4);
     }
 
+  if (Dashboard_GetParameter(DASHBOARD_DEVICE_UPTIME, arrayToCopy4) == SUCCESS)
+    {
+      Dashboard_SetParameter(DASHBOARD_DEVICE_UPTIME, DASHBOARD_DEVICE_UPTIME_LEN, arrayToCopy4);
+    }
+
   /******** Battery Profile Notification **********/
   if (Battery_GetParameter(BATTERY_BATTERY_LEVEL, arrayToCopy1) == SUCCESS)
     {
@@ -1588,10 +1595,10 @@ static void SimplePeripheral_performPeriodicTask(void)
       Controller_SetParameter(CONTROLLER_VOLTAGE, CONTROLLER_VOLTAGE_LEN, arrayToCopy2);
     }
 
-  if (Controller_GetParameter(CONTROLLER_CURRENT, arrayToCopy2) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_CURRENT, CONTROLLER_CURRENT_LEN, arrayToCopy2);
-    }
+//  if (Controller_GetParameter(CONTROLLER_CURRENT, arrayToCopy2) == SUCCESS)
+//    {
+//      Controller_SetParameter(CONTROLLER_CURRENT, CONTROLLER_CURRENT_LEN, arrayToCopy2);
+//    }
 
   if (Controller_GetParameter(CONTROLLER_HEAT_SINK_TEMPERATURE, arrayToCopy1) == SUCCESS)
     {
@@ -1735,7 +1742,7 @@ bool SimplePeripheral_doSetConnPhy(uint8 index)
   uint8_t connIndex = SimplePeripheral_getConnIndex(menuConnHandle);
   if (connIndex >= MAX_NUM_BLE_CONNS)
   {
-    return FALSE;
+    return (FALSE);
   }
 
   // Set Phy Preference on the current connection. Apply the same value
@@ -1757,7 +1764,7 @@ bool SimplePeripheral_doSetConnPhy(uint8 index)
     SimplePeripheral_startAutoPhyChange(menuConnHandle);
   }
 
-  return status;
+  return (status);
 }
 /*********************************************************************
  * @fn      SimplePeripheral_advCallback

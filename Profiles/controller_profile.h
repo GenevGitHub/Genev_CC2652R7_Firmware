@@ -31,11 +31,11 @@ extern "C"
 * CONSTANTS
 */
 // Service UUID
-#define CONTROLLER_SERV_UUID                        0x181C
+#define CONTROLLER_SERV_UUID                        0x7800  //USER_DATA_SERV_UUID
 
 //  Characteristic definition
 #define CONTROLLER_VOLTAGE                          0
-#define CONTROLLER_CURRENT                          1
+//#define CONTROLLER_CURRENT                          1
 #define CONTROLLER_HEAT_SINK_TEMPERATURE            2
 #define CONTROLLER_ERROR_CODE                       3
 #define CONTROLLER_MOTOR_RPM                        4
@@ -48,29 +48,29 @@ extern "C"
 #define CONTROLLER_INSTANT_ECONOMY                  11
 #define CONTROLLER_MOTOR_TEMPERATURE                12
 
-#define CONTROLLER_VOLTAGE_UUID                     0x2B18  // 0x2AE1
-#define CONTROLLER_CURRENT_UUID                     0x2AEE
-#define CONTROLLER_HEAT_SINK_TEMPERATURE_UUID       0x2A6E
-#define CONTROLLER_ERROR_CODE_UUID                  0x2A43  // 0x2A3F
+#define CONTROLLER_VOLTAGE_UUID                     VOLTAGE_UUID  // 0x2AE1
+//#define CONTROLLER_CURRENT_UUID                     ELECT_CURRENT_UUID
+#define CONTROLLER_HEAT_SINK_TEMPERATURE_UUID       TEMPERATURE_UUID
+#define CONTROLLER_ERROR_CODE_UUID                  ALERT_STATUS_UUID  // 0x2A3F
 #define CONTROLLER_MOTOR_RPM_UUID                   0x7805
 #define CONTROLLER_MOTOR_SPEED_UUID                 0x7806
 #define CONTROLLER_TOTAL_DISTANCE_TRAVELLED_UUID    0x7807
-#define CONTROLLER_TOTAL_ENERGY_CONSUMPTION_UUID    0x2AF2  // 0x7805  //
+#define CONTROLLER_TOTAL_ENERGY_CONSUMPTION_UUID    ENERGY_UUID  // 0x7805  //
 #define CONTROLLER_OVERALL_EFFICIENCY_UUID          0X7808
 #define CONTROLLER_RANGE_UUID                       0x7809
 #define CONTROLLER_CO2SAVED_UUID                    0x780A
 #define CONTROLLER_INSTANT_ECONOMY_UUID             0x780B
-#define CONTROLLER_MOTOR_TEMPERATURE_UUID           0x2A1C  // 0x2A6E
+#define CONTROLLER_MOTOR_TEMPERATURE_UUID           TEMP_MEAS_UUID  // 0x2A6E
 
 #define CONTROLLER_VOLTAGE_LEN                      2
-#define CONTROLLER_CURRENT_LEN                      2
+//#define CONTROLLER_CURRENT_LEN                      2
 #define CONTROLLER_HEAT_SINK_TEMPERATURE_LEN        1
 #define CONTROLLER_ERROR_CODE_LEN                   1
 #define CONTROLLER_MOTOR_RPM_LEN                    2
 #define CONTROLLER_MOTOR_SPEED_LEN                  2
 #define CONTROLLER_TOTAL_DISTANCE_TRAVELLED_LEN     4
 #define CONTROLLER_TOTAL_ENERGY_CONSUMPTION_LEN     4
-#define CONTROLLER_OVERALL_EFFICIENCY_LEN           4
+#define CONTROLLER_OVERALL_EFFICIENCY_LEN           4   // 2 is enough, but leave it as 4
 #define CONTROLLER_RANGE_LEN                        4
 #define CONTROLLER_CO2SAVED_LEN                     4
 #define CONTROLLER_INSTANT_ECONOMY_LEN              2
@@ -78,15 +78,15 @@ extern "C"
 
 // Controller Error Codes
 #define CONTROLLER_NORMAL                           0x00
-#define PHASE_CURRENT_ABNORMAL                      0x2A
-#define MOSFET_ABNORMAL                             0x2E
+#define PHASE_CURRENT_ABNORMAL                      PHASE_I_ERROR_CODE
+#define MOSFET_ABNORMAL                             MOSFET_ERROR_CODE
 //#define OPAMP_ABNORAML
-#define GATE_DRIVER_ABNORMAL                        0x2C
-#define HEATSINK_TEMPERATURE_ABNORMAL               0x2F
+#define GATE_DRIVER_ABNORMAL                        GATE_DRIVER_ERROR_CODE
+#define HEATSINK_TEMPERATURE_ABNORMAL               CONTROLLER_TEMP_ERROR_CODE
 //  Motor Error Codes
 #define MOTOR_NORMAL                                0x00
-#define HALL_SENSOR_ABNORMAL                        0x3A
-#define MOTOR_TEMPERATURE_ABNORMAL                  0x3C
+#define HALL_SENSOR_ABNORMAL                        HALL_SENSOR_ERROR_CODE
+#define MOTOR_TEMPERATURE_ABNORMAL                  MOTOR_TEMP_ERROR_CODE
 /*********************************************************************
  * TYPEDEFS
  */
@@ -97,13 +97,14 @@ typedef struct controllerCharVal{
     uint8*    ptr_range;
     uint8*    ptr_co2saved;
     uint8*    ptr_voltage;
-    uint8*    ptr_current;
+//    uint8*    ptr_current;
     uint8*    ptr_motorRPM;
     uint8*    ptr_motorSpeed;
     uint8*    ptr_instantEconomy;
     uint8*    ptr_heatSinkTempOffset50;
     uint8*    ptr_motorTempOffset50;
     uint8*    ptr_controllerErrorCode;
+
 }controllerCharVal_t;
 
 

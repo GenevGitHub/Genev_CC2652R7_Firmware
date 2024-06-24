@@ -12,13 +12,6 @@ Application/brake_and_throttle.o: ../Application/brake_and_throttle.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/target/_common/_hal_types.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/hal_defs.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h \
- C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h \
- C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/xdc/std.h \
@@ -34,6 +27,13 @@ Application/brake_and_throttle.o: ../Application/brake_and_throttle.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory_defs.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h \
+ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h \
+ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/snv_internal.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/periodic_communication.h \
  C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_ADC.h \
@@ -66,20 +66,6 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/ha
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h:
-
-C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h:
-
-C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h:
-
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h:
-
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h:
-
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h:
-
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h:
-
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h:
@@ -109,6 +95,20 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory_defs.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h:
+
+C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h:
+
+C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/snv_internal.h:
 

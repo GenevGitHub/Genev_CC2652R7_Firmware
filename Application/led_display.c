@@ -1749,13 +1749,15 @@ void led_display_changeBLE(uint32_t eventcounter)
  *
  * @return  none
  *********************************************************************/
-void led_display_ErrorPriority(uint8_t error_priority)
+uint8_t led_display_ErrorPriority(uint8_t error_priority)
 {
     /*  stores the most critical error priority */
     if(error_priority < led_error_code_old){
         led_error_priority = error_priority;
 
     }
+
+    return (led_error_priority);
 }
 
 /*********************************************************************
@@ -1778,7 +1780,7 @@ uint8_t led_display_ErrorDisplay()
             functionTable[35](I_OUT,ledBrightness);
             functionTable[62](I_OUT,ledBrightness);
         }
-        else if(led_error_priority == BATTERY_TEMP_ERROR_PRIORITY) // Battery over-temperature error code = 1A
+        else if((led_error_priority == BATTERY_VOLTAGE_ERROR_PRIORITY) || (led_error_priority == BATTERY_TEMP_ERROR_PRIORITY)) // Battery over-voltage and over-temperature error code = 1A
         {
             functionTable[36](I_OUT,ledBrightness);
             functionTable[56](I_OUT,ledBrightness);
@@ -1833,6 +1835,7 @@ uint8_t led_display_ErrorDisplay()
             functionTable[35](I_OUT,ledBrightness);
             functionTable[58](I_OUT,ledBrightness);
         }
+
         /*********** led display warning light icon ******************/
         if (led_error_priority < BATTERY_CRITICALLY_LOW_WARNING) // if led_error_priority is less than 0x20 (32), warning light on
         {

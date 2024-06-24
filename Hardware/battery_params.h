@@ -29,10 +29,13 @@ extern "C"
 /*********************************************************************************************
  *  Battery Status Constants
  *********************************************************************************************/
-#define BATTERY_PERCENTAGE_INITIAL      100             // Remove this if calculated using start up voltage
+#define BATTERY_PERCENTAGE_INITIAL      88              // Remove this if calculated using start up voltage
 #define BATTERY_PERCENTAGE_LL           5               // battery low percentage at which buzzer alert starts
 #define BATTERY_PERCENTAGE_LH           8               // battery low percentage at which buzzer alert stops
 
+#define BATTERY_OVERVOLTAGE             0x02
+#define BATTERY_UNDERVOLTAGE            0x01
+#define BATTERY_VOLTAGENORMAL           0xFF
 
 /* Battery specification parameters     48.1V */
 #ifdef BATTERY_48100mV_S13P2

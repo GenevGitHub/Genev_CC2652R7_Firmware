@@ -55,10 +55,10 @@ static CONST uint8 Controller_VoltageUUID[ATT_BT_UUID_SIZE] =
 };
 
 // Controller_Current UUID
-static CONST uint8 Controller_CurrentUUID[ATT_BT_UUID_SIZE] =
-{
-     LO_UINT16(CONTROLLER_CURRENT_UUID), HI_UINT16(CONTROLLER_CURRENT_UUID)
-};
+//static CONST uint8 Controller_CurrentUUID[ATT_BT_UUID_SIZE] =
+//{
+//     LO_UINT16(CONTROLLER_CURRENT_UUID), HI_UINT16(CONTROLLER_CURRENT_UUID)
+//};
 
 // Controller_Heat_Sink_Temperature UUID
 static CONST uint8 Controller_Heat_Sink_TemperatureUUID[ATT_BT_UUID_SIZE] =
@@ -142,8 +142,8 @@ static CONST gattAttrType_t ControllerDecl = { ATT_BT_UUID_SIZE, ControllerUUID 
 /*************** Controller Characteristics Properties ***********************/
 // Characteristic "Controller_Voltage" Properties (for declaration)
 static uint8_t Controller_VoltageProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
-// Characteristic "Controller_Current" Properties (for declaration)
-static uint8_t Controller_CurrentProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
+//// Characteristic "Controller_Current" Properties (for declaration)
+//static uint8_t Controller_CurrentProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 // Characteristic "Controller_Heat_Sink_Temperature" Properties (for declaration)
 static uint8_t Controller_Heat_Sink_TemperatureProps = GATT_PROP_READ | GATT_PROP_NOTIFY;
 // Characteristic "Controller_Error_Code" Properties (for declaration)
@@ -171,12 +171,12 @@ static uint8 Controller_Instant_EconomyProps = GATT_PROP_READ | GATT_PROP_NOTIFY
 /*************** Controller Characteristics Values ***********************/
 // Characteristic "Controller_Voltage" Value variable -> need to break it up into bits of 8 bits for communication
 static uint8_t Controller_VoltageVal[CONTROLLER_VOLTAGE_LEN] = {0};
-// Characteristic "Controller_Current" Value variable
-static uint8_t Controller_CurrentVal[CONTROLLER_CURRENT_LEN] = {0};
+//// Characteristic "Controller_Current" Value variable
+//static uint8_t Controller_CurrentVal[CONTROLLER_CURRENT_LEN] = {0};
 // Characteristic "Controller_Heat_Sink_Temperature" Value variable
-static uint8_t Controller_Heat_Sink_TemperatureVal[CONTROLLER_HEAT_SINK_TEMPERATURE_LEN] = {65};        // Should change type to int8_t because temperature can be negative
+static uint8_t Controller_Heat_Sink_TemperatureVal[CONTROLLER_HEAT_SINK_TEMPERATURE_LEN] = {65};        // temperature offset by 50 to ensure negative value is not possible
 // Characteristic "Controller_Error_Code" Value variable
-static uint8_t Controller_Error_CodeVal[CONTROLLER_ERROR_CODE_LEN] = {0};
+static uint8_t Controller_Error_CodeVal[CONTROLLER_ERROR_CODE_LEN] = {0xFF};  // "error code" - not error priority
 // Characteristic "Controller_Motor_RPM" Value variable
 static uint8_t Controller_Motor_RPM_Val[CONTROLLER_MOTOR_RPM_LEN] = {0};
 // Characteristic "Controller_Motor_Speed" Value variable
@@ -192,7 +192,7 @@ static uint8 Controller_RangeVal[CONTROLLER_RANGE_LEN] = {0};
 // Characteristic "Controller_co2Saved" Value variable
 static uint8 Controller_co2SavedVal[CONTROLLER_CO2SAVED_LEN] = {0};
 // Characteristic "Controller_Motor_Temperature" Value variable
-static uint8_t Controller_Motor_TemperatureVal[CONTROLLER_MOTOR_TEMPERATURE_LEN] = {45};
+static uint8_t Controller_Motor_TemperatureVal[CONTROLLER_MOTOR_TEMPERATURE_LEN] = {65};
 // Characteristic "Controller_Instant_Economy" Value variable
 static uint8 Controller_Instant_EconomyVal[CONTROLLER_INSTANT_ECONOMY_LEN] = {0};
 
@@ -200,16 +200,16 @@ static uint8 Controller_Instant_EconomyVal[CONTROLLER_INSTANT_ECONOMY_LEN] = {0}
 /*************** Controller Characteristics Descriptions ***********************/
 // Controller Voltage User Description
 static uint8 Controller_VoltageUserDesp[17] = "Phase Voltage";
-// Controller Current User Description
-static uint8 Controller_CurrentUserDesp[17] = "Phase Current";
+//// Controller Current User Description
+//static uint8 Controller_CurrentUserDesp[17] = "Phase Current";
 // Controller _Heat_Sink_Temperature User Description
-static uint8 Controller_Heat_Sink_TemperatureUserDesp[17] = "Cont. Temp +50";
+static uint8 Controller_Heat_Sink_TemperatureUserDesp[17] = "Contr. Temp +50";
 // Controller Error User Description
 static uint8 Controller_Error_CodeUserDesp[17] = "Controller Alert";
 // Controller Motor RPM User Description
-static uint8 Controller_Motor_RPMUserDesp[17] = "Motor RPM";
+static uint8 Controller_Motor_RPMUserDesp[17] = "Avg. Motor RPM";
 // Controller Motor Speed User Description
-static uint8 Controller_Motor_SpeedUserDesp[17] = "Motor Speed";
+static uint8 Controller_Motor_SpeedUserDesp[17] = "Avg. Motor Speed";
 // Controller_Total_Distance_Travelled User Description
 static uint8 Controller_Total_Distance_TravelledUserDesp[17] = "Dist. Traveled";
 // Controller_Total_Energy_Consumption User Description
@@ -233,8 +233,8 @@ controllerCharVal_t CCVArray;
 /**************************  Client Characteristic ******************************/
 // Characteristic "Controller_Voltage" CCCD
 static gattCharCfg_t *Controller_VoltageConfig;
-// Characteristic "Controller_Current" CCCD
-static gattCharCfg_t *Controller_CurrentConfig;
+//// Characteristic "Controller_Current" CCCD
+//static gattCharCfg_t *Controller_CurrentConfig;
 // Characteristic "Controller_Heat_Sink_Temperature" CCCD
 static gattCharCfg_t *Controller_Heat_Sink_TemperatureConfig;
 // Characteristic "Controller_Error_Code" CCCD
@@ -301,34 +301,35 @@ static gattAttribute_t ControllerAttrTbl[] =
           0,
           Controller_VoltageUserDesp  //"Voltage (mV)"
         },
-    // Controller_Current Characteristic Declaration
-    {
-      { ATT_BT_UUID_SIZE, characterUUID },
-      GATT_PERMIT_READ,
-      0,
-      &Controller_CurrentProps
-    },
-        // Controller_Current Characteristic Value
-        {
-          { ATT_BT_UUID_SIZE, Controller_CurrentUUID },
-          GATT_PERMIT_READ,
-          0,
-          Controller_CurrentVal
-        },
-                    // Controller_Current CCCD
-                    {
-                      { ATT_BT_UUID_SIZE, clientCharCfgUUID },
-                      GATT_PERMIT_READ | GATT_PERMIT_WRITE,
-                      0,
-                      (uint8 *)&Controller_CurrentConfig
-                    },
-        // Controller_Current user descriptor
-        {
-          {ATT_BT_UUID_SIZE, charUserDescUUID},
-          GATT_PERMIT_READ,
-          0,
-          Controller_CurrentUserDesp  //"Current (mA)"
-        },
+
+//    // Controller_Current Characteristic Declaration
+//    {
+//      { ATT_BT_UUID_SIZE, characterUUID },
+//      GATT_PERMIT_READ,
+//      0,
+//      &Controller_CurrentProps
+//    },
+//        // Controller_Current Characteristic Value
+//        {
+//          { ATT_BT_UUID_SIZE, Controller_CurrentUUID },
+//          GATT_PERMIT_READ,
+//          0,
+//          Controller_CurrentVal
+//        },
+//                    // Controller_Current CCCD
+//                    {
+//                      { ATT_BT_UUID_SIZE, clientCharCfgUUID },
+//                      GATT_PERMIT_READ | GATT_PERMIT_WRITE,
+//                      0,
+//                      (uint8 *)&Controller_CurrentConfig
+//                    },
+//        // Controller_Current user descriptor
+//        {
+//          {ATT_BT_UUID_SIZE, charUserDescUUID},
+//          GATT_PERMIT_READ,
+//          0,
+//          Controller_CurrentUserDesp  //"Current (mA)"
+//        },
         /********* Characteristic: Controller_Heat_Sink_Temperature *********/
         // Controller_Heat_Sink_Temperature Characteristic Declaration
         {
@@ -695,7 +696,7 @@ extern void Controller_profile_init(){
     CCVArray.ptr_co2saved = Controller_co2SavedVal;
     CCVArray.ptr_controllerErrorCode = Controller_Error_CodeVal;
     CCVArray.ptr_voltage = Controller_VoltageVal;
-    CCVArray.ptr_current = Controller_CurrentVal;
+//    CCVArray.ptr_current = Controller_CurrentVal;
     CCVArray.ptr_heatSinkTempOffset50 = Controller_Heat_Sink_TemperatureVal;
     CCVArray.ptr_motorRPM = Controller_Motor_RPM_Val;
     CCVArray.ptr_motorSpeed = Controller_Motor_SpeedVal;
@@ -727,15 +728,15 @@ bStatus_t Controller_AddService( void )
       GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Controller_VoltageConfig );
 
 
-      /***** Allocate Client Characteristic Configuration table *****/
-          Controller_CurrentConfig = (gattCharCfg_t *)ICall_malloc( sizeof(gattCharCfg_t) *
-                                                                    MAX_NUM_BLE_CONNS );
-          if ( Controller_CurrentConfig == NULL )
-          {
-            return ( bleMemAllocError );
-          }
-          // Initialize Client Characteristic Configuration attributes
-          GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Controller_CurrentConfig );
+//      /***** Allocate Client Characteristic Configuration table *****/
+//          Controller_CurrentConfig = (gattCharCfg_t *)ICall_malloc( sizeof(gattCharCfg_t) *
+//                                                                    MAX_NUM_BLE_CONNS );
+//          if ( Controller_CurrentConfig == NULL )
+//          {
+//            return ( bleMemAllocError );
+//          }
+//          // Initialize Client Characteristic Configuration attributes
+//          GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Controller_CurrentConfig );
 
 
       /***** Allocate Client Characteristic Configuration table *****/
@@ -920,25 +921,25 @@ bStatus_t Controller_SetParameter( uint8 param, uint8 len, void *value )
         }
         break;
     }
-    case CONTROLLER_CURRENT:
-    {
-        if ( len == CONTROLLER_CURRENT_LEN )
-        {
-        memcpy(Controller_CurrentVal, value, len);
-        // Try to send notification.
-        // Call to GATTServApp_ProcessCharCfg requires numerous inputs.  In order to ensure
-        // GATTServApp_ProcessCharCfg could be accessed correctly, it must be called within
-        // simple peripheral
-        GATTServApp_ProcessCharCfg( Controller_CurrentConfig, Controller_CurrentVal, FALSE,
-                                    ControllerAttrTbl, GATT_NUM_ATTRS( ControllerAttrTbl ),
-                                    INVALID_TASK_ID,  Controller_ReadAttrCB);
-        }
-        else
-        {
-        ret = bleInvalidRange;
-        }
-        break;
-    }
+//    case CONTROLLER_CURRENT:
+//    {
+//        if ( len == CONTROLLER_CURRENT_LEN )
+//        {
+//        memcpy(Controller_CurrentVal, value, len);
+//        // Try to send notification.
+//        // Call to GATTServApp_ProcessCharCfg requires numerous inputs.  In order to ensure
+//        // GATTServApp_ProcessCharCfg could be accessed correctly, it must be called within
+//        // simple peripheral
+//        GATTServApp_ProcessCharCfg( Controller_CurrentConfig, Controller_CurrentVal, FALSE,
+//                                    ControllerAttrTbl, GATT_NUM_ATTRS( ControllerAttrTbl ),
+//                                    INVALID_TASK_ID,  Controller_ReadAttrCB);
+//        }
+//        else
+//        {
+//        ret = bleInvalidRange;
+//        }
+//        break;
+//    }
     case CONTROLLER_HEAT_SINK_TEMPERATURE:
     {
         if ( len == CONTROLLER_HEAT_SINK_TEMPERATURE_LEN )
@@ -1173,9 +1174,9 @@ bStatus_t Controller_GetParameter( uint8 param, void *value )
     case CONTROLLER_VOLTAGE:
         memcpy((uint8_t*)value, Controller_VoltageVal, CONTROLLER_VOLTAGE_LEN);
         break;
-    case CONTROLLER_CURRENT:
-        memcpy((uint8_t*)value, Controller_CurrentVal, CONTROLLER_CURRENT_LEN);
-        break;
+//    case CONTROLLER_CURRENT:
+//        memcpy((uint8_t*)value, Controller_CurrentVal, CONTROLLER_CURRENT_LEN);
+//        break;
     case CONTROLLER_HEAT_SINK_TEMPERATURE:
         memcpy((uint8_t*)value, Controller_Heat_Sink_TemperatureVal, CONTROLLER_HEAT_SINK_TEMPERATURE_LEN);
         break;
@@ -1251,19 +1252,19 @@ static bStatus_t Controller_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAtt
       memcpy(pValue, pAttr->pValue + offset, *pLen);
     }
   }
-  // See if request is regarding the Current Characteristic Value
-  else if (! memcmp(pAttr->type.uuid, Controller_CurrentUUID, pAttr->type.len) )
-  {
-    if ( offset > CONTROLLER_CURRENT_LEN )  // Prevent malicious ATT ReadBlob offsets.
-    {
-      status = ATT_ERR_INVALID_OFFSET;
-    }
-    else
-    {
-      *pLen = MIN(maxLen, CONTROLLER_CURRENT_LEN - offset);  // Transmit as much as possible
-      memcpy(pValue, pAttr->pValue + offset, *pLen);
-    }
-  }
+//  // See if request is regarding the Current Characteristic Value
+//  else if (! memcmp(pAttr->type.uuid, Controller_CurrentUUID, pAttr->type.len) )
+//  {
+//    if ( offset > CONTROLLER_CURRENT_LEN )  // Prevent malicious ATT ReadBlob offsets.
+//    {
+//      status = ATT_ERR_INVALID_OFFSET;
+//    }
+//    else
+//    {
+//      *pLen = MIN(maxLen, CONTROLLER_CURRENT_LEN - offset);  // Transmit as much as possible
+//      memcpy(pValue, pAttr->pValue + offset, *pLen);
+//    }
+//  }
   // See if request is regarding the Heat Sink Temperature Characteristic Value
   else if (! memcmp(pAttr->type.uuid, Controller_Heat_Sink_TemperatureUUID, pAttr->type.len) )
   {

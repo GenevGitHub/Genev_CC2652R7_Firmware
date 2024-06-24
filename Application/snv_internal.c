@@ -118,30 +118,31 @@ extern void snv_internal_resetSNVdata()
 #ifdef DUMMY_NVS    // DUMMY_NVS defines in simple peripheral
 
         UDBuffer[0]  = 1439;      // ADDataCounter = number of integration completed (each integration contains N = data_analysis_points)
-        UDBuffer[1]  = 51;        // UDCounter = number of UDTrigger.  UDCounter plus 1 when ADDataCounter = multiples of UDTrigger
-        UDBuffer[2]  = 21221;     //1 Distance traveled
-        UDBuffer[3]  = 29589;     //1 Energy Consumed
-        UDBuffer[4]  = 23705;
-        UDBuffer[5]  = 33246;     //2
-        UDBuffer[6]  = 25602;
-        UDBuffer[7]  = 36127;     //3
-        UDBuffer[8]  = 27584;
-        UDBuffer[9]  = 38703;     //4
-        UDBuffer[10] = 28530;
-        UDBuffer[11] = 40640;    //5
-        UDBuffer[12] = 30549;
-        UDBuffer[13] = 42959;    //6
-        UDBuffer[14] = 32503;
-        UDBuffer[15] = 46034;    //7
-        UDBuffer[16] = 34485;
-        UDBuffer[17] = 48962;    //8
-        UDBuffer[18] = 36366;
-        UDBuffer[19] = 51871;    //9
-        UDBuffer[20] = 38138;
-        UDBuffer[21] = 54542;    //10
-        UDBuffer[22] = 39700;        //
-        UDBuffer[23] = 56000;        //11
-        UDBuffer[24] = 41500;        //
+        UDBuffer[1]  = 47;        // UDCounter = number of UDTrigger.  UDCounter % UDARRAYSIZE must correspond to the location of the very last saved dataset
+                                    // in this dummy data, 47 % UDARRAYSIZE (12) = 11.  Therefore, set 11 is the location of the previous saved dataset
+        UDBuffer[2]  = 21221;     // set 0 Distance traveled
+        UDBuffer[3]  = 29589;     // set 0 Energy Consumed
+        UDBuffer[4]  = 23705;     // set 1 Distance traveled
+        UDBuffer[5]  = 33246;
+        UDBuffer[6]  = 25602;     // set 2 Distance traveled
+        UDBuffer[7]  = 36127;
+        UDBuffer[8]  = 27584;     // set 3 Distance traveled
+        UDBuffer[9]  = 38703;
+        UDBuffer[10] = 28530;     // set 4 Distance traveled
+        UDBuffer[11] = 40640;
+        UDBuffer[12] = 30549;     // set 5 Distance traveled
+        UDBuffer[13] = 42959;
+        UDBuffer[14] = 32503;     // set 6 Distance traveled
+        UDBuffer[15] = 46034;
+        UDBuffer[16] = 34485;     // set 7 Distance traveled
+        UDBuffer[17] = 48962;
+        UDBuffer[18] = 36366;     // set 8 Distance traveled
+        UDBuffer[19] = 51871;
+        UDBuffer[20] = 38138;     // set 9 Distance traveled
+        UDBuffer[21] = 54542;
+        UDBuffer[22] = 39700;     // set 10 Distance traveled
+        UDBuffer[23] = 56000;
+        UDBuffer[24] = 41500;     // set 11 Distance traveled
         UDBuffer[25] = 58000;        //12
         UDBuffer[26] = RESETCODE01;        // reset code 1
         UDBuffer[27] = RESETCODE02;        // reset code 2

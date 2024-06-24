@@ -37,7 +37,7 @@ extern "C"
  *  Constants
  *********************************************************************************************/
 // Task configuration
-#define GPT_TASK_PRIORITY           5
+#define GPT_TASK_PRIORITY           4
 #ifndef GPT_TASK_STACK_SIZE
 #define GPT_TASK_STACK_SIZE         1024    // Stack size must be multiples of 8
 #endif

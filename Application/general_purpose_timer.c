@@ -36,11 +36,11 @@ uint8_t         gptTaskStack[GPT_TASK_STACK_SIZE];
 
 // Variables
 static uint8_t  *ptr_gpt_initComplete_flag = GPT_INACTIVE;  // static enables the same variable name to be used in across various files.
-static uint8_t  *ptr_gpt_dashboardErrorCodeStatus;
+static uint8_t  *ptr_gpt_dashboardErrorCodePriority;
 static sysFatalError_t *ptr_sysFatalError;
 
 // Power On Status Variable
-static bool     *ptr_POWER_ON;
+static bool     *ptr_gpt_POWER_ON;
 
 /* Local Functions declaration */
 static void GeneralPurposeTimer_init( void );
@@ -72,7 +72,7 @@ extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
  */
 extern void gpt_powerOnRegister(bool *ptrpowerOn)
 {
-    ptr_POWER_ON = ptrpowerOn;
+    ptr_gpt_POWER_ON = ptrpowerOn;
 }
 
 uint8_t *ptr_gpt_opcode;
@@ -157,7 +157,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               motor_control_setIQvalue();         // Note STM32MCP function commented out for debugging purposes
           }
 
-          if ((*ptr_gpt_dashboardErrorCodeStatus) == SYS_FATAL_ERROR_PRIORITY)
+          if ((*ptr_gpt_dashboardErrorCodePriority) == SYS_FATAL_ERROR_PRIORITY)
           {
           /* Critical system error has occurred -> put system in while loop */
               // 0: activate error event for error handling
@@ -252,7 +252,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           if (gpt_PWR_OFF() == true)  //or alternatively: if (!(*ptr_gpt_powerOn))
           {
               data_analytics();
-              data2UDArray();
+              data2snvBuffer();
               gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
 
 //              break;      // break out of GPT infinite FOR loop
@@ -290,7 +290,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 void GeneralPurposeTimer_init( void )
 {
     ptr_sysFatalError = UDHAL_sysFatalErrorRegister();
-    ptr_gpt_dashboardErrorCodeStatus = bat_dashboardErrorCodeStatusRegister();
+    ptr_gpt_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
 
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;
 
@@ -302,20 +302,20 @@ void GeneralPurposeTimer_init( void )
  *
  * @brief   Process whether POWER OFF is true or false
  *
- * @return  return true if *ptr_POWER_ON = 0 (OFF)
- *          return false if *ptr_POWER_ON = 1 (ON)
+ * @return  return true if *ptr_gpt_POWER_ON = 0 (OFF)
+ *          return false if *ptr_gpt_POWER_ON = 1 (ON)
  **********************************************************************/
 bool gpt_PWR_OFF()
 {
-    if(*ptr_POWER_ON == 0)
+    if(*ptr_gpt_POWER_ON == 0)
     {
-        return true;
+        return (true);
     }
-    else if(*ptr_POWER_ON == 1)
+    else if(*ptr_gpt_POWER_ON == 1)
     {
-        return false;
+        return (false);
     }
-    return false;
+    return (false);
 }
 
 /*********************************************************************

@@ -131,7 +131,7 @@ static void power_on_time_taskFxn(UArg a0, UArg a1)
  * @return  powerOnTimeMinute
  *********************************************************************/
 extern uint16_t power_on_time_getPowerOnTime(){
-    return powerOnTimeMinutes;
+    return (powerOnTimeMinutes);
 }
 
 
@@ -156,6 +156,8 @@ static void power_on_time_cal()
         ptr_pot_charVal = (ptr_pot_profileCharVal->ptr_dash_charVal->ptr_powerOnTime);
         profile_setCharVal(ptr_pot_charVal, DASHBOARD_POWER_ON_TIME_LEN, powerOnTimeMinutes);
 
+        ptr_pot_charVal = (ptr_pot_profileCharVal->ptr_dash_charVal->ptr_deviceUpTime);
+        profile_setCharVal(ptr_pot_charVal, DASHBOARD_DEVICE_UPTIME_LEN, deviceUptimeMinutes);
 
     }
 

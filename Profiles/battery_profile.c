@@ -117,7 +117,7 @@ static uint8 Battery_Battery_VoltageVal[BATTERY_BATTERY_VOLTAGE_LEN] = {0x88, 0x
 // Characteristic "BATTERY_TEMPERATURE" Value variable
 static uint8 Battery_Battery_TemperatureVal[BATTERY_BATTERY_TEMPERATURE_LEN] = {40};
 // Characteristic "BATTERY_ERROR_CODE" Value variable
-static uint8 Battery_Battery_Error_CodeVal[BATTERY_BATTERY_ERROR_CODE_LEN] = {0};
+static uint8 Battery_Battery_Error_CodeVal[BATTERY_BATTERY_ERROR_CODE_LEN] = {0xFF};  // "error code" - not error priority
 // Characteristic "BATTERY_STATUS" Value variable
 static uint8 Battery_Battery_StatusVal[BATTERY_BATTERY_STATUS_LEN] = {5};   // = GLOWING_AQUA in dataAnalysis.h
 //// Characteristic "BATTERY_CURRENT" Value variable
@@ -167,7 +167,6 @@ static gattAttribute_t BatteryAttrTbl[] =
           0,
           (uint8 *)&BatteryDecl
       },
-
 
 
   // ************ Battery_Level Characteristic Declaration
