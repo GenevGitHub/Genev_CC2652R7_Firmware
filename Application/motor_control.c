@@ -80,50 +80,8 @@ static STM32MCP_CBs_t motor_control_STM32MCP_CBs =
 /*********************************************************************
 * PUBLIC FUNCTIONS
 */
-
-//uint8_t fail = 0;
-//uint32_t resetSource = 0xFFFF;
-//uint8_t bootStatus = 0xFF;
-//uint8_t bootSuccess = 0x00;
-//uint8_t buttonPress = 0xFF;
-//uint8_t bootProcess = 0xFF;
 uint8_t wkUpPin = 0xFF;
 
-/*
-PIN_Config WakeUp[] = {
-      CC2640R2_GENEV_5X5_ID_DIO5 | PIN_INPUT_EN | PIN_PULLUP | PINCC26XX_WAKEUP_NEGEDGE,
-      PIN_TERMINATE
-};
-*/
-//extern uint8_t Boot()
-//{
-//    /*Boot Process*/
-////    resetSource = SysCtrlResetSourceGet();
-////    if (resetSource == RSTSRC_WAKEUP_FROM_SHUTDOWN)
-////    {
-////         bootStatus = 0x01;
-////    }
-////    else if (resetSource == RSTSRC_PWR_ON)
-////    {
-////         bootStatus = 0x02;
-////    }
-////    else if (resetSource == RSTSRC_SYSRESET)
-////    {
-////        bootStatus = 0x03;
-////    }
-////    else if (resetSource == RSTSRC_PIN_RESET)
-////    {
-////        bootStatus = 0x04;
-////        while(bootSuccess == 0x00)
-////        {
-////            if(bootSuccess == 0x01)
-////            {
-////                break;
-////            }
-////        }
-////    }
-//    return (bootStatus);
-//}
 
 /*********************************************************************
  * @fn      motor_control_init
