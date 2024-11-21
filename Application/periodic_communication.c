@@ -149,13 +149,27 @@ void periodic_communication_MCUSampling()
  * func:    periodic_communication_MCUSamplingRPM
  *          Get rpm data directly from MCU
  **************************************************************************/
+
 void periodic_communication_MCUSamplingRPM()
 {
 #ifndef MOTOR_CONNECT   // if NOT defined
-
     // ***** Simulation of dummy RPM
-    ptr_pc_MCUDArray->speed_rpm = 60 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 260;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz
-    ptr_pc_MCUDArray->rpm_status = 1;
+    uint16_t pc_rpm;   // but payload length is 0x05
+    int32_t rawRPM = 180 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 140;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    uint8_t pc_rpmStatus;
+
+    if(rawRPM >= 0)
+    {
+        pc_rpm = (uint16_t) (rawRPM & 0xFFFF);
+        pc_rpmStatus = 1;  // when mc_rpm is >= 0
+    }
+    else  // **** if rawRPM is negative, e.g. pushing the E-scooter in reverse, No power shall be delivered to motor.
+    {
+        pc_rpm = (uint16_t) (-rawRPM & 0xFFFF);
+        pc_rpmStatus = 0;  // when mc_rpm < 0
+    }
+    ptr_pc_MCUDArray->speed_rpm = pc_rpm; //180 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 140;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz
+    ptr_pc_MCUDArray->rpm_status = pc_rpmStatus;
     xrpm++;
 
 #endif // MOTOR_CONNECT

@@ -123,6 +123,7 @@ uint8_t rpmStatus = 1;
 uint8_t voltage_ack = 0;
 uint8_t speed_ack = 0;
 uint16_t payloadVoltage;
+
 static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t txPayloadLength, uint8_t *rxPayload, uint8_t rxPayloadLength)
 {
     uint8_t regID = txPayload[0];
@@ -155,20 +156,20 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
         }
     case STM32MCP_SPEED_MEASURED_REG_ID:    // RPM
         {
-            uint16_t rpm;   // but payload length is 0x05
+            uint16_t mc_rpm;   // but payload length is 0x05
             int32_t rawRPM = *((int32_t*) rxPayload);
             if(rawRPM >= 0)
             {
-                rpm = (uint16_t) (rawRPM & 0xFFFF);
-                rpmStatus = 1;  // when rpm is >= 0
+                mc_rpm = (uint16_t) (rawRPM & 0xFFFF);
+                rpmStatus = 1;  // when mc_rpm is >= 0
             }
             else  // **** if rawRPM is negative, e.g. pushing the E-scooter in reverse, No power shall be delivered to motor.
             {
-                rpm = (uint16_t) (-rawRPM & 0xFFFF);
-                rpmStatus = 0;  // when rpm < 0
+                mc_rpm = (uint16_t) (-rawRPM & 0xFFFF);
+                rpmStatus = 0;  // when mc_rpm < 0
             }
-            // **** store rpm in MCUArray.speed_rpm
-            MCUDArray.speed_rpm = rpm;
+            // **** store mc_rpm in MCUArray.speed_rpm
+            MCUDArray.speed_rpm = mc_rpm;
             MCUDArray.rpm_status = rpmStatus;
             speed_ack++;
             break;
