@@ -11,20 +11,23 @@
 #ifdef veml3235
 
 static uint_least8_t targetAddress = VEML3235_ADDR;
-uint8_t Bit3to0 = 0x03;
-uint8_t Bit7to4 = 0x0C;
-uint16_t Bit15to14 = 0xC000;
-uint16_t LowByte = 0x00FF;
-uint16_t HighByte = 0xFF00;
+static uint8_t Bit3to0 = 0x03;
+static uint8_t Bit7to4 = 0x0C;
+static uint16_t Bit15to14 = 0xC000;
+static uint16_t LowByte = 0x00FF;
+static uint16_t HighByte = 0xFF00;
 
 static ALSManager_t *veml3235_ALSManager;
 uint8_t veml3235_i2cTransferStatus;
-uint8_t writeBuffer[3];
-uint8_t readBuffer[2];
+static uint8_t writeBuffer[3];
+static uint8_t readBuffer[2];
 static size_t writeBufferSize;
 static size_t readBufferSize;
 
 float resolution3235;
+/*  veml3235 lux value calibration factors   */
+float ALS_cal_factor    = 1.966;
+float White_cal_factor  = 0.863;
 /*********************************************************************
  * @fn      veml3235_registerALS
  *
@@ -115,8 +118,8 @@ extern void veml3235_read(uint8_t read_reg){
 float lux_values[2] = {0};
 extern float veml3235_calculateLux(){
     // define calculation of Lux
-    lux_values[0] = ALS_data * resolution3235;
-    lux_values[1] = White_data * resolution3235;
+    lux_values[0] = ALS_data * resolution3235 * ALS_cal_factor * DASHBOARD_ALS_CORR_FACTOR;
+    lux_values[1] = White_data * resolution3235 * White_cal_factor * DASHBOARD_ALS_CORR_FACTOR;
 
     return lux_values[0];
 }

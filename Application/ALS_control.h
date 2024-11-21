@@ -37,7 +37,7 @@ extern uint8_t ALS_control_calculateLux();
 
 extern uint8_t ALS_control_getIntR();
 
-#endif
+#endif //veml6030
 
 #ifdef _cplusplus
 }

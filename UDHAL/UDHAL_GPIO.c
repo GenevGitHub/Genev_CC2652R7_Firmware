@@ -55,17 +55,15 @@ extern void UDHAL_GPIO_init()
 
 void UDHAL_GPIO_params_init()
 {
-    GPIO_setConfig(CONFIG_GPIO_LED_0, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
-    /* config & turn on RED LED for testing */
-    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
-
-    GPIO_setConfig(CONFIG_GPIO_BTN1,  GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_BOTH_EDGES);    //
-    GPIO_setCallback(CONFIG_GPIO_BTN1, &UDHAL_GPIO_InterruptFxn);                      // GPIO Callback -> pin -> interrupt function
-    GPIO_enableInt(CONFIG_GPIO_BTN1);
+    /* Configuration of PIN for Multi-Purpose Button  */
+    GPIO_setConfig(CONFIG_GPIO_MPB,  GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_BOTH_EDGES);    //
+    GPIO_setCallback(CONFIG_GPIO_MPB, &UDHAL_GPIO_InterruptFxn);                      // GPIO Callback -> pin -> interrupt function
+    GPIO_enableInt(CONFIG_GPIO_MPB);
 
 #ifdef veml6030
     // ALS_control_getIntR();
     if (ALS_control_getIntR() == INT_EN){
+        /* Use for veml6030 interrupt pin  */
         GPIO_setConfig(CONFIG_GPIO_0, GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_FALLING);
         GPIO_setCallback(CONFIG_GPIO_0, &UDHAL_GPIO_InterruptFxn);
         GPIO_enableInt(CONFIG_GPIO_0);
@@ -127,10 +125,10 @@ void UDHAL_GPIO_InterruptFxn(uint_least8_t index)
    uint_fast8_t logicLevel;
    switch(index)
    {
-   case CONFIG_GPIO_BTN1:
+   case CONFIG_GPIO_MPB:
    {
        //uint_fast8_t
-       logicLevel = UDHAL_GPIO_read(CONFIG_GPIO_BTN1);
+       logicLevel = UDHAL_GPIO_read(CONFIG_GPIO_MPB);
        mpb_processButtonEvt(logicLevel);
        break;
    }

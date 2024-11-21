@@ -29,8 +29,7 @@
 /*********************************************************************
  * CONSTANTS
  */
-#undef  ESCOOTER_RUN
-#define ESCOOTER_DEBUG 1
+
 /*********************************************************************
  * GLOBAL VARIABLES
  *********************************************************************/
@@ -38,7 +37,11 @@
  *          Normal law algorithm modulates the speed to not exceed the defined limit
  *          Direct law algorithm does not modulate the speed in any way
  */
-uint8_t     ControlLaw = BRAKE_AND_THROTTLE_NORMALLAW; // BRAKE_AND_THROTTLE_NORMALLAW or BRAKE_AND_THROTTLE_DIRECTLAW; //
+uint8_t     ControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
+/*  Options:
+ *  (1) BRAKE_AND_THROTTLE_NORMALLAW
+ *  (2) BRAKE_AND_THROTTLE_DIRECTLAW
+*/
 
 uint8_t     speedMode;
 
@@ -89,11 +92,11 @@ uint16_t        RPM_array[BRAKE_AND_THROTTLE_SAMPLES];
 
 /** Speed limiter control variables **/
 static uint8_t         exponent  = 3; // adjust exponent to adjust the influence of speedModFactor
-float           speedModFactor = 1;
-uint32_t        limit_exceedance_flag = 0; // a flag for indicating rpm limit was exceeded
-uint16_t        IQ_applied_old = 0;
+static float           speedModFactor = 1;
+static uint32_t        limit_exceedance_flag = 0; // a flag for indicating rpm limit was exceeded
+static uint16_t        IQ_applied_old = 0;
 static uint8_t         NN_counter = 1;
-uint8_t         NN_max = 20; // adjust NN_max to adjust sensitivity to IQ_applied transition between exceeding and falling below the speed limit
+static uint8_t         NN_max = 20; // adjust NN_max to adjust sensitivity to IQ_applied transition between exceeding and falling below the speed limit
 
 /**  Speed mode parameters  **/
 static uint16_t speedModeIQmax;
@@ -175,20 +178,20 @@ void brake_and_throttle_init()
  * @fn      brake_and_throttle_ADC_conversion
  *
  * @brief   This function perform ADC conversion
- *          This function is called when timer6 overflows
+ *          This function is called when timer3 overflows
  *
  * @param
  *********************************************************************/
 uint8_t     brake_errorFlag = 0;
 uint16_t    RPM_temp;
-uint8_t     brakeAndThrottleIndex_minus_1;
-uint8_t     brakeAndThrottleIndex_minus_2;
-uint8_t     throttle_error_count = 0;
-uint8_t     brake_error_count = 0;
+static uint8_t     brakeAndThrottleIndex_minus_1;
+static uint8_t     brakeAndThrottleIndex_minus_2;
+static uint8_t     throttle_error_count = 0;
+static uint8_t     brake_error_count = 0;
 uint16_t    throttleADCsample = 0;  //throttleADCsample
 uint16_t    brakeADCsample = 0;     //brakeADCsample
 
-/**  for study purposes - evaluating speed and IQ **/
+/**  for studying purposes - evaluating speed and IQ *******************/
 uint16_t    bat_count = 0;
 uint16_t    RPM_prev;
 uint16_t    IQapp_prev = 0;
@@ -196,7 +199,7 @@ float       drpmdIQ;
 int         drpm;
 int         dIQ;
 uint16_t    IQ_maxPout = 0xFFFF;
-/*******************************************************/
+/***    End for studying purposes   *************************************/
 
 /***    This is the main function of brake_and_throttle.c
  *      This function
@@ -383,6 +386,20 @@ void brake_and_throttle_ADC_conversion()
                             // if we set brakeStatus = 0 when brake error exists, we could still operate the motor with throttle
     }
 
+    switch(brakeStatus)
+    {
+        case 0:
+            //STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_RELEASE);
+            break;
+
+        case 1:
+            //STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_PRESS);
+            break;
+
+        default:
+            break;
+    }
+
     /**************************************************************************************
      *       Send / update brake% and brake status in STM32MCPDArray
      **************************************************************************************/
@@ -394,18 +411,18 @@ void brake_and_throttle_ADC_conversion()
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
 
     /******** compute drpm / dIQ  -  For studying purposes only   **********/
-    drpm = (RPM_temp - RPM_prev);
-    dIQ = (IQ_applied - IQapp_prev);
-    if (((IQ_applied - IQapp_prev) == 0) || ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) >= 0xFFFF) ||
-            ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) <= -0xFFFF))
-    {
-        drpmdIQ = 0;
-    }
-    else
-    {
-        drpmdIQ = (float)(RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
-    }
-    IQapp_prev = IQ_applied;                            // for studying purposes only
+//    drpm = (RPM_temp - RPM_prev);
+//    dIQ = (IQ_applied - IQapp_prev);
+//    if (((IQ_applied - IQapp_prev) == 0) || ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) >= 0xFFFF) ||
+//            ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) <= -0xFFFF))
+//    {
+//        drpmdIQ = 0;
+//    }
+//    else
+//    {
+//        drpmdIQ = (float)(RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
+//    }
+//    IQapp_prev = IQ_applied;                            // for studying purposes only
 
     /******** End compute drpm / dIQ  -  For investigation only   **********/
 
@@ -426,15 +443,15 @@ void brake_and_throttle_ADC_conversion()
         {
         /*The E-Scooter Stops*/
         /*DRIVE_START = 0 --> Then we don't need to send dynamic Iq messages to the motor controller in order to relieve the UART loads*/
-#ifdef ESCOOTER_RUN
+#ifndef MOTOR_0RPM_START_MODE
             IQ_input = 0;
-#endif
+#endif  // MOTOR_0RPM_START_MODE
 
-#ifdef ESCOOTER_DEBUG
+#ifdef MOTOR_0RPM_START_MODE
             /*The E-Scooter Starts*/
             /*DRIVE_START = 1 --> The We could send dynamic Iq messages to the motor controller */
             IQ_input = speedModeIQmax * throttlePercent / 100;
-#endif
+#endif  // MOTOR_0RPM_START_MODE
         }
         else
         {
@@ -455,7 +472,7 @@ void brake_and_throttle_ADC_conversion()
     /***** End Normal Law *************************************/
 
     }
-    else
+    else   /** if rpm is negative or if error is fatal or critical errors  **/
     {
         IQ_input = 0;
         IQ_applied = IQ_input;
@@ -469,11 +486,10 @@ void brake_and_throttle_ADC_conversion()
     // in "brakeAndThrottle_CB(allowableRPM, IQ_input, brakeAndThrottle_errorMsg)", brakeAndThrottle_errorMsg is sent to the motor control unit for error handling if necessary.
     // Add one more conditions in order to fed the power into the motor controller
     // if DRIVE_START == 1 -> then run the command for dynamic Iq, otherwise: ignore it!
-//#ifdef CC2640R2_GENEV_5X5_ID
 
+//#ifdef MOTOR_CONNECT
 //    motor_control_setIQvalue();         //  this is moved to GPT main loop under N = 1.
-
-//#endif    //CC2640R2_GENEV_5X5_ID
+//#endif    //MOTOR_CONNECT
 
     /***** Increments brakeAndThrottleIndex by 1  ***/
     brakeAndThrottleIndex++;
@@ -645,7 +661,7 @@ extern void brake_and_throttle_getSpeedModeParams()
     ptr_bat_STM32MCPDArray->ramp_rate = rampRate;
     ptr_bat_STM32MCPDArray->allowable_rpm = allowableRPM;
     /* call to update and execute speed mode change on MCU */
-    motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
+    motor_control_changeSpeedMode();   // Note STM32MCP functions have been commented out for debugging purposes
 
     /* updates led display */
     led_display_setSpeedMode(speedMode);    // update led display
@@ -659,6 +675,9 @@ extern void brake_and_throttle_getSpeedModeParams()
  * @fn      brake_and_throttle_toggleSpeedMode
  *
  * @brief   To change / toggle the speed Mode of the e-scooter
+ *          Amble mode:     up to 10km/h
+ *          Leisure mode:   up to 18km/h
+ *          Sports mode:    up to max regulated speed (25km/h)
  *
  * @param   none
  *
@@ -745,7 +764,8 @@ uint8_t brake_and_throttle_toggleSpeedMode()
     ptr_bat_STM32MCPDArray->allowable_rpm = allowableRPM;
 
     /* call to update and execute speed mode change on MCU */
-    motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
+//   motor_control_speedModeParamsChg();   // Note STM32MCP functions have been commented out for debugging purposes
+    motor_control_changeSpeedMode();
 
     /* updates led display */
     led_display_setSpeedMode(speedMode);    // update led display
@@ -855,4 +875,3 @@ extern uint8_t* bat_dashboardErrorCodePriorityRegister()
 {
     return (&dashboardErrorCodePriority);
 }
-

@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-//#include <ti/drivers/uart2/UART2CC26X2.h>
+
 #include <ti/drivers/UART2.h>
 #include "ti_drivers_config.h"
 #include "Hardware/STM32MCP.h"
@@ -100,12 +100,12 @@ static void UDHAL_UART_open()
 {
     // Open the UART and initiate the first read
     UART2_handle = UART2_open(0, &UART2_params);
-    if (!UART2_handle) {
-        /* error handling */
+    if (!UART2_handle)
+    {
         uartOpenStatus = 0;
-//        led_display_ErrorPriority(UART_OPEN_NULL);
     }
-    else {
+    else
+    {
         uartOpenStatus = 1;
     }
     UDHAL_UART_read(&receivedByte, 1);
@@ -165,14 +165,14 @@ static void UDHAL_UART_close()
  *
  * @return  None.
  */
-static UART2_Callback UDHAL_readCallback(UART2_Handle UART2_handle, void *rxBuf, size_t size,
-                                         void *userArg, int_fast16_t status)
+static UART2_Callback UDHAL_readCallback(UART2_Handle UART2_handle, void *rxBuf, size_t size, void *userArg, int_fast16_t status)
 {
       //Pass the received byte to the flow control handler
       STM32MCP_flowControlHandler(((uint8_t *)rxBuf)[0]);
       //Wait the the next received byte
       UDHAL_UART_read(&receivedByte, 1);
 
+      return NULL;
 }
 
 /*********************************************************************
@@ -184,8 +184,8 @@ static UART2_Callback UDHAL_readCallback(UART2_Handle UART2_handle, void *rxBuf,
  *
  * @return  None.
  */
-static UART2_Callback UDHAL_writeCallback(UART2_Handle UART2_handle, void *rxBuf, size_t size,
-                                          void *userArg, int_fast16_t status)
+static UART2_Callback UDHAL_writeCallback(UART2_Handle UART2_handle, void *rxBuf, size_t size, void *userArg, int_fast16_t status)
 {
 
+    return NULL;
 }

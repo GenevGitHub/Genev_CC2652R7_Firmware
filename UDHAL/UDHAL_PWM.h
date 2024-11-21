@@ -24,11 +24,18 @@ extern "C"
 
 #define LIGHT_PWM_PERIOD                                1000    // 1000 microsecond => 1kHz
 #define BUZZER_PWM_FREQUENCY                            4200
+/* Auxiliary Light  */
+#ifdef AUXILIARY_LIGHT
+#define AUXILIARY_PWM_PERIOD                            1000    // 1000 microsecond => 1kHz
+#endif //AUXILIARY_LIGHT
 
 extern void UDHAL_PWM_init();
 extern uint8_t UDHAL_PWM_paramInit();
 extern void UDHAL_PWM_setHLDutyAndPeriod(uint8_t dutyPercent);
 extern void UDHAL_PWM_setBUZDutyAndPeriod(uint8_t dutyPercent, uint32_t pwmBUZFrequency);
+#ifdef AUXILIARY_LIGHT
+extern void UDHAL_PWM_setALDutyAndPeriod(uint8_t dutyPercent);
+#endif // AUXILIARY_LIGHT
 
 #ifdef _cplusplus
 }

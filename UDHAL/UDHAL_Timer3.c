@@ -1,7 +1,7 @@
 /*
  * UDHAL_Timer3.c
  *
- * @brief This library is used for singleButton.h to counter the button press duration
+ * @brief This library is used for singleButton.h to set, count and detect the button press and press duration
  *  Created on: 4 May 2024
  *      Author: Chee
  */

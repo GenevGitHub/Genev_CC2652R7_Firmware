@@ -27,6 +27,7 @@ extern "C"
 
 /* Application Header files */
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/gGo_debug_config.h"
 
 /*********************************************************************
  * EXTERNAL VARIABLES
@@ -100,6 +101,7 @@ extern void mpb_registerTimer(mpb_timerManager_t *mpbTimer);//Register in periph
 //extern void mpb_registerCBs(mpbCBs_t *mpbCBs);//Register in main function.
 extern void mpb_processButtonEvt(uint_fast8_t logicLevel);
 extern void mpb_processTimerOv();
+extern void mpb_bootAlarm(uint16_t duration, uint8_t bootcase);
 extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);
 extern void *mpb_powerOnRegister(void);
 

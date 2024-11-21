@@ -10,6 +10,9 @@
 
 /* Period and duty in microseconds */
 uint32_t pwmHLPeriod = LIGHT_PWM_PERIOD;
+#ifdef AUXILIARY_LIGHT
+uint32_t pwmALPeriod = AUXILIARY_PWM_PERIOD;
+#endif // AUXILIARY_LIGHT
 uint16_t duty      = 0;
 
 /* Frequency in Hertz */
@@ -17,8 +20,15 @@ uint16_t duty      = 0;
 
 PWM_Handle pwm_headlight = NULL;
 PWM_Handle pwm_buzzer = NULL;
+#ifdef AUXILIARY_LIGHT
+PWM_Handle pwm_auxiliarylight = NULL;
+#endif // AUXILIARY_LIGHT
+
 PWM_Params params_headlight;
 PWM_Params params_buzzer;
+#ifdef AUXILIARY_LIGHT
+PWM_Params params_auxiliarylight;
+#endif // AUXILIARY_LIGHT
 
     /* Call driver init functions. */
 extern void UDHAL_PWM_init() {
@@ -27,6 +37,9 @@ extern void UDHAL_PWM_init() {
 
 uint8_t pwm_headlight_openStatus = 0;
 uint8_t pwm_buzzer_openStatus = 0;
+#ifdef AUXILIARY_LIGHT
+uint8_t pwm_auxiliarylight_openStatus = 0;
+#endif // AUXILIARY_LIGHT
 uint8_t pwm_openStatus;
 
 extern uint8_t UDHAL_PWM_paramInit(){
@@ -35,7 +48,7 @@ extern uint8_t UDHAL_PWM_paramInit(){
     params_headlight.dutyValue   = 0;             // initial value
     params_headlight.periodUnits = PWM_PERIOD_US; // Period in microseconds
     params_headlight.periodValue = pwmHLPeriod;     // Defines one Period
-    pwm_headlight = PWM_open(CONFIG_PWM_0, &params_headlight);
+    pwm_headlight = PWM_open(CONFIG_PWM_HEADLIGHT, &params_headlight);
     if (pwm_headlight == NULL){
         /* CONFIG_PWM_0 did not open */
         pwm_headlight_openStatus = 0;
@@ -51,7 +64,7 @@ extern uint8_t UDHAL_PWM_paramInit(){
     params_headlight.dutyValue   = 0;             // initial value
     params_headlight.periodUnits = PWM_PERIOD_HZ; // Period in microseconds
     params_headlight.periodValue = BUZZER_PWM_FREQUENCY; //pwmBUZFrequency;     // Defines frequency
-    pwm_buzzer = PWM_open(CONFIG_PWM_1, &params_buzzer);
+    pwm_buzzer = PWM_open(CONFIG_PWM_BUZZER, &params_buzzer);
     if (pwm_buzzer == NULL){
         /* CONFIG_PWM_1 did not open */
         pwm_buzzer_openStatus = 0;
@@ -68,6 +81,24 @@ extern uint8_t UDHAL_PWM_paramInit(){
     else {
         pwm_openStatus = 0;
     }
+
+#ifdef AUXILIARY_LIGHT
+    PWM_Params_init(&params_auxiliarylight);
+    params_auxiliarylight.dutyUnits   = PWM_DUTY_US;   // in microsecond
+    params_auxiliarylight.dutyValue   = 0;             // initial value
+    params_auxiliarylight.periodUnits = PWM_PERIOD_US; // Period in microseconds
+    params_auxiliarylight.periodValue = pwmALPeriod;     // Defines one Period
+    pwm_auxiliarylight = PWM_open(CONFIG_PWM_LIGHT1, &params_auxiliarylight);
+    if (pwm_auxiliarylight == NULL){
+        /* CONFIG_PWM_2 did not open */
+        pwm_auxiliarylight_openStatus = 0;
+        while (1) {}
+    }
+    else {
+        pwm_auxiliarylight_openStatus = 1;
+        PWM_start(pwm_auxiliarylight);
+    }
+#endif // AUXILIARY_LIGHT
 
     return (pwm_openStatus);
 }
@@ -106,5 +137,15 @@ extern void UDHAL_PWM_setHLDutyAndPeriod(uint8_t dutyPercent){
     PWM_setDutyAndPeriod(pwm_headlight, pwmHLduty, pwmHLPeriod);
 }
 
-
+#ifdef AUXILIARY_LIGHT
+extern void UDHAL_PWM_setALDutyAndPeriod(uint8_t dutyPercent){
+if (dutyPercent == 0){
+    pwmALduty = 0;
+}
+else {
+    pwmALduty = pwmALPeriod * dutyPercent /100;
+}
+PWM_setDutyAndPeriod(pwm_auxiliarylight, pwmALduty, pwmALPeriod);
+}
+#endif // AUXILIARY_LIGHT
 

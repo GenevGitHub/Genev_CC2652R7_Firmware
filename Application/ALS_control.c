@@ -17,6 +17,7 @@
 #include <ti_drivers_config.h>
 
 #include "Application/ALS_control.h"
+#include "Application/lights.h"
 
 #include "UDHAL/UDHAL_PWM.h"
 
@@ -37,33 +38,34 @@ uint8_t I2C_transfer_count = 0;
 
 #ifdef veml6030
 /***** Configuration and Setting parameters *****/
-uint8_t ALSGain = Gain_2x;
-uint16_t ALSIT = IT_50;
-uint8_t Pers = PERS1;
-uint8_t IntR = INT_DIS;
-uint8_t PowerSavingMode = PSM1;
-uint8_t PowerSavingEnable = PSM_EN;
-uint8_t ALSSD = ALS_POWERON;
-uint16_t HighThresholdLux = 2000;   //default 0xFFFF
-uint16_t LowThresholdLux = 400;     // 0x1388 = 5000, 0x1770 = 6000, 0x1964 = 6500, 0x1B58 = 7000
+static uint8_t ALSGain = Gain_2x;
+static uint16_t ALSIT = IT_50;
+static uint8_t Pers = PERS1;
+static uint8_t IntR = INT_DIS;
+static uint8_t PowerSavingMode = PSM1;
+static uint8_t PowerSavingEnable = PSM_EN;
+static uint8_t ALSSD = ALS_POWERON;
+static uint16_t HighThresholdLux = 2000;   //default 0xFFFF
+static uint16_t LowThresholdLux = 400;     // 0x1388 = 5000, 0x1770 = 6000, 0x1964 = 6500, 0x1B58 = 7000
 
 #endif
 
 #ifdef veml3235
 /***** Configuration and Setting parameters *****/
-uint8_t ALSGain = Gain_2x;
-uint16_t ALSIT = IT_50;
-uint8_t ALSDG = 1;
-uint8_t ALSSD = ALS_POWERON;
+static uint8_t ALSGain = Gain_2x;
+static uint16_t ALSIT = IT_50;
+static uint8_t ALSDG = 1;
+static uint8_t ALSSD = ALS_POWERON;
 #endif
 
 float lux_result = 0xFFFF;
-uint8_t SampleSize = ALS_NUMSAMPLES;         // Min Sample Size is 1, Max Sample Size is 8
-uint8_t lightStatus = 0;
+static uint8_t SampleSize = ALS_NUMSAMPLES;         // Min Sample Size is 1, Max Sample Size is 8
+uint8_t newLightStatus = 0;
 
+//static
 uint8_t flagb = 0x00;
-uint8_t sampleBits = 0x00;
-uint8_t ii = 0;
+static uint8_t sampleBits = 0x00;
+static uint8_t ii = 0;
 
 /* Local function declaration */
 void ALS_control_setLight();
@@ -145,7 +147,7 @@ uint8_t ALS_control_calculateLux()
 
     ALS_control_setLight();
 
-    return (lightStatus);
+    return (newLightStatus);
 }
 
 /***************************************************
@@ -159,15 +161,15 @@ void ALS_control_setLight()
     flagb = flagb | ((lux_result < lux_threshold) << ii);
 
     if (flagb >= sampleBits){
-        if (lightStatus == 0){
-            UDHAL_PWM_setHLDutyAndPeriod(99);   // set head-light on @ 99% pwmPeriod
-            lightStatus = 1;                    // light = ON
+        if (!newLightStatus){
+//            UDHAL_PWM_setHLDutyAndPeriod(99);   // set head-light on @ 99% pwmPeriod , LIGHT_PWM_DUTY = 75
+            newLightStatus = LIGHT_STATUS_ON;                    // light = ON
         }
     }
     else if (flagb == 0){
-        if (lightStatus == 1){
-            UDHAL_PWM_setHLDutyAndPeriod(0);    // set head-light off
-            lightStatus = 0;                    //light = OFF
+        if (newLightStatus){
+//            UDHAL_PWM_setHLDutyAndPeriod(0);    // set head-light off
+            newLightStatus = LIGHT_STATUS_OFF;                    //light = OFF
         }
     }
     ii++;
@@ -181,6 +183,9 @@ void ALS_control_setLight()
  * Call this function to get the active Interrupt configuration
  *
  *  */
+#ifdef veml6030
 extern uint8_t ALS_control_getIntR(){
     return (IntR);
 }
+#endif //veml6030
+

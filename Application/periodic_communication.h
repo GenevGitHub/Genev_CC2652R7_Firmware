@@ -20,6 +20,7 @@ extern "C"
 #include <math.h>
 
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/gGo_debug_config.h"
 
 #include "Application/simple_peripheral.h"
 
@@ -46,6 +47,7 @@ extern void periodic_communication_MCUArrayRegister(MCUD_t *ptrMCUDArray);
 extern void periodic_communication_MCUSampling();
 extern void periodic_communication_MCUSamplingRPM();
 extern uint8_t periodic_communication_getxhf();
+extern void periodic_communication_init( void );        // added  20241110
 
 
 #ifdef _cplusplus

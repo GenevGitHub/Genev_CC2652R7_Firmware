@@ -120,35 +120,37 @@ Application/simple_peripheral.o: ../Application/simple_peripheral.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/profiles/dev_info/devinfoservice.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/profiles/simple_profile/simple_gatt_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/gGo_device_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/battery_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/battery_profile.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/controller_profile.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/profile_charVal.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h \
  syscfg/ti_ble_config.h \
  syscfg/ti_radio_config.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_ADC.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_ADC.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/ADC.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_GPIO.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_I2C.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_UART.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_PWM.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_GPIO.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_I2C.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_UART.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_PWM.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/PWM.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_Timer2.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/STM32MCP.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_Timer3.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/multi_purpose_button.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/general_purpose_timer.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/snv_internal.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/brake_and_throttle.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/motor_control.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h \
- C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/power_on_time.h
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_Timer2.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_Timer3.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/multi_purpose_button.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/ESCOOTER_BOOT.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/general_purpose_timer.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/snv_internal.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/brake_and_throttle.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/motor_control.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/data_analytics.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/lights.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/led_display.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/power_on_time.h
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h:
 
@@ -388,60 +390,64 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/profiles/dev_i
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/profiles/simple_profile/simple_gatt_profile.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/dashboard_profile.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/gGo_device_params.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/battery_params.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/battery_profile.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/battery_profile.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/controller_profile.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/controller_profile.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Profiles/profile_charVal.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/profile_charVal.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/simple_peripheral.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h:
 
 syscfg/ti_ble_config.h:
 
 syscfg/ti_radio_config.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_ADC.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_ADC.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/ADC.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_GPIO.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_GPIO.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_I2C.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_UART.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_I2C.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_PWM.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_UART.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_PWM.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/PWM.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_Timer2.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_Timer2.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Hardware/STM32MCP.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/UDHAL/UDHAL_Timer3.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_Timer3.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/multi_purpose_button.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/multi_purpose_button.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/general_purpose_timer.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/ESCOOTER_BOOT.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/snv_internal.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/general_purpose_timer.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/brake_and_throttle.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/snv_internal.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/motor_control.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/brake_and_throttle.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/data_analytics.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/motor_control.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/lights.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/data_analytics.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/led_display.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/lights.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_LP_CC2652R7_tirtos7_ticlang/Application/power_on_time.h:
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/led_display.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/power_on_time.h:

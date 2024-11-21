@@ -26,9 +26,6 @@
 -l"ti/ble5stack/libraries/cc26x2r1/StackWrapper.a"
 -l"ti/ble5stack/libraries/cc26x2r1/ble_r2.symbols"
 
-/* libraries required for /ti/display */
--l"ti/display/lib/ticlang/m4f/display_cc26x2x7.a"
-
 /* libraries required for /ti/drivers/RF */
 -l"ti/drivers/rf/lib/ticlang/m4f/rf_multiMode_cc26x2.a"
 

@@ -98,7 +98,6 @@ uint16_t buzzer_buzzerTrigger = BUZZER_WARNING_BEEP_PERIOD / GPT_TIME;
 extern void buzzer_ErrorHandler( void )
 {
 
-#ifdef CC2652R7_LAUNCHXL  //
     if (!(*ptr_buzzer_buzzerStatus) && !(buzzer_buzzerCounter) && (*ptr_buzzer_errorPriority <= BATTERY_CRITICALLY_LOW_WARNING) && !(buzzer_buzzerOn))
     {
 //        buzzer_errorHandler(BUZZER_WARNING_DUTYPERCENT, BUZZER_WARNING_FREQUENCY);
@@ -120,6 +119,5 @@ extern void buzzer_ErrorHandler( void )
     {
         buzzer_buzzerCounter = 0;
     }
-#endif  // CC2652R7_LAUNCHXL
 
 }

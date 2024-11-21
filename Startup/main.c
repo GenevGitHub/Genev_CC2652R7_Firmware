@@ -125,6 +125,7 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
  *
  * @return      None.
  */
+
 int main()
 {
   /* Register Application callback to trap asserts raised in the Stack */
@@ -155,20 +156,20 @@ int main()
   ICall_createRemoteTasks();
 
 #ifdef PTM_MODE
-  /* Start task for NPI task */
+  /* Start task for NPI task - NPITASK_PRIORITY = 2 */
   NPITask_createTask(ICALL_SERVICE_CLASS_BLE);
 #endif // PTM_MODE
 
-  /* Priority 1 */
+  /* SP_TASK_PRIORITY - Priority 1 */
   SimplePeripheral_createTask();
 
   /* Power On Timer: Priority 2 */
   power_on_time_createTask();       // this task is dedicated to counting time without the delay caused by running other tasks/functions/applications
 
-  /* Multi-purpose button: Priority 4 */
-  mpb_createTask();    // create task is for clock and timer interrupt for multi-purpose button
+  /* Multi-purpose button: Priority 3 */
+  mpb_createTask();    // mpb_createTask is for clock and timer interrupt for multi-purpose button
 
-  /* General purpose timer: Priority 5 */
+  /* General purpose timer: Priority 4 */
   GeneralPurposeTimer_createTask();       // task with timer for general purpose, running most tasks
 
 

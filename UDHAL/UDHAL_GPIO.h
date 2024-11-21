@@ -18,6 +18,9 @@ extern "C"
  */
 #include <stdlib.h>
 #include <stdint.h>
+
+#include "Hardware/gGo_debug_config.h"
+
 /*********************************************************************
 *  EXTERNAL VARIABLES
 */

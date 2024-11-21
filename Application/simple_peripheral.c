@@ -94,14 +94,15 @@
 #include "icall_hci_tl.h"   // To allow ICall HCI Transport Layer
 #endif // PTM_MODE
 
-/* OSAL SNV operations are defined through ICALL */
+/*  When using and working with BLE functions, NVS must be accessed using
+ *  OSAL_SNV library.   OSAL SNV operations are defined through ICALL */
 #include <osal_snv.h>
 
 #include "UDHAL/UDHAL.h"
 
 #include "Hardware/gGo_device_params.h"
 #include "Hardware/STM32MCP.h"
-
+#include "Hardware/ESCOOTER_BOOT.h"
 #include "Application/general_purpose_timer.h"
 #include "Application/snv_internal.h"
 #include "Application/brake_and_throttle.h"
@@ -111,8 +112,6 @@
 #include "Application/multi_purpose_button.h"
 #include "Application/motor_control.h"
 #include "Application/power_on_time.h"
-
-//#include "Application/power_on_time.h"
 
 /*********************************************************************
  * MACROS
@@ -288,7 +287,7 @@ static Queue_Handle appMsgQueueHandle;
 // GattServApp will handle notifying all connected GATT clients
 static Clock_Struct clkPeriodic;
 // Clock instance for RPA read events.
-static Clock_Struct clkRpaRead;
+static Clock_Struct clkRpaRead;   // can this be removed?
 
 // Memory to pass periodic event ID to clock handler
 spClockEventData_t argPeriodic =
@@ -296,7 +295,7 @@ spClockEventData_t argPeriodic =
 
 // Memory to pass RPA read event ID to clock handler
 spClockEventData_t argRpaRead =
-{ .event = SP_READ_RPA_EVT };
+{ .event = SP_READ_RPA_EVT };   // can this be removed?
 
 // Per-handle connection info
 static spConnRec_t connList[MAX_NUM_BLE_CONNS];
@@ -315,13 +314,12 @@ uint8_t autoConnect = AUTOCONNECT_DISABLE;
 
 // Advertising handles
 static uint8 advHandleLegacy;
-//static uint8 advHandleLongRange;
 
 // Address mode
 static GAP_Addr_Modes_t addrMode = DEFAULT_ADDRESS_MODE;
 
 // Current Random Private Address
-static uint8 rpa[B_ADDR_LEN] = {0};
+static uint8 rpa[B_ADDR_LEN] = {0};   // can this be removed?
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -342,15 +340,15 @@ static void SimplePeripheral_processCharValueChangeEvt(uint8_t paramId);
 static void dashboard_processCharValueChangeEvt(uint8_t paramId);
 
 static void SimplePeripheral_performPeriodicTask(void);
-static void SimplePeripheral_updateRPA(void);
+static void SimplePeripheral_updateRPA(void);   // can this be removed?
 static void SimplePeripheral_clockHandler(UArg arg);
 static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr, uint16_t connHandle,
                                         uint8_t uiInputs, uint8_t uiOutputs,
                                         uint32_t numComparison);
 static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
                                          uint8_t status);
-static void SimplePeripheral_processPairState(spPairStateData_t *pPairState);
-static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData);
+static void SimplePeripheral_processPairState(spPairStateData_t *pPairState);  // can this be removed?
+static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData);  // can this be removed?
 
 static void SimplePeripheral_charValueChangeCB(uint8_t paramId);
 static void SimplePeripheral_dashboardCB(uint8_t paramID);
@@ -634,7 +632,7 @@ static void SimplePeripheral_init(void)
   Controller_RegisterAppCBs( &ControllerCBs );      // there is no characteristic that require callback
 
   // Start Bond Manager and register callback
-//  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);     // what is this used for?  Harry, Please help check.
+//  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);     // what is this used for?
 
   // Register with GAP for HCI/Host messages. This is needed to receive HCI
   // events. For more information, see the HCI section in the User's Guide:
@@ -694,26 +692,31 @@ static void SimplePeripheral_init(void)
  *
  * @param   a0, a1 - not used.
  */
-static uint8_t         sp_initComplete_flag = GPT_INACTIVE;
-static bool     *ptr_sp_POWER_ON;       // register for POWER_ON status
+static uint8_t      sp_initComplete_flag = GPT_INACTIVE;
+static bool         *ptr_sp_POWER_ON;       // register for POWER_ON status
 static sysFatalError_t *ptr_sysFatalError;
-static uint8_t  *ptr_snvWriteFlag;
-
-static uint8_t     sp_counter = 0;
+static uint8_t      *ptr_snvWriteFlag;
+uint8_t     snv_writeComplete_flag = 0;
+uint8_t            snv_reset = 0;   // if snv_reset = 0, it means the non-volatile storage was NOT reset by the Firmware.
+uint8_t     sp_counter = 0;
 static uint8_t     sp_i2cOpenStatus;
 static bStatus_t   check_enableStatus;       // for debugging purpose only
 static uint8_t     check_snvWriteFlag = 0;   // for debugging purpose only
 static uint8_t     *ptr_sp_dashboardErrorCodePriority;
 
+uint8_t how_boot = 0xFF;
 static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 {
   /*******   Initialize application   ********/
+      Boot_Init();                                                   //Start Boot Process
+      PowerModeStatusManager();
       gpt_InitComplFlagRegister(&sp_initComplete_flag);             // send pointer to sp_initComplet_flag to gpt.c
+
       pot_InitComplFlagRegister(&sp_initComplete_flag);
 
       ptrUDBuffer = snv_internal_setReadBuffer(&snv_internal_80);   // pass the pointer to snv_internal_80 to snv_internal and get the pointer to UDArray in return
 
-      data_analytics_setSNVBufferRegister(&snv_internal_80);               // pass the pointer to snv_internal_80 to data_analytics
+      data_analytics_setSNVBufferRegister(&snv_internal_80);        // pass the pointer to snv_internal_80 to data_analytics
 
       ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to powerOn in return
 
@@ -723,30 +726,39 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       ptr_snvWriteFlag = snvWriteFlageRegister();                   // call snvWriteFlagRegister to get pointer to snvWriteFlag
 
+      gpt_snvWriteCompleteFlag_register(&snv_writeComplete_flag);
+
       ptr_sp_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister(); // call bat_dashboardErrorCodePriorityRegister to get pointer to sp_dashboardErrorCodePriority
 
       SimplePeripheral_init();
 
-  /********************************************************
-   *            Non-Volatile Storage via SNV
-   * ******************************************************/
+/********************************************************
+*            Non-Volatile Storage via SNV
+* ******************************************************/
   /* clear and set Buffer SNV_NV_ID80 for the first time */
       /*  Firstly, read the memory in SNV_NV_ID80 sector  */
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);
-      /* RESET NVS if the following conditions (RESET CODES) are not met */
+
+      /*  Then, RESET NVS if the following conditions (RESET CODES) are not met */
       if ((snv_internal_80[SNV_BUFFER_SIZE - 6] != RESETCODE01) && (snv_internal_80[SNV_BUFFER_SIZE - 5] != RESETCODE02))
       {
 #ifdef RESET_NVS
-          snv_internal_resetSNVdata();      // option available for zero reset or dummy reset
+          snv_internal_resetSNVdata();      // options available: (1) zero reset or (2) dummy reset
           snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
+          snv_reset = 1;    // if snv_reset = 1, it means the non-volatile storage was reset by the Firmware.
 #endif // RESET_NVS
       }
+
+      /* Override data if OVERRIDE_NVS is defined */
+#ifdef OVERRIDE_NVS
+      snv_internal_resetSNVdata();      // option available for zero reset or dummy reset
+      snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
+#endif // OVERRIDE_NVS
+
   /****    read memory again after reset     ****/
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);
 
-  /**************** End Non-Volatile Storage via SNV **********
-   ************************************************************/
-
+/**************** End Non-Volatile Storage via SNV *************************/
 
     /**************************************************************************
      *  Initialize UDHAL (GPIO, I2C, ADC, UART)
@@ -762,12 +774,12 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       brake_and_throttle_setSpeedMode(snv_internal_80[SNV_BUFFER_SIZE - 4]);   // set initial speedMode = snv_internal_80[28] in brake_and_throttle.c
       pot_setDeviceUpTime(snv_internal_80[SNV_BUFFER_SIZE - 1]);    // read and set initial device uptime in power_on_time.c
 
-      /********* motor_contol_init must be before data_analytics_init **********/
+      /********* motor_contol_init must be called before data_analytics_init **********/
       STM32MCP_init();  // -> timer2_Start
       motor_control_init();
 
-      /* led_display_init() must be before data_analytics_init(),
-       * brake_and_throttle_init() and lights_init() */
+      /********* led_display_init() must be called before data_analytics_init(),
+       * brake_and_throttle_init() and lights_init() ********************************/
       if (!(ptr_sysFatalError->I2Cfailure))
       {  /**** if i2c opened successfully, i.e. sp_sysFatalError = 0 (no error)  ****/
           /* Both ALS and led_display require successful open of i2c to function  */
@@ -775,7 +787,9 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       }
 
       data_analytics_init();
+
       brake_and_throttle_init();
+
       lights_init(sp_i2cOpenStatus, ptr_sysFatalError->UARTfailure, snv_internal_80[SNV_BUFFER_SIZE - 2]);       // set initial light Mode = snv_internal_80[30]
 
       /***** SYSTEM FATAL ERROR Check. Note SUCCESS = 0, FAILURE = 1 ******************/
@@ -800,11 +814,20 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       }
 
-      /**************************************************************************************************************************
-       *   Simple peripheral must finish initialization before GPT task functions initialize.
-       *  sp_initComplete_flag is a flag for GPT that enables codes to execute only after SP completed initialization
-       ****************************/
-      sp_initComplete_flag = GPT_ACTIVE;
+    /**************************************************************************************************************************
+    *   Simple peripheral must finish initialization before GPT task functions initialize.
+    *  sp_initComplete_flag is a flag for GPT that enables codes to execute only after SP completed initialization
+    ****************************/
+    sp_initComplete_flag = GPT_ACTIVE;
+    if(HowToBoot() == 0x00)
+    {
+        mpb_bootAlarm(400,0x00);
+        sendBootMessage();
+    }
+    else
+    {
+        mpb_bootAlarm(150,0x01);
+    }
 
     /****** Simple Peripheral Application main loop  ******/
     for (;;)
@@ -825,12 +848,11 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
             {         // if BLE is not advertising, do the following
                 if (!sp_advertiseFlag)             // if advertising request = 1, enable advertise
                 {
-                    check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT); //by_harry 2024_05_25
+                    check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
                     *ptr_GAPflag = 0;    // whenever advertising is enabled - set GAPflag to 0
                 }
             }
         }
-
 
         if (events)
         {
@@ -904,18 +926,14 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
                     check_snvWriteFlag++;   // for debugging purpose only
                     /****   write snv_internal_80 to snv    *******/
                     snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), &snv_internal_80);
-
+                    snv_writeComplete_flag = 1;
                     *ptr_sp_POWER_ON = 1;   // for testing purposes only -> exit and set POWER_ON back to 1
                     break; // break out of wait snvWrite FOR loop
                 }
             }
-
-//            break;    // break out of main FOR loop
-
+            break;    // break out of main FOR loop
         }
-
     }   // main FOR loop
-
 }
 
 /*********************************************************************
@@ -939,12 +957,10 @@ static uint8_t SimplePeripheral_processStackMsg(ICall_Hdr *pMsg)
     case GAP_MSG_EVENT:
       SimplePeripheral_processGapMessage((gapEventHdr_t*) pMsg);
       break;
-
     case GATT_MSG_EVENT:
       // Process GATT message
       safeToDealloc = SimplePeripheral_processGATTMsg((gattMsgEvent_t *)pMsg);
       break;
-
     case HCI_GAP_EVENT_EVENT:
     {
       // Process HCI message
@@ -956,11 +972,9 @@ static uint8_t SimplePeripheral_processStackMsg(ICall_Hdr *pMsg)
           SimplePeripheral_processCmdCompleteEvt((hciEvt_CmdComplete_t *) pMsg);
           break;
         }
-
         case HCI_BLE_HARDWARE_ERROR_EVENT_CODE:
           AssertHandler(HAL_ASSERT_CAUSE_HARDWARE_ERROR,0);
           break;
-
         // HCI Commands Events
         case HCI_COMMAND_STATUS_EVENT_CODE:
         {
@@ -978,7 +992,6 @@ static uint8_t SimplePeripheral_processStackMsg(ICall_Hdr *pMsg)
           }
           break;
         }
-
         // LE Events
         case HCI_LE_EVENT_CODE:
         {
@@ -992,14 +1005,11 @@ static uint8_t SimplePeripheral_processStackMsg(ICall_Hdr *pMsg)
           }
           break;
         }
-
         default:
           break;
       }
-
       break;
     }
-
     default:
       // do nothing
       break;
@@ -1104,19 +1114,19 @@ static void SimplePeripheral_processAppMsg(spEvt_t *pMsg)
       break;
 
     case SP_PAIR_STATE_EVT:
-      SimplePeripheral_processPairState((spPairStateData_t*)(pMsg->pData));
+      SimplePeripheral_processPairState((spPairStateData_t*)(pMsg->pData)); // can this be removed?
       break;
 
     case SP_PASSCODE_EVT:
-      SimplePeripheral_processPasscode((spPasscodeData_t*)(pMsg->pData));
+      SimplePeripheral_processPasscode((spPasscodeData_t*)(pMsg->pData));  // can this be removed?
       break;
 
     case SP_PERIODIC_EVT:
       SimplePeripheral_performPeriodicTask();
       break;
 
-    case SP_READ_RPA_EVT:
-      SimplePeripheral_updateRPA();
+    case SP_READ_RPA_EVT:   // can this be removed?
+      SimplePeripheral_updateRPA();   // can this be removed?
       break;
 
     case SP_SEND_PARAM_UPDATE_EVT:
@@ -1217,42 +1227,20 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
 
         // Enable legacy advertising for set #1
         //status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);
-        status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT); //by_harry 2024_5_25
+        status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
         SIMPLEPERIPHERAL_ASSERT(status == SUCCESS);
         check_enableStatus = status;
         *ptr_GAPflag = 0;    // whenever Advertising is enable, set GAPflag to 0
 
-
-//        BLE_LOG_INT_INT(0, BLE_LOG_MODULE_APP, "APP : ---- call GapAdv_create set=%d,%d\n", 1, 0);
-
-        // Create Advertisement set #2 and assign handle
-        //status = GapAdv_create(&SimplePeripheral_advCallback, &advParams2,//by_harry 2024_05_25
-        //                       &advHandleLongRange);//by_harry 2024_05_25
-        //SIMPLEPERIPHERAL_ASSERT(status == SUCCESS);//by_harry 2024_05_25
-
-        // Load advertising data for set #2 that is statically allocated by the app
-        //status = GapAdv_loadByHandle(advHandleLongRange, GAP_ADV_DATA_TYPE_ADV, //by_harry 2024_05_25
-        //                             sizeof(advData2), advData2); //by_harry 2024_05_25
-        //SIMPLEPERIPHERAL_ASSERT(status == SUCCESS);//by_harry 2024_05_25
-
-        // Set event mask for set #2
-//        status = GapAdv_setEventMask(advHandleLongRange,
-//                                     GAP_ADV_EVT_MASK_START_AFTER_ENABLE |
-//                                     GAP_ADV_EVT_MASK_END_AFTER_DISABLE |
-//                                     GAP_ADV_EVT_MASK_SET_TERMINATED);
-
         BLE_LOG_INT_TIME(0, BLE_LOG_MODULE_APP, "APP : ---- GapAdv_enable", 0);
 
-        // Enable long range advertising for set #2
-        //status = GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);           //by_harry 2024_05_25
-//        SIMPLEPERIPHERAL_ASSERT(status == SUCCESS);           //by_harry 2024_05_25
 //        *ptr_GAPflag = 0;
 
         if (addrMode > ADDRMODE_RANDOM)
         {
-          SimplePeripheral_updateRPA();
+          SimplePeripheral_updateRPA();   // can this be removed?
 
-          // Create one-shot clock for RPA check event.
+          // Create one-shot clock for RPA check event.   // can this be removed?
           Util_constructClock(&clkRpaRead, SimplePeripheral_clockHandler,
                               READ_RPA_PERIOD, 0, true,
                               (UArg) &argRpaRead);
@@ -1283,15 +1271,13 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
       if ((numActive < MAX_NUM_BLE_CONNS) && (autoConnect == AUTOCONNECT_DISABLE))
       {
           // Start advertising since there is room for more connections
-          check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);//by_harry 2024_5_25
-          //GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);//by_harry 2024_5_25
+          check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
           *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
 
       }
       else
       {
-          // Stop advertising since there is no room for more connections
-//          GapAdv_disable(advHandleLongRange);
+          /*    Stop advertising since there is no room for more connections   */
           GapAdv_disable(advHandleLegacy);
       }
 
@@ -1321,7 +1307,6 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
 
       /***** Disabled automatic advertising after disconnection with device  ****/
 //      status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);
-//      GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);
 //      *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
 //      check_enableStatus = status;
 
@@ -1667,7 +1652,7 @@ static void SimplePeripheral_performPeriodicTask(void)
  *
  * @return  None.
  */
-static void SimplePeripheral_updateRPA(void)
+static void SimplePeripheral_updateRPA(void)   // can this be removed?
 {
   uint8_t* pRpaNew;
 
@@ -1701,13 +1686,13 @@ static void SimplePeripheral_clockHandler(UArg arg)
    // Post event to wake up the application
    SimplePeripheral_enqueueMsg(SP_PERIODIC_EVT, NULL);
  }
- else if (pData->event == SP_READ_RPA_EVT)
+ else if (pData->event == SP_READ_RPA_EVT)   // can this be removed?
  {
    // Start the next period
-   Util_startClock(&clkRpaRead);
+   Util_startClock(&clkRpaRead);   // can this be removed?
 
    // Post event to read the current RPA
-   SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);
+   SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);   // can this be removed?
  }
  else if (pData->event == SP_SEND_PARAM_UPDATE_EVT)
  {
@@ -1859,6 +1844,7 @@ static void SimplePeripheral_processAdvEvent(spGapAdvEventData_t *pEventData)
  *
  * @return  none
  */
+// can SimplePeripheral_pairStateCb() be removed?
 static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
                                          uint8_t status)
 {
@@ -1886,6 +1872,7 @@ static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
  *
  * @return  none
  */
+// Can SimplePeripheral_passcodeCb() be removed?
 static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr,
                                         uint16_t connHandle,
                                         uint8_t uiInputs,
@@ -1918,6 +1905,7 @@ static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr,
  *
  * @return  none
  */
+// can SimplePeripheral_processPairState() be removed?
 static void SimplePeripheral_processPairState(spPairStateData_t *pPairData)
 {
   uint8_t state = pPairData->state;
@@ -1951,6 +1939,7 @@ static void SimplePeripheral_processPairState(spPairStateData_t *pPairData)
  *
  * @return  none
  */
+// can SimplePeripheral_processPasscode() be removed?
 static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData)
 {
   // Send passcode response
@@ -2039,14 +2028,10 @@ bool SimplePeripheral_doAutoConnect(uint8_t index)
     {
       if (autoConnect != AUTOCONNECT_GROUP_A)
       {
-//        GapAdv_disable(advHandleLongRange);
         GapAdv_disable(advHandleLegacy);
         advData1[2] = 'G';
         advData1[3] = 'A';
-        //advData2[2] = 'G';    //by_harry 2024_05_25
-        //advData2[3] = 'A';    //by_harry 2024_05_25
-        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);    //by_harry 2024_05_25
-        //GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);        //by_harry 2024_05_25
+        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
         *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
 
         autoConnect = AUTOCONNECT_GROUP_A;
@@ -2056,17 +2041,12 @@ bool SimplePeripheral_doAutoConnect(uint8_t index)
     {
       if (autoConnect != AUTOCONNECT_GROUP_B)
       {
-//        GapAdv_disable(advHandleLongRange);
         GapAdv_disable(advHandleLegacy);
 
         advData1[2] = 'G';
         advData1[3] = 'B';
-        //advData2[2] = 'G';//by_harry 2024_05_25
-        //advData2[3] = 'B';//by_harry 2024_05_25
-        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT); //by_harry 2024_05_25
-        //GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0); //by_harry 2024_05_25
+        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
         *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
-
 
         autoConnect = AUTOCONNECT_GROUP_B;
       }
@@ -2075,15 +2055,11 @@ bool SimplePeripheral_doAutoConnect(uint8_t index)
     {
       if (autoConnect)
       {
-//        GapAdv_disable(advHandleLongRange);
         GapAdv_disable(advHandleLegacy);
 
         advData1[2] = 'S';
         advData1[3] = 'P';
-        //advData2[2] = 'S';//by_harry 2024_05_25
-        //advData2[3] = 'P';//by_harry 2024_05_25
-        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT); //by_harry 2024_05_25
-        //GapAdv_enable(advHandleLongRange, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0); //by_harry 2024_05_25
+        check_enableStatus = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
         *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
 
 

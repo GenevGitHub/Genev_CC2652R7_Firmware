@@ -45,9 +45,9 @@ static uint32_t     timerPeriod;
 static uint8_t      risingEdgeCount = 0;    // make this static if not debugging
 static uint8_t      fallingEdgeCount = 0;   // make this static if not debugging
 
-mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
+static mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 
-uint8_t             mpb_buzzerStatus = 0;
+static uint8_t             mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
 static uint8_t      *ptr_dashboardErrorCodePriority;
 
@@ -64,7 +64,8 @@ void mpb_init();
  *
  * @return  pointer to POWER_ON
  */
-void* mpb_powerOnRegister(void){
+void* mpb_powerOnRegister(void)
+{
     return (&POWER_ON);
 }
 
@@ -83,7 +84,8 @@ static uint8_t *ptr_GAPopcode;
 static uint8_t *ptr_mpb_advertiseFlag;
 uint8_t mpb_GAPflag = 0;
 
-extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag){
+extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag)
+{
     ptr_GAPopcode = ptr_opcode;
     ptr_mpb_advertiseFlag = ptr_advertiseFlag;
     return (&mpb_GAPflag);
@@ -102,17 +104,15 @@ extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag)
 Task_Struct     mpbTask;
 Char            mpbTaskStack[MPB_TASK_STACK_SIZE];
 
-extern void mpb_createTask(void){
+extern void mpb_createTask(void)
+{
     Task_Params mpbTaskParams;
-
     // Configure task
     Task_Params_init(&mpbTaskParams);
     mpbTaskParams.stack = mpbTaskStack;
     mpbTaskParams.stackSize = MPB_TASK_STACK_SIZE;
     mpbTaskParams.priority = MPB_TASK_PRIORITY;
-
     Task_construct(&mpbTask, mpb_taskFxn, &mpbTaskParams, NULL);     //
-
 }
 
 /*********************************************************************
@@ -126,13 +126,10 @@ extern void mpb_createTask(void){
 **********************************************************************/
 uint8_t         mpb_buttonStatus = 0;
 uint8_t         mpb_errorStatus = 0xFF;
-
 void mpb_taskFxn(UArg a0, UArg a1)
 {
-
     mpb_timerManager = UDHAL_TIMER3_mpbTimerRegister();
     mpb_init();
-
 }
 
 /*********************************************************************
@@ -173,11 +170,9 @@ void mpb_processButtonEvt(uint_fast8_t logicLevel)
     if(logicLevel == 0)
     {
         fallingEdgeCount++;
-        /* instruct buzzer to make a single beep on every falling edge */
-#ifdef CC2652R7_LAUNCHXL
+        /* instruct buzzer to make a single short beep on every falling edge */
         mpb_buzzerStatus = 1; // when buzzerStatus == 1, buzzer makes a single beep, 1 == short beep
         buzzer_buttonHandler(mpb_buzzerStatus);
-#endif
     }
 
     if(fallingEdgeCount == 0)    // Ignores the rising edge after a long press
@@ -190,10 +185,8 @@ void mpb_processButtonEvt(uint_fast8_t logicLevel)
     {
         risingEdgeCount++;
         /* instruct buzzer to stop beep on every rising edge */
-#ifdef CC2652R7_LAUNCHXL
         mpb_buzzerStatus = 0; //  button will always be released (end with a rising edge) after a press. Reset buzzer status to 0 on every release.
         buzzer_buttonHandler(mpb_buzzerStatus);
-#endif
     }
 
     switch(mpb_buttonState)
@@ -262,10 +255,8 @@ void mpb_processTimerOv()
         buttonEvent = 0x00;
     }
 
-#ifdef CC2652R7_LAUNCHXL
     /* reset buzzer to off here */
     buzzer_buttonHandler(0);
-#endif
 
     timerPeriod = MPB_TIMER_OV_TIME_LONG;       // resets to "SINGLE_BUTTON_TIMER_OV_TIME_LONG" after each overflow
     risingEdgeCount = 0;                        // reset to 0
@@ -274,6 +265,37 @@ void mpb_processTimerOv()
     mpb_execute_event(buttonEvent);         /* calls motorcontrol_mpbCB(buttonEvent) to execute the buttonEvent */
 }
 
+/*********************************************************************
+ * @fn      mpb_bootAlarm
+ * @brief   Alarm signal is given when we turn on the dash-board
+ *
+ * @param   duration: how long does it beep beep??
+ *          bootcase: 0x00: it gives long beep sound if the dash-board is waken up from shut down mode
+ *                    0x01: it gives short beep sound when it is connected to USB power supply directly
+ *
+ * @return  none
+ ************************************************************************/
+
+void mpb_bootAlarm(uint16_t duration,uint8_t bootcase)
+{
+    mpb_buzzerStatus = 1;
+    if(bootcase == 0x00)
+    {
+        buzzer_buttonHandler(mpb_buzzerStatus);
+        Task_sleep(duration * 1000 / Clock_tickPeriod);
+        buzzer_buttonHandler(0);
+    }
+    else if (bootcase == 0x01)
+    {
+        buzzer_buttonHandler(mpb_buzzerStatus);
+        Task_sleep(duration * 1000 / Clock_tickPeriod);
+        buzzer_buttonHandler(0);
+        Task_sleep(duration * 1000 / Clock_tickPeriod);
+        buzzer_buttonHandler(mpb_buzzerStatus);
+        Task_sleep(duration * 1000 / Clock_tickPeriod);
+        buzzer_buttonHandler(0);
+    }
+}
 
 /*********************************************************************
  * @fn      mpb_execute_event
@@ -285,49 +307,38 @@ void mpb_processTimerOv()
  ************************************************************************/
 
 uint8_t messageid = 0;              // for debugging only
-uint8_t switch_check = 0;
 
-void mpb_execute_event(uint8_t messageID) {
+void mpb_execute_event(uint8_t messageID)
+{
     messageid = messageID;  // for debugging only
 
     switch(messageID)
     {
     case MPB_SINGLE_LONG_PRESS_MSG:       // case = 0x01 - toggle Device Power ON / OFF
         {
-            switch_check = 1;
-
             /****  toggle Power ON/OFF or Enter/Exit Sleep Mode ****/
             /**** if Powering On -> switch to Power Off ****/
             if(POWER_ON)
             {
-
                 POWER_ON = 0;
                 /*  gracefully disable / exit relevant tasks and put system in sleep mode  */
-
             }
             /**** if Powering Off -> switch to Power On ****/
             else //if (POWER_ON == 0)
             {
-
                 POWER_ON = 1;
                 /* restart firmware  */
-
             }
         // ICallPlatform_pwrNotify(unsigned int eventType, uintptr_t eventArg, uintptr_t clientArg)
             break;
         }
     case MPB_SINGLE_SHORT_PRESS_MSG:      // case = 0x02 - toggle light modes
         {
-            switch_check = 2;
-
             lights_lightModeChange();
-
             break;
         }
     case MPB_SINGLE_SHORT_LONG_PRESS_MSG: // case = 0x03 - ADVERT_ENABLE if BLE in waiting state or waiting after timeout state
         {
-            switch_check = 3;
-
             if((*ptr_GAPopcode == GAP_DEVICE_INIT_DONE_EVENT) || ( *ptr_GAPopcode == GAP_LINK_TERMINATED_EVENT))
             {
                 if ((mpb_GAPflag != 1 ) && (*ptr_mpb_advertiseFlag != 1))// if not already advertising and if GAPflag is not already 1
@@ -335,25 +346,20 @@ void mpb_execute_event(uint8_t messageID) {
                     mpb_GAPflag = 1;
                 }
             }
-
             if (*ptr_mpb_advertiseFlag) // if advertising is 1, reset GAPflag to 0
             {
                 mpb_GAPflag = 0;
             }
-
             break;
         }
     case MPB_DOUBLE_SHORT_PRESS_MSG:      // case = 0x04 - toggle speed modes
         {
-            switch_check = 4;
             /**** toggle speed mode ****/
             brake_and_throttle_toggleSpeedMode();
-
             break;
         }
     case MPB_TREBLE_SHORT_PRESS_MSG:      // case = 0x05 - toggle units
         {
-            switch_check = 5;
             if (*ptr_dashunit == IMP_UNIT)
             {
                 *ptr_dashunit = SI_UNIT;
@@ -364,13 +370,10 @@ void mpb_execute_event(uint8_t messageID) {
             }
             /* send UnitSelectDash to dataAnalysis.c */
             data_analytics_changeUnitSelectDash();
-
             break;
         }
     case MPB_QUADRUPLE_SHORT_PRESS_MSG:      // case = 0x06 - toggle control law
         {
-            switch_check = 6;
-
             /*****  toggles control law  *****/
             uint8_t mpbControlLaw = brake_and_throttle_getControlLaw();
             if (mpbControlLaw == BRAKE_AND_THROTTLE_NORMALLAW)
@@ -386,16 +389,11 @@ void mpb_execute_event(uint8_t messageID) {
             led_control_setControlLaw(mpbControlLaw);
             /**** update control law change speed mode parameters ****/
             brake_and_throttle_getSpeedModeParams();
-
             break;
         }
     default:
         {    // case 0x00 for all unrecognized cases
-            switch_check = 0;
-            // mpb_unrecognised_Press_flag = 1;
-
         break;
         }
     }
 }
-

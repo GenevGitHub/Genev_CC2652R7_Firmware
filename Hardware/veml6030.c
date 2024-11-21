@@ -12,16 +12,16 @@ float resolution;
 #ifdef veml6030
 
 static uint_least8_t targetAddress = VEML6030_ADDRL;
-uint8_t Bit3to0 = 0x03;
-uint8_t Bit7to4 = 0x0C;
-uint16_t Bit15to14 = 0xC000;
-uint16_t LowByte = 0x00FF;
-uint16_t HighByte = 0xFF00;
+static uint8_t Bit3to0 = 0x03;
+static uint8_t Bit7to4 = 0x0C;
+static uint16_t Bit15to14 = 0xC000;
+static uint16_t LowByte = 0x00FF;
+static uint16_t HighByte = 0xFF00;
 
 static ALSManager_t *veml6030_ALSManager;
 uint8_t veml6030_i2cTransferStatus;
-uint8_t writeBuffer[3];
-uint8_t readBuffer[2];
+static uint8_t writeBuffer[3];
+static uint8_t readBuffer[2];
 static size_t writeBufferSize;
 static size_t readBufferSize;
 

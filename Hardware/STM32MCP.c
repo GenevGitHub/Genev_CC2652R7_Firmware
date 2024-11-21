@@ -35,6 +35,8 @@ static uint8_t                  retransmissionCount = 0;
 
 static uint8_t                  communicationState = STM32MCP_COMMUNICATION_DEACTIVE;
 
+uint8_t node = 0xFF;        // FungGor version
+uint8_t packet_loss = 0;    // FungGor version
 /*********************************************************************
  * Registers value
  * Developers should modify the following data structures if they wish to use more or less registers
@@ -149,7 +151,10 @@ static uint8_t STM32MCP_getQueueSize();
 static uint8_t STM32MCP_queueIsEmpty();
 static void    STM32MCP_enqueueMsg(uint8_t *txMsg, uint8_t size);
 static void    STM32MCP_dequeueMsg();
+STM32MCP_txMsgNode_t*STM32MCP_priorityMsgQueue(STM32MCP_txMsgNode_t *currPtr);
 static void    STM32MCP_emptyQueue();
+static void   STM32MCP_SHOW_QUEUE(STM32MCP_txMsgNode_t *firstPtr);
+
 //Functional functions
 static void    STM32MCP_resetFlowControlhandler();
 static uint8_t STM32MCP_calChecksum(uint8_t *txMessage, uint8_t size);
@@ -165,10 +170,7 @@ static uint8_t STM32MCP_calChecksum(uint8_t *txMessage, uint8_t size);
  */
 void STM32MCP_init()
 {
-    STM32MCP_heartbeatManager = UDHAL_TIMER2_timerRegister();
-
-//    UDHAL_TIMER2_init();
-//    UDHAL_TIMER2_params_init();   // moved to UDHAL_init() by Chee
+//   STM32MCP_heartbeatManager = UDHAL_TIMER2_timerRegister(); //We removed heartbeat feature
 
     STM32MCP_initQueue();
 
@@ -188,11 +190,11 @@ void STM32MCP_init()
     rxObj->currIndex = 0;
     rxObj->payloadLength = 0xFF;
     rxObj->rxMsgBuf = (uint8_t*)malloc(sizeof(uint8_t)*STM32MCP_RX_MSG_BUFF_LENGTH);
-    STM32MCP_uartManager->uartOpen();
+//   STM32MCP_uartManager->uartOpen();  //Already done it! So we don't need to call it again
 
-#ifdef CC2640R2_GENEV_5X5_ID
-    STM32MCP_heartbeatManager->timerStart();    //STM32MCP_HEARTBEAT_PERIOD = 600 ms
-#endif
+//#ifdef MOTOR_CONNECT
+//    STM32MCP_heartbeatManager->timerStart();    //STM32MCP_HEARTBEAT_PERIOD = 600 ms
+//#endif // MOTOR_CONNECT
 }
 /*********************************************************************
  * @fn      STM32MCP_registerCBs
@@ -248,9 +250,9 @@ void STM32MCP_startCommunication()
 {
     if(communicationState == STM32MCP_COMMUNICATION_DEACTIVE)
     {
-#ifdef CC2640R2_GENEV_5X5_ID
+#ifdef MOTOR_CONNECT
         communicationState = STM32MCP_COMMUNICATION_ACTIVE;
-#endif
+#endif // MOTOR_CONNECT
     }
 }
 /*********************************************************************
@@ -269,9 +271,9 @@ void STM32MCP_closeCommunication()
         communicationState = STM32MCP_COMMUNICATION_DEACTIVE;
         STM32MCP_emptyQueue();
         STM32MCP_timerManager->timerStop();
-#ifdef CC2640R2_GENEV_5X5_ID
-    STM32MCP_heartbeatManager->timerStop();
-#endif
+//#ifdef MOTOR_CONNECT
+//    STM32MCP_heartbeatManager->timerStop();
+//#endif // MOTOR_CONNECT
     }
 }
 /*********************************************************************
@@ -632,13 +634,15 @@ void STM32MCP_setCurrentReferencesFrame(uint8_t motorID, int16_t torqueReference
  *
  * @return  None
  */
-void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId)
+void STM32MCP_controlEscooterBehavior(uint8_t behaviorID)
 {
        //Insert into packet
-       uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH + 3));
-       txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID;
-       txFrame[1] = STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH;
-       txFrame[2] = sysCmdId;
+    if(communicationState == STM32MCP_COMMUNICATION_ACTIVE)
+    {
+       uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (DEFINE_ESCOOTER_BEHAVIOR_PAYLOAD_LENGTH + 3));
+       txFrame[0] = STM32MCP_MOTOR_1_ID | DEFINE_ESCOOTER_BEHAVIOR_ID;
+       txFrame[1] = DEFINE_ESCOOTER_BEHAVIOR_PAYLOAD_LENGTH;
+       txFrame[2] = behaviorID;
        txFrame[3] = STM32MCP_calChecksum(txFrame, 3);
 
        //Insert it into the queue
@@ -648,43 +652,68 @@ void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId)
            STM32MCP_timerManager->timerStart();
            STM32MCP_enqueueMsg(txFrame, 4);
            STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
+
        }
        else
        {
            STM32MCP_enqueueMsg(txFrame, 4);
        }
+    }
 
 }
-/*********************************************************************
- * @fn      STM32MCP_setEscooterControlDebugFrame
- *
- * @brief   It is used for sending EScooter Control DEBUG frame
- *
- * @param   None
- *
- *
- * @return  None
- */
-void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID)
-{
-     //Insert Into Packet
-    uint8_t *txFrame = (uint8_t *)malloc(sizeof(uint8_t)*(STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH + 3));
-    txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_ESCOOTER_CONTROL_DEBUG_FRAME_ID;
-    txFrame[1] = STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH;
-    txFrame[2] = debugID;
-    txFrame[3] = STM32MCP_calChecksum(txFrame,3);
-    //Insert it into the queue
-    if(STM32MCP_queueIsEmpty())
-    {
-        STM32MCP_timerManager->timerStart();
-        STM32MCP_enqueueMsg(txFrame,4);
-        STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
-    }
-    else
-    {
-        STM32MCP_enqueueMsg(txFrame, 4);
-    }
-}
+//void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId)
+//{
+//       //Insert into packet
+//       uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH + 3));
+//       txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID;
+//       txFrame[1] = STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH;
+//       txFrame[2] = sysCmdId;
+//       txFrame[3] = STM32MCP_calChecksum(txFrame, 3);
+//
+//       //Insert it into the queue
+//
+//       if(STM32MCP_queueIsEmpty())
+//       {
+//           STM32MCP_timerManager->timerStart();
+//           STM32MCP_enqueueMsg(txFrame, 4);
+//           STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
+//       }
+//       else
+//       {
+//           STM32MCP_enqueueMsg(txFrame, 4);
+//       }
+//
+//}
+///*********************************************************************
+// * @fn      STM32MCP_setEscooterControlDebugFrame
+// *
+// * @brief   It is used for sending EScooter Control DEBUG frame
+// *
+// * @param   None
+// *
+// *
+// * @return  None
+// */
+//void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID)
+//{
+//     //Insert Into Packet
+//    uint8_t *txFrame = (uint8_t *)malloc(sizeof(uint8_t)*(STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH + 3));
+//    txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_ESCOOTER_CONTROL_DEBUG_FRAME_ID;
+//    txFrame[1] = STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH;
+//    txFrame[2] = debugID;
+//    txFrame[3] = STM32MCP_calChecksum(txFrame,3);
+//    //Insert it into the queue
+//    if(STM32MCP_queueIsEmpty())
+//    {
+//        STM32MCP_timerManager->timerStart();
+//        STM32MCP_enqueueMsg(txFrame,4);
+//        STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
+//    }
+//    else
+//    {
+//        STM32MCP_enqueueMsg(txFrame, 4);
+//    }
+//}
 
 /*********************************************************************
  * @fn      STM32MCP_setTorqueRampConfiguration
@@ -739,7 +768,8 @@ void STM32MCP_setSpeedModeConfiguration(int16_t torqueIQ, int16_t max_speed, uin
  *
  * @return  None
  */
-void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue)
+//void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue)
+void STM32MCP_setDynamicCurrent(int16_t throttlePercent, int16_t IQValue)   // FungGor
 {
     if(communicationState == STM32MCP_COMMUNICATION_ACTIVE)
     {
@@ -747,10 +777,14 @@ void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue)
         uint8_t *txFrame = (uint8_t*)malloc(sizeof(uint8_t)*(STM32MCP_SET_DYNAMIC_TORQUE_FRAME_PAYLOAD_LENGTH + 3));
         txFrame[0]   = STM32MCP_MOTOR_1_ID | STM32MCP_SET_DYNAMIC_TORQUE_FRAME_ID;
         txFrame[1]   = STM32MCP_SET_DYNAMIC_TORQUE_FRAME_PAYLOAD_LENGTH;
-        txFrame[2]  =  max_speed         & 0xFF;
-        txFrame[3]  = (max_speed >> 8)   & 0xFF;
-        txFrame[4]  = (max_speed >> 16)  & 0xFF;//0
-        txFrame[5]  = (max_speed >> 24)  & 0xFF;//0
+        txFrame[2]  =  throttlePercent         & 0xFF;      // FungGor
+        txFrame[3]  = (throttlePercent >> 8)   & 0xFF;      // FungGor
+        txFrame[4]  = (throttlePercent >> 16)  & 0xFF;//0   // FungGor
+        txFrame[5]  = (throttlePercent >> 24)  & 0xFF;//0   // FungGor
+//        txFrame[2]  =  max_speed         & 0xFF;
+//        txFrame[3]  = (max_speed >> 8)   & 0xFF;
+//        txFrame[4]  = (max_speed >> 16)  & 0xFF;//0
+//        txFrame[5]  = (max_speed >> 24)  & 0xFF;//0
         txFrame[6]  =  IQValue        & 0xFF;
         txFrame[7]  = (IQValue >> 8)  & 0xFF;
         txFrame[8]  = (IQValue >> 16) & 0xFF;//0
@@ -766,29 +800,28 @@ void STM32MCP_setDynamicCurrent(int16_t max_speed, int16_t IQValue)
         {
             STM32MCP_enqueueMsg(txFrame,STM32MCP_SET_DYNAMIC_TORQUE_FRAME_PAYLOAD_LENGTH + 3);
         }
-
     }
 }
 
-/*********************************************************************
- * @fn      STM32MCP_EscooterShutdown
- *
- * @brief   Sends shutdown command to turn off Motor Controller
- *
- * @param   sysCmdId: STM32MCP_POWER_OFF ( 0x00 )
- *
- * @return  None
- */
-void STM32MCP_EscooterShutdown(uint8_t sysCmdId)
-{
-    //Insert into packet
-    uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH + 3));
-    txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID;
-    txFrame[1] = STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH;
-    txFrame[2] = sysCmdId;
-    txFrame[3] = STM32MCP_calChecksum(txFrame, 3);
-    STM32MCP_uartManager->uartWrite(txFrame, 4);
-}
+///*********************************************************************
+// * @fn      STM32MCP_EscooterShutdown
+// *
+// * @brief   Sends shutdown command to turn off Motor Controller
+// *
+// * @param   sysCmdId: STM32MCP_POWER_OFF ( 0x00 )
+// *
+// * @return  None
+// */
+//void STM32MCP_EscooterShutdown(uint8_t sysCmdId)
+//{
+//    //Insert into packet
+//    uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH + 3));
+//    txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID;
+//    txFrame[1] = STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH;
+//    txFrame[2] = sysCmdId;
+//    txFrame[3] = STM32MCP_calChecksum(txFrame, 3);
+//    STM32MCP_uartManager->uartWrite(txFrame, 4);
+//}
 
 /*********************************************************************
  * @fn      STM32MCP_setRegisterAttribute
@@ -966,13 +999,15 @@ void STM32MCP_retransmission()
         STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
         STM32MCP_resetFlowControlhandler();
         retransmissionCount ++;
-        if(retransmissionCount >= STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE)
+        packet_loss++;  // FungGor
+        if(retransmissionCount > STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE) // FungGor
+//        if(retransmissionCount >= STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE)
         {
             STM32MCP_CBs->exMsgCb(STM32MCP_EXCEED_MAXIMUM_RETRANSMISSION_ALLOWANCE); //Exception Handling
 
             //STM32MCP_closeCommunication(); //Disconnect UART Communication --> No Longer sends any data to the motor controller
 
-            //ledControl_ErrorPriority(0x09);
+            led_display_ErrorPriority(DASH_COMM_ERROR_PRIORITY);    // FungGor
         }
     }
 }
@@ -990,6 +1025,7 @@ static void STM32MCP_initQueue()
 {
     STM32MCP_headPtr = STM32MCP_tailPtr = NULL;
     STM32MCP_queueSize = 0;
+    node = STM32MCP_queueSize;  // FungGor
 }
 /*********************************************************************
  * @fn      STM32MCP_getQueueSize
@@ -1054,6 +1090,8 @@ static void STM32MCP_enqueueMsg(uint8_t *txMsg, uint8_t size)
            STM32MCP_tailPtr = temp;
        }
        STM32MCP_queueSize++;
+       node = STM32MCP_queueSize;   // FungGor
+       STM32MCP_headPtr = STM32MCP_priorityMsgQueue(STM32MCP_headPtr);  // FungGor
     }
     else
     {
@@ -1062,6 +1100,7 @@ static void STM32MCP_enqueueMsg(uint8_t *txMsg, uint8_t size)
        free(txMsg);
     }
 }
+
 /*********************************************************************
  * @fn      STM32MCP_dequeueMsg
  *
@@ -1092,6 +1131,54 @@ static void STM32MCP_dequeueMsg()
         free(temp);
     }
 }
+
+/*********************************************************************
+ * @fn      STM32MCP_priorityMsgQueue
+ *
+ * @brief   It is used for swapping the txMsg priority
+ *
+ * @param   STM32MCP_txMsgNode_t *currPtr
+ *
+ *
+ * @return  firstPtr
+ */
+STM32MCP_txMsgNode_t*STM32MCP_priorityMsgQueue(STM32MCP_txMsgNode_t *currPtr)
+{
+    STM32MCP_txMsgNode_t *minPtr = NULL;
+
+    STM32MCP_txMsgNode_t *firstPtr = NULL;
+    firstPtr = currPtr;
+
+    uint8_t *tempMsg;
+    uint8_t tempPayloadSize;
+
+    /*Selection Sort Algorithm O(n) Complexity*/
+    for(;currPtr!=NULL; currPtr = currPtr->next)
+    {
+        minPtr = currPtr;
+
+        STM32MCP_txMsgNode_t *tempPtr;
+        tempPtr = currPtr->next;
+
+        for(;tempPtr != NULL; tempPtr = tempPtr->next)
+        {
+            if(minPtr->txMsg[0] < tempPtr->txMsg[0])
+            {
+                minPtr = tempPtr;
+            }
+        }
+        tempMsg = currPtr->txMsg;
+        tempPayloadSize = currPtr->size;
+
+        currPtr->txMsg = minPtr->txMsg;
+        currPtr->size  = minPtr->size;
+
+        minPtr->txMsg = tempMsg;
+        minPtr->size = tempPayloadSize;
+    }
+    return firstPtr;
+}
+
 /*********************************************************************
  * @fn      STM32MCP_emptyQueue
  *
@@ -1109,6 +1196,22 @@ static void STM32MCP_emptyQueue()
         STM32MCP_dequeueMsg();
     }
 }
+
+/*  FungGor  */
+uint8_t messageCode[20];
+uint8_t location = 0;
+static void STM32MCP_SHOW_QUEUE(STM32MCP_txMsgNode_t *firstPtr)
+{
+    while(firstPtr != NULL)
+    {
+        messageCode[location] = firstPtr->txMsg[0];
+        firstPtr = firstPtr->next;
+        location = location + 1;
+    }
+    firstPtr = STM32MCP_headPtr;
+    location = 0;
+}
+
 /*********************************************************************
  * @fn      STM32MCP_resetFlowControlhandler
  *

@@ -23,8 +23,8 @@ extern "C"
 /*********************************************************************
 * CONSTANTS
 */
-#define LED_POWER_LIGHT_ON                          60
-#define LED_POWER_LIGHT_OFF                         100
+#define LED_POWER_LIGHT_ON                          1
+#define LED_POWER_LIGHT_OFF                         0
 
 /* ********************************************************************
  * TYPEDEFS

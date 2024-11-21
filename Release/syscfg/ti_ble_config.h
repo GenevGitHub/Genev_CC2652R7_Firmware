@@ -37,7 +37,7 @@ extern uint8_t pRandomAddress[B_ADDR_LEN];
 
 // Maximum number of BLE HCI PDUs. If the maximum number connections (above)
 // is set to 0 then this number should also be set to 0.
-#define MAX_NUM_PDU                   		    5
+#define MAX_NUM_PDU                   		    25
 
 // Maximum size in bytes of the BLE HCI PDU. Valid range: 27 to 255
 // The maximum ATT_MTU is MAX_PDU_SIZE - 4.

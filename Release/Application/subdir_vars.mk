@@ -17,7 +17,6 @@ C_SRCS += \
 ../Application/multi_purpose_button.c \
 ../Application/periodic_communication.c \
 ../Application/power_on_time.c \
-C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/common/cc26xx/rcosc/rcosc_calibration.c \
 ../Application/simple_peripheral.c \
 ../Application/snv_internal.c 
 
@@ -33,7 +32,6 @@ C_DEPS += \
 ./Application/multi_purpose_button.d \
 ./Application/periodic_communication.d \
 ./Application/power_on_time.d \
-./Application/rcosc_calibration.d \
 ./Application/simple_peripheral.d \
 ./Application/snv_internal.d 
 
@@ -49,7 +47,6 @@ OBJS += \
 ./Application/multi_purpose_button.o \
 ./Application/periodic_communication.o \
 ./Application/power_on_time.o \
-./Application/rcosc_calibration.o \
 ./Application/simple_peripheral.o \
 ./Application/snv_internal.o 
 
@@ -65,7 +62,6 @@ OBJS__QUOTED += \
 "Application\multi_purpose_button.o" \
 "Application\periodic_communication.o" \
 "Application\power_on_time.o" \
-"Application\rcosc_calibration.o" \
 "Application\simple_peripheral.o" \
 "Application\snv_internal.o" 
 
@@ -81,7 +77,6 @@ C_DEPS__QUOTED += \
 "Application\multi_purpose_button.d" \
 "Application\periodic_communication.d" \
 "Application\power_on_time.d" \
-"Application\rcosc_calibration.d" \
 "Application\simple_peripheral.d" \
 "Application\snv_internal.d" 
 
@@ -97,7 +92,6 @@ C_SRCS__QUOTED += \
 "../Application/multi_purpose_button.c" \
 "../Application/periodic_communication.c" \
 "../Application/power_on_time.c" \
-"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/common/cc26xx/rcosc/rcosc_calibration.c" \
 "../Application/simple_peripheral.c" \
 "../Application/snv_internal.c" 
 

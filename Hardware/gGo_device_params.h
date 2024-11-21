@@ -1,5 +1,6 @@
 /*
  *  gGo_device_params.h
+ *  Note:   This header file contains gGo eScooter factory settings
  *
  *  Created on: 4 May 2024
  *      Author: Chee
@@ -17,21 +18,25 @@ extern "C"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "Hardware/battery_params.h"
-
 ///*********************************************************************************************
 // *  Battery Option
 // *********************************************************************************************/
-//#define BATTERY_40700mV_S11P2           1
-//#undef  BATTERY_37000mV_S10P2
+#include "Hardware/battery_params.h"
 
-#define CC2652R7_LAUNCHXL               1
+/*********************************************************************
+ * CONSTANTS
+ */
+// Speed limit protection selection
+// * Direct Law -> speed limit protection is deactivated
+// * Normal law -> speed limit protection is activated
+#define BRAKE_AND_THROTTLE_NORMALLAW                              1
+#define BRAKE_AND_THROTTLE_DIRECTLAW                              0
 
 ///*********************************************************************************************
 // *  Ambient Light Sensor Chip Option
 // *********************************************************************************************/
-#define veml6030            1
-//#define veml3235            1
+//#define veml6030            1
+#define veml3235            1
 
 /*********************************************************************************************
  *  Regional / Regulation Options
@@ -88,23 +93,12 @@ extern "C"
 /*********************************************************************************************
  *  Light Settings
  *********************************************************************************************/
-#define LUXTHRESHOLD                   500  // light shall be ON when light intensity is consistently below this lux value
+#define LUXTHRESHOLD                        500  // light shall be ON when light intensity is consistently below this lux value
+#define DASHBOARD_ALS_CORR_FACTOR           1.888    // this correction factor corrects the difference between dashboard-covered-ALS and uncovered_ALS.
 
 /*********************************************************************************************
- *  Error Codes
+ *  Error Priorities and Codes
  *********************************************************************************************/
-//// Controller Error Codes
-//#define CONTROLLER_NORMAL                               0x00
-//#define PHASE_CURRENT_ABNORMAL                          0x2A
-//#define MOSFET_ABNORMAL                                 0x2E
-////#define OPAMP_ABNORAML
-//#define GATE_DRIVER_ABNORMAL                            0x2C
-//#define HEATSINK_TEMPERATURE_ABNORMAL                   0x2F
-////  Motor Error Codes
-//#define MOTOR_NORMAL                                    0x00
-//#define HALL_SENSOR_ABNORMAL                            0x3A
-//#define MOTOR_TEMPERATURE_ABNORMAL                      0x3C
-//
 /********************************************************************************************************************************************/
 /*      error type                         error priority (criticality)      Description                               error code displayed */
 // system Normal
@@ -139,7 +133,9 @@ extern "C"
 // Warnings
 #define BATTERY_CRITICALLY_LOW_WARNING                  0x20    // 32:Battery level critically low warning
 
-/**  Displayed Error Code  **/
+/*********************************************************************************************/
+/**  LED Display and MOBILE APP Error Codes  **/
+/*********************************************************************************************/
 #define SYS_NORMAL_CODE                                 0xFF
 
 #define SYS_FATAL_ERROR_CODE                            0x0F
@@ -163,9 +159,9 @@ extern "C"
 /*********************************************************************************************
  *  Regional / Regulation Settings
  *********************************************************************************************/
-#ifdef REGION0
+#ifdef REGION0  // unlimited
 #define REG_MAXPOUT                                          65535 //Watt
-#define REG_MAXP_SPEED                                       250  // km/hr
+#define REG_MAXP_SPEED                                       250  // "unlimited" km/hr
 #define REG_MAXP_RPM                                         6630 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
@@ -174,7 +170,7 @@ extern "C"
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  4770       // 180 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 250 Km/hr
 
-#endif // REGION1
+#endif // REGION0
 
 #ifdef REGION1
 #define REG_MAXPOUT                                          300 //Watt

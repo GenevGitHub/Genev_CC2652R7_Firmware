@@ -1325,7 +1325,7 @@ void led_display_setLEDPower(uint8_t ledPower)
 void led_display_changeLEDPower()
 {
     if(ledPower_old != ledSetpower){
-        if(ledSetpower == LED_POWER_LIGHT_ON){
+        if(ledSetpower){
             ledBrightness = PWM_LOW;
         }
         else{
@@ -1369,7 +1369,7 @@ void led_display_init()
     battery_bar1_status = 1;
     BLE_flash_status = 1;
 
-//    led_display_setAllOn();
+//    led_display_setAllOn();   // for testing without General Purpose Timer task active
 }
 
 /*********************************************************************
@@ -1495,7 +1495,6 @@ void led_display_setBatteryStatus(uint8_t batteryStatus)
 {
     /* I2C command to set Battery Status */
     ledBatteryStatus = batteryStatus;
-//    ledBatteryStatus = 0;
 
 }
 
@@ -1777,69 +1776,74 @@ uint8_t led_display_ErrorDisplay()
                 (led_error_priority == ADC2_OPEN_NULL) || (led_error_priority == PWM1_OPEN_NULL) ||
                 (led_error_priority == PWM2_OPEN_NULL) || (led_error_priority == I2C_OPEN_NULL))            // UART/ADC/PWM/I2C error code = 0F
         {
-            functionTable[35](I_OUT,ledBrightness);
-            functionTable[62](I_OUT,ledBrightness);
+            functionTable[35](I_OUT,ledBrightness);//0
+            functionTable[62](I_OUT,ledBrightness);//F
         }
         else if((led_error_priority == BATTERY_VOLTAGE_ERROR_PRIORITY) || (led_error_priority == BATTERY_TEMP_ERROR_PRIORITY)) // Battery over-voltage and over-temperature error code = 1A
         {
-            functionTable[36](I_OUT,ledBrightness);
-            functionTable[56](I_OUT,ledBrightness);
+            functionTable[36](I_OUT,ledBrightness);//1
+            functionTable[56](I_OUT,ledBrightness);//A
         }
         else if(led_error_priority == BMS_COMM_ERROR_PRIORITY)   // BMS Communication error code = 1C
         {
-            functionTable[36](I_OUT,ledBrightness);
-            functionTable[58](I_OUT,ledBrightness);
+            functionTable[36](I_OUT,ledBrightness);//1
+            functionTable[58](I_OUT,ledBrightness);//C
         }
         else if(led_error_priority == GATE_DRIVER_ERROR_PRIORITY) // MCU Gate Driver error code = 2C
         {
-            functionTable[37](I_OUT,ledBrightness);
-            functionTable[58](I_OUT,ledBrightness);
+            functionTable[37](I_OUT,ledBrightness);//2
+            functionTable[58](I_OUT,ledBrightness);//C
         }
         else if(led_error_priority == MOSFET_ERROR_PRIORITY)     // MOSFET error code = 2E
         {
-            functionTable[37](I_OUT,ledBrightness);
-            functionTable[60](I_OUT,ledBrightness);
+            functionTable[37](I_OUT,ledBrightness);//2
+            functionTable[60](I_OUT,ledBrightness);//E
         }
         else if(led_error_priority == PHASE_I_ERROR_PRIORITY)    // MCU abnormal phase current error code = 2A
         {
-            functionTable[37](I_OUT,ledBrightness);
-            functionTable[56](I_OUT,ledBrightness);
+            functionTable[37](I_OUT,ledBrightness);//2
+            functionTable[56](I_OUT,ledBrightness);//A
         }
         else if(led_error_priority == CONTROLLER_TEMP_ERROR_PRIORITY) // MCU over-temperature error code = 2F
         {
-            functionTable[37](I_OUT,ledBrightness);
-            functionTable[62](I_OUT,ledBrightness);
+            functionTable[37](I_OUT,ledBrightness);//2
+            functionTable[62](I_OUT,ledBrightness);//F
         }
         else if(led_error_priority == HALL_SENSOR_ERROR_PRIORITY) // Motor Hall Sensor error code = 3A
         {
-            functionTable[38](I_OUT,ledBrightness);
-            functionTable[56](I_OUT,ledBrightness);
+            functionTable[38](I_OUT,ledBrightness);//3
+            functionTable[56](I_OUT,ledBrightness);//A
         }
         else if(led_error_priority == MOTOR_TEMP_ERROR_PRIORITY)// Motor over-temperature error code = 3C
         {
-            functionTable[38](I_OUT,ledBrightness);
-            functionTable[58](I_OUT,ledBrightness);
+            functionTable[38](I_OUT,ledBrightness);//3
+            functionTable[58](I_OUT,ledBrightness);//C
         }
         else if(led_error_priority == DASH_COMM_ERROR_PRIORITY) // Dash-board communication error code = 0A
         {
-            functionTable[35](I_OUT,ledBrightness);
-            functionTable[56](I_OUT,ledBrightness);
-        }
-        else if(led_error_priority == BRAKE_ERROR_PRIORITY)     // Brake throttle error code = 0E
-        {
-            functionTable[35](I_OUT,ledBrightness);
-            functionTable[60](I_OUT,ledBrightness);
+            functionTable[35](I_OUT,ledBrightness);//0
+            functionTable[56](I_OUT,ledBrightness);//A
         }
         else if(led_error_priority == THROTTLE_ERROR_PRIORITY)  // Throttle error code = 0C
         {
-            functionTable[35](I_OUT,ledBrightness);
-            functionTable[58](I_OUT,ledBrightness);
+            functionTable[35](I_OUT,ledBrightness);//0
+            functionTable[58](I_OUT,ledBrightness);//C
+        }
+        else if(led_error_priority == BRAKE_ERROR_PRIORITY)     // Brake throttle error code = 0E
+        {
+            functionTable[35](I_OUT,ledBrightness);//0
+            functionTable[60](I_OUT,ledBrightness);//E
+        }
+        else if(led_error_priority == SOFTWARE_ERROR_PRIORITY)  // software error code = 4A
+        {
+            functionTable[39](I_OUT,ledBrightness);//4
+            functionTable[56](I_OUT,ledBrightness);//A
         }
 
         /*********** led display warning light icon ******************/
         if (led_error_priority < BATTERY_CRITICALLY_LOW_WARNING) // if led_error_priority is less than 0x20 (32), warning light on
         {
-            functionTable[7](I_OUT,ledBrightness);
+            functionTable[7](I_OUT,ledBrightness); // attention light
         }
 
         led_error_code_old = led_error_priority;

@@ -62,9 +62,9 @@ extern void* lights_lightStatusRegister(void);
 extern void lights_STM32MCPDArrayRegister(STM32MCPD_t *ptrSTM32MCDArray);
 
 static void lights_MODE_AUTO( void );
-static void lights_MODE_OFF( void );
+extern void lights_MODE_OFF( void );
 static void lights_MODE_ON( void );
-
+extern void lights_setLightOff( void );
 extern void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_t lightmodeInit );
 extern void lights_ALSFxn();
 extern void lights_statusChg(void);

@@ -22,6 +22,7 @@ extern "C"
 #include <math.h>
 
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/gGo_debug_config.h"
 
 #include "Application/motor_control.h"
 

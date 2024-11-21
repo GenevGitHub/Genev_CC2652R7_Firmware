@@ -1,7 +1,7 @@
 /**
  * These arguments were used when this file was generated. They will be automatically applied on subsequent loads
  * via the GUI or CLI. Run CLI with '--help' for additional information on how to override these arguments.
- * @cliArgs --board "/ti/boards/LP_CC2652R7" --rtos "tirtos7" --product "simplelink_cc13xx_cc26xx_sdk@7.40.00.77"
+ * @cliArgs --device "CC2652R7RGZ" --package "RGZ" --part "Default" --rtos "tirtos7" --product "simplelink_cc13xx_cc26xx_sdk@7.40.00.77"
  * @versions {"tool":"1.18.1+3343"}
  */
 
@@ -11,8 +11,6 @@
 const ble          = scripting.addModule("/ti/ble5stack/ble");
 const CCFG         = scripting.addModule("/ti/devices/CCFG");
 const rfdesign     = scripting.addModule("/ti/devices/radioconfig/rfdesign");
-const Display      = scripting.addModule("/ti/display/Display");
-const Display1     = Display.addInstance();
 const ADC          = scripting.addModule("/ti/drivers/ADC", {}, false);
 const ADC1         = ADC.addInstance();
 const ADC2         = ADC.addInstance();
@@ -26,8 +24,6 @@ const ECDH         = scripting.addModule("/ti/drivers/ECDH");
 const ECDH1        = ECDH.addInstance();
 const GPIO         = scripting.addModule("/ti/drivers/GPIO");
 const GPIO3        = GPIO.addInstance();
-const GPIO4        = GPIO.addInstance();
-const GPIO5        = GPIO.addInstance();
 const I2C          = scripting.addModule("/ti/drivers/I2C", {}, false);
 const I2C1         = I2C.addInstance();
 const NVS          = scripting.addModule("/ti/drivers/NVS");
@@ -35,10 +31,13 @@ const NVS1         = NVS.addInstance();
 const PWM          = scripting.addModule("/ti/drivers/PWM", {}, false);
 const PWM1         = PWM.addInstance();
 const PWM2         = PWM.addInstance();
+const PWM3         = PWM.addInstance();
 const Power        = scripting.addModule("/ti/drivers/Power");
 const RF           = scripting.addModule("/ti/drivers/RF");
 const TRNG         = scripting.addModule("/ti/drivers/TRNG");
 const TRNG1        = TRNG.addInstance();
+const UART2        = scripting.addModule("/ti/drivers/UART2", {}, false);
+const UART21       = UART2.addInstance();
 const Settings     = scripting.addModule("/ti/posix/tirtos/Settings");
 const BIOS         = scripting.addModule("/ti/sysbios/BIOS");
 const GateMutexPri = scripting.addModule("/ti/sysbios/gates/GateMutexPri");
@@ -57,10 +56,11 @@ const Timestamp    = scripting.addModule("/ti/sysbios/runtime/Timestamp");
 ble.lockProject                                           = true;
 ble.bondIOCaps                                            = "GAPBOND_IO_CAP_NO_INPUT_NO_OUTPUT";
 ble.rpaRead                                               = 1000;
-ble.maxConnNum                                            = 1;
 ble.maxBonds                                              = 4;
 ble.numOfAdvSets                                          = 1;
 ble.deviceName                                            = "Genev gGo ES01";
+ble.maxConnNum                                            = 1;
+ble.maxPDUNum                                             = 25;
 ble.radioConfig.codeExportConfig.$name                    = "ti_devices_radioconfig_code_export_param0";
 ble.connUpdateParamsPeripheral.$name                      = "ti_ble5stack_general_ble_conn_update_params0";
 ble.advSet1.$name                                         = "ti_ble5stack_broadcaster_advertisement_set0";
@@ -83,20 +83,17 @@ scripting.suppress("The example app code handles 2 advertisement sets\\. Please 
 
 CCFG.enableBootloader         = true;
 CCFG.enableBootloaderBackdoor = true;
-CCFG.dioBootloaderBackdoor    = 13;
 CCFG.levelBootloaderBackdoor  = "Active low";
+CCFG.dioBootloaderBackdoor    = 25;
 CCFG.ccfgTemplate.$name       = "ti_devices_CCFG_CCFGCC26XXTemplate0";
 
-Display1.$name          = "CONFIG_Display_0";
-Display1.$hardware      = system.deviceData.board.components.XDS110UART;
-Display1.enableANSI     = true;
-Display1.uartBufferSize = 128;
-Display1.uart.$name     = "UART2";
-
 ADC1.$name              = "CONFIG_ADC_THR";
-ADC1.adc.adcPin.$assign = "boosterpack.6";
+ADC1.adc.$assign        = "ADC0";
+ADC1.adc.adcPin.$assign = "DIO_24";
 
-ADC2.$name = "CONFIG_ADC_BRK";
+ADC2.$name              = "CONFIG_ADC_BRK";
+ADC2.adc.$assign        = "ADC0";
+ADC2.adc.adcPin.$assign = "DIO_23";
 
 AESCCM1.$name = "CONFIG_AESCCM0";
 
@@ -106,36 +103,41 @@ AESECB1.$name = "CONFIG_AESECB0";
 
 ECDH1.$name = "CONFIG_ECDH0";
 
-GPIO3.$hardware        = system.deviceData.board.components["BTN-1"];
-GPIO3.$name            = "CONFIG_GPIO_BTN1";
+GPIO3.$name            = "CONFIG_GPIO_MPB";
 GPIO3.interruptTrigger = "Both Edges";
-
-GPIO4.$name     = "CONFIG_GPIO_LED_0";
-GPIO4.$hardware = system.deviceData.board.components.LED_RED;
-
-GPIO5.$name            = "CONFIG_GPIO_0";
-GPIO5.pull             = "Pull Up";
-GPIO5.interruptTrigger = "Both Edges";
+GPIO3.gpioPin.$assign  = "DIO_10";
 
 I2C1.$name              = "CONFIG_I2C";
 I2C1.i2c.$assign        = "I2C0";
-I2C1.i2c.sdaPin.$assign = "boosterpack.10";
-I2C1.i2c.sclPin.$assign = "boosterpack.9";
+I2C1.i2c.sdaPin.$assign = "DIO_19";
+I2C1.i2c.sclPin.$assign = "DIO_18";
 
 NVS1.$name                    = "CONFIG_NVSINTERNAL";
 NVS1.internalFlash.$name      = "ti_drivers_nvs_NVSCC26XX0";
 NVS1.internalFlash.regionBase = 0x48000;
 NVS1.internalFlash.regionSize = 0x4000;
 
-PWM1.$name             = "CONFIG_PWM_0";
-PWM1.$hardware         = system.deviceData.board.components.LED_GREEN;
-PWM1.timerObject.$name = "CONFIG_GPTIMER_0";
+PWM1.$name                            = "CONFIG_PWM_HEADLIGHT";
+PWM1.timerObject.$name                = "CONFIG_GPTIMER_0";
+PWM1.timerObject.timer.$assign        = "GPTM0";
+PWM1.timerObject.timer.pwmPin.$assign = "DIO_11";
 
-PWM2.$name                            = "CONFIG_PWM_1";
+PWM2.$name                            = "CONFIG_PWM_BUZZER";
 PWM2.timerObject.$name                = "CONFIG_GPTIMER_1";
-PWM2.timerObject.timer.pwmPin.$assign = "boosterpack.19";
+PWM2.timerObject.timer.$assign        = "GPTM0";
+PWM2.timerObject.timer.pwmPin.$assign = "DIO_13";
+
+PWM3.$name                            = "CONFIG_PWM_LIGHT1";
+PWM3.timerObject.$name                = "CONFIG_GPTIMER_2";
+PWM3.timerObject.timer.$assign        = "GPTM1";
+PWM3.timerObject.timer.pwmPin.$assign = "DIO_12";
 
 TRNG1.$name = "CONFIG_TRNG_0";
+
+UART21.$name              = "CONFIG_UART2_1";
+UART21.uart.$assign       = "UART1";
+UART21.uart.txPin.$assign = "DIO_8";
+UART21.uart.rxPin.$assign = "DIO_9";
 
 BIOS.assertsEnabled = false;
 BIOS.rtsGateType    = "BIOS_GateMutexPri";
@@ -152,7 +154,8 @@ const Clock       = scripting.addModule("/ti/sysbios/knl/Clock", {}, false);
 Clock.tickPeriod  = 10;
 Clock.swiPriority = 5;
 
-const Timer = scripting.addModule("/ti/sysbios/family/arm/cc26xx/Timer", {}, false);
+const Timer       = scripting.addModule("/ti/sysbios/family/arm/cc26xx/Timer", {}, false);
+Timer.rtc.$assign = "RTC0";
 
 Idle2.$name   = "powerIdle";
 Idle2.idleFxn = "Power_idleFunc";
@@ -176,22 +179,3 @@ System.abortFxn        = "System_abortSpin";
 System.exitFxn         = "System_exitSpin";
 System.extendedFormats = "%f";
 System.supportModule   = "SysCallback";
-
-/**
- * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
- * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
- * re-solve from scratch.
- */
-Display1.uart.uart.$suggestSolution            = "UART0";
-Display1.uart.uart.txPin.$suggestSolution      = "boosterpack.4";
-Display1.uart.uart.rxPin.$suggestSolution      = "boosterpack.3";
-ADC1.adc.$suggestSolution                      = "ADC0";
-ADC2.adc.$suggestSolution                      = "ADC0";
-ADC2.adc.adcPin.$suggestSolution               = "boosterpack.2";
-GPIO3.gpioPin.$suggestSolution                 = "boosterpack.13";
-GPIO4.gpioPin.$suggestSolution                 = "boosterpack.39";
-GPIO5.gpioPin.$suggestSolution                 = "boosterpack.29";
-PWM1.timerObject.timer.$suggestSolution        = "GPTM0";
-PWM1.timerObject.timer.pwmPin.$suggestSolution = "boosterpack.40";
-PWM2.timerObject.timer.$suggestSolution        = "GPTM0";
-Timer.rtc.$suggestSolution                     = "RTC0";

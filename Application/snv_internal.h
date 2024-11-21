@@ -1,5 +1,7 @@
 /*
- * snv_internal.h
+ *  snv_internal.h
+ *  Brief:  When using and working with BLE functions, NVS must be accessed using
+ *  OSAL_SNV library.  OSAL SNV operations are defined through ICALL
  *
  *  Created on: 30 Apr 2024
  *      Author: Chee
@@ -57,7 +59,6 @@ extern uint8_t snv_internal_getInitSpeedMode(void);
 extern uint8_t snv_internal_getInitLightMode(void);
 extern uint8_t snv_internal_getInitLightMode(void);
 extern void* snv_internal_setReadBuffer(uint32_t (*ptr_snvBuffer)[]);
-//extern void* snv_internal_getUDBuffer();
 
 
 #ifdef _cplusplus

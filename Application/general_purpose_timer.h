@@ -53,7 +53,7 @@ extern "C"
 extern void GeneralPurposeTimer_createTask(void);
 //extern void* gpt_GPTStateRegister();
 extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag);
-
+extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag);
 extern void gpt_powerOnRegister(bool *ptrpowerOn);
 //extern void gpt_PWR_CTL(bool PWR);    // no longer used
 extern void gpt_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);

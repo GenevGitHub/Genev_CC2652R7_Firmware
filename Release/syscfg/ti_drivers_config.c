@@ -2,7 +2,7 @@
  *  ======== ti_drivers_config.c ========
  *  Configured TI-Drivers module definitions
  *
- *  DO NOT EDIT - This file is generated for the LP_CC2652R7
+ *  DO NOT EDIT - This file is generated for the CC2652R7RGZ
  *  by the SysConfig tool.
  */
 
@@ -16,41 +16,6 @@
 #include <ti/devices/DeviceFamily.h>
 
 #include "ti_drivers_config.h"
-
-/*
- *  ============================= Display =============================
- */
-
-#include <ti/display/Display.h>
-#include <ti/display/DisplayUart2.h>
-
-#define CONFIG_Display_COUNT 1
-
-
-#define Display_UART2BUFFERSIZE 128
-static char displayUART2Buffer[Display_UART2BUFFERSIZE];
-
-DisplayUart2_Object displayUart2Object;
-
-const DisplayUart2_HWAttrs displayUart2HWAttrs = {
-    .uartIdx      = UART2,
-    .baudRate     = 115200,
-    .mutexTimeout = (unsigned int)(-1),
-    .strBuf       = displayUART2Buffer,
-    .strBufLen    = Display_UART2BUFFERSIZE
-};
-
-const Display_Config Display_config[CONFIG_Display_COUNT] = {
-    /* CONFIG_Display_0 */
-    /* XDS110 UART */
-    {
-        .fxnTablePtr = &DisplayUart2Ansi_fxnTable,
-        .object      = &displayUart2Object,
-        .hwAttrs     = &displayUart2HWAttrs
-    },
-};
-
-const uint_least8_t Display_count = CONFIG_Display_COUNT;
 
 /*
  *  =============================== ADC ===============================
@@ -287,32 +252,33 @@ const uint_least8_t GPIO_pinUpperBound = 30;
  *  Array of Pin configurations
  */
 GPIO_PinConfig gpioPinConfigs[31] = {
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_BOTH_EDGES | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_0 */
+    GPIO_CFG_NO_DIR, /* DIO_0 */
     GPIO_CFG_NO_DIR, /* DIO_1 */
-    /* Owned by UART2 as RX */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_DOWN_INTERNAL, /* CONFIG_GPIO_UART2_RX */
-    /* Owned by UART2 as TX */
-    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_HIGH, /* CONFIG_GPIO_UART2_TX */
-    /* Owned by CONFIG_I2C as SCL */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_I2C_SCL */
-    /* Owned by CONFIG_I2C as SDA */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_I2C_SDA */
-    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_LED_0 */
+    GPIO_CFG_NO_DIR, /* DIO_2 */
+    GPIO_CFG_NO_DIR, /* DIO_3 */
+    GPIO_CFG_NO_DIR, /* DIO_4 */
+    GPIO_CFG_NO_DIR, /* DIO_5 */
+    GPIO_CFG_NO_DIR, /* DIO_6 */
+    GPIO_CFG_NO_DIR, /* DIO_7 */
+    /* Owned by CONFIG_UART2_1 as TX */
+    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_HIGH, /* CONFIG_GPIO_UART2_1_TX */
+    /* Owned by CONFIG_UART2_1 as RX */
+    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_DOWN_INTERNAL, /* CONFIG_GPIO_UART2_1_RX */
+    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_BOTH_EDGES | GPIO_CFG_PULL_NONE_INTERNAL, /* CONFIG_GPIO_MPB */
     /* Owned by CONFIG_GPTIMER_0 as PWM Pin */
     GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_PWM_0 */
-    GPIO_CFG_NO_DIR, /* DIO_8 */
-    GPIO_CFG_NO_DIR, /* DIO_9 */
-    GPIO_CFG_NO_DIR, /* DIO_10 */
-    GPIO_CFG_NO_DIR, /* DIO_11 */
+    /* Owned by CONFIG_GPTIMER_2 as PWM Pin */
+    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_PWM_2 */
     /* Owned by CONFIG_GPTIMER_1 as PWM Pin */
     GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_PWM_1 */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_BOTH_EDGES | GPIO_CFG_PULL_NONE_INTERNAL, /* CONFIG_GPIO_BTN1 */
     GPIO_CFG_NO_DIR, /* DIO_14 */
     GPIO_CFG_NO_DIR, /* DIO_15 */
     GPIO_CFG_NO_DIR, /* DIO_16 */
     GPIO_CFG_NO_DIR, /* DIO_17 */
-    GPIO_CFG_NO_DIR, /* DIO_18 */
-    GPIO_CFG_NO_DIR, /* DIO_19 */
+    /* Owned by CONFIG_I2C as SCL */
+    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_I2C_SCL */
+    /* Owned by CONFIG_I2C as SDA */
+    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_I2C_SDA */
     GPIO_CFG_NO_DIR, /* DIO_20 */
     GPIO_CFG_NO_DIR, /* DIO_21 */
     GPIO_CFG_NO_DIR, /* DIO_22 */
@@ -345,15 +311,14 @@ void* gpioUserArgs[31];
 
 const uint_least8_t CONFIG_GPIO_ADC_THR_AIN_CONST = CONFIG_GPIO_ADC_THR_AIN;
 const uint_least8_t CONFIG_GPIO_ADC_BRK_AIN_CONST = CONFIG_GPIO_ADC_BRK_AIN;
-const uint_least8_t CONFIG_GPIO_BTN1_CONST = CONFIG_GPIO_BTN1;
-const uint_least8_t CONFIG_GPIO_LED_0_CONST = CONFIG_GPIO_LED_0;
-const uint_least8_t CONFIG_GPIO_0_CONST = CONFIG_GPIO_0;
+const uint_least8_t CONFIG_GPIO_MPB_CONST = CONFIG_GPIO_MPB;
 const uint_least8_t CONFIG_GPIO_I2C_SDA_CONST = CONFIG_GPIO_I2C_SDA;
 const uint_least8_t CONFIG_GPIO_I2C_SCL_CONST = CONFIG_GPIO_I2C_SCL;
-const uint_least8_t CONFIG_GPIO_PWM_1_CONST = CONFIG_GPIO_PWM_1;
-const uint_least8_t CONFIG_GPIO_UART2_TX_CONST = CONFIG_GPIO_UART2_TX;
-const uint_least8_t CONFIG_GPIO_UART2_RX_CONST = CONFIG_GPIO_UART2_RX;
 const uint_least8_t CONFIG_GPIO_PWM_0_CONST = CONFIG_GPIO_PWM_0;
+const uint_least8_t CONFIG_GPIO_PWM_1_CONST = CONFIG_GPIO_PWM_1;
+const uint_least8_t CONFIG_GPIO_PWM_2_CONST = CONFIG_GPIO_PWM_2;
+const uint_least8_t CONFIG_GPIO_UART2_1_TX_CONST = CONFIG_GPIO_UART2_1_TX;
+const uint_least8_t CONFIG_GPIO_UART2_1_RX_CONST = CONFIG_GPIO_UART2_1_RX;
 
 /*
  *  ======== GPIO_config ========
@@ -491,7 +456,7 @@ const uint_least8_t NVS_count = CONFIG_NVS_COUNT;
 #include <ti/devices/cc13x2x7_cc26x2x7/inc/hw_ints.h>
 #include <ti/devices/cc13x2x7_cc26x2x7/inc/hw_memmap.h>
 
-#define CONFIG_PWM_COUNT 2
+#define CONFIG_PWM_COUNT 3
 
 /*
  *  ======== pwmCC26XXObjects ========
@@ -502,16 +467,20 @@ PWMTimerCC26XX_Object pwmTimerCC26XXObjects[CONFIG_PWM_COUNT];
  *  ======== pwmCC26XXHWAttrs ========
  */
 const PWMTimerCC26XX_HwAttrs pwmTimerCC26XXHWAttrs[CONFIG_PWM_COUNT] = {
-    /* CONFIG_PWM_0 */
-    /* LaunchPad LED Green */
+    /* CONFIG_PWM_HEADLIGHT */
     {
         .pwmPin = CONFIG_GPIO_PWM_0,
         .gpTimerUnit = CONFIG_GPTIMER_0
     },
-    /* CONFIG_PWM_1 */
+    /* CONFIG_PWM_BUZZER */
     {
         .pwmPin = CONFIG_GPIO_PWM_1,
         .gpTimerUnit = CONFIG_GPTIMER_1
+    },
+    /* CONFIG_PWM_LIGHT1 */
+    {
+        .pwmPin = CONFIG_GPIO_PWM_2,
+        .gpTimerUnit = CONFIG_GPTIMER_2
     },
 };
 
@@ -519,23 +488,29 @@ const PWMTimerCC26XX_HwAttrs pwmTimerCC26XXHWAttrs[CONFIG_PWM_COUNT] = {
  *  ======== PWM_config ========
  */
 const PWM_Config PWM_config[CONFIG_PWM_COUNT] = {
-    /* CONFIG_PWM_0 */
-    /* LaunchPad LED Green */
+    /* CONFIG_PWM_HEADLIGHT */
     {
         .fxnTablePtr = &PWMTimerCC26XX_fxnTable,
-        .object = &pwmTimerCC26XXObjects[CONFIG_PWM_0],
-        .hwAttrs = &pwmTimerCC26XXHWAttrs[CONFIG_PWM_0]
+        .object = &pwmTimerCC26XXObjects[CONFIG_PWM_HEADLIGHT],
+        .hwAttrs = &pwmTimerCC26XXHWAttrs[CONFIG_PWM_HEADLIGHT]
     },
-    /* CONFIG_PWM_1 */
+    /* CONFIG_PWM_BUZZER */
     {
         .fxnTablePtr = &PWMTimerCC26XX_fxnTable,
-        .object = &pwmTimerCC26XXObjects[CONFIG_PWM_1],
-        .hwAttrs = &pwmTimerCC26XXHWAttrs[CONFIG_PWM_1]
+        .object = &pwmTimerCC26XXObjects[CONFIG_PWM_BUZZER],
+        .hwAttrs = &pwmTimerCC26XXHWAttrs[CONFIG_PWM_BUZZER]
+    },
+    /* CONFIG_PWM_LIGHT1 */
+    {
+        .fxnTablePtr = &PWMTimerCC26XX_fxnTable,
+        .object = &pwmTimerCC26XXObjects[CONFIG_PWM_LIGHT1],
+        .hwAttrs = &pwmTimerCC26XXHWAttrs[CONFIG_PWM_LIGHT1]
     },
 };
 
-const uint_least8_t CONFIG_PWM_0_CONST = CONFIG_PWM_0;
-const uint_least8_t CONFIG_PWM_1_CONST = CONFIG_PWM_1;
+const uint_least8_t CONFIG_PWM_HEADLIGHT_CONST = CONFIG_PWM_HEADLIGHT;
+const uint_least8_t CONFIG_PWM_BUZZER_CONST = CONFIG_PWM_BUZZER;
+const uint_least8_t CONFIG_PWM_LIGHT1_CONST = CONFIG_PWM_LIGHT1;
 const uint_least8_t PWM_count = CONFIG_PWM_COUNT;
 
 /*
@@ -635,45 +610,45 @@ static unsigned char uart2RxRingBuffer0[32];
 /* TX ring buffer allocated to be used for nonblocking mode */
 static unsigned char uart2TxRingBuffer0[32];
 
-ALLOCATE_CONTROL_TABLE_ENTRY(dmaUart0RxControlTableEntry, UDMA_CHAN_UART0_RX);
-ALLOCATE_CONTROL_TABLE_ENTRY(dmaUart0TxControlTableEntry, UDMA_CHAN_UART0_TX);
+ALLOCATE_CONTROL_TABLE_ENTRY(dmaUart1RxControlTableEntry, UDMA_CHAN_UART1_RX);
+ALLOCATE_CONTROL_TABLE_ENTRY(dmaUart1TxControlTableEntry, UDMA_CHAN_UART1_TX);
 
 static const UART2CC26X2_HWAttrs uart2CC26X2HWAttrs[CONFIG_UART2_COUNT] = {
   {
-    .baseAddr           = UART0_BASE,
-    .intNum             = INT_UART0_COMB,
+    .baseAddr           = UART1_BASE,
+    .intNum             = INT_UART1_COMB,
     .intPriority        = (~0),
-    .rxPin              = CONFIG_GPIO_UART2_RX,
-    .txPin              = CONFIG_GPIO_UART2_TX,
+    .rxPin              = CONFIG_GPIO_UART2_1_RX,
+    .txPin              = CONFIG_GPIO_UART2_1_TX,
     .ctsPin             = GPIO_INVALID_INDEX,
     .rtsPin             = GPIO_INVALID_INDEX,
     .flowControl        = UART2_FLOWCTRL_NONE,
-    .powerId            = PowerCC26XX_PERIPH_UART0,
+    .powerId            = PowerCC26XX_PERIPH_UART1,
     .rxBufPtr           = uart2RxRingBuffer0,
     .rxBufSize          = sizeof(uart2RxRingBuffer0),
     .txBufPtr           = uart2TxRingBuffer0,
     .txBufSize          = sizeof(uart2TxRingBuffer0),
-    .txPinMux           = IOC_PORT_MCU_UART0_TX,
-    .rxPinMux           = IOC_PORT_MCU_UART0_RX,
-    .ctsPinMux          = IOC_PORT_MCU_UART0_CTS,
-    .rtsPinMux          = IOC_PORT_MCU_UART0_RTS,
-    .dmaTxTableEntryPri = &dmaUart0TxControlTableEntry,
-    .dmaRxTableEntryPri = &dmaUart0RxControlTableEntry,
-    .rxChannelMask      = 1 << UDMA_CHAN_UART0_RX,
-    .txChannelMask      = 1 << UDMA_CHAN_UART0_TX,
+    .txPinMux           = IOC_PORT_MCU_UART1_TX,
+    .rxPinMux           = IOC_PORT_MCU_UART1_RX,
+    .ctsPinMux          = IOC_PORT_MCU_UART1_CTS,
+    .rtsPinMux          = IOC_PORT_MCU_UART1_RTS,
+    .dmaTxTableEntryPri = &dmaUart1TxControlTableEntry,
+    .dmaRxTableEntryPri = &dmaUart1RxControlTableEntry,
+    .rxChannelMask      = 1 << UDMA_CHAN_UART1_RX,
+    .txChannelMask      = 1 << UDMA_CHAN_UART1_TX,
     .txIntFifoThr       = UART2CC26X2_FIFO_THRESHOLD_1_8,
     .rxIntFifoThr       = UART2CC26X2_FIFO_THRESHOLD_4_8
   },
 };
 
 const UART2_Config UART2_config[CONFIG_UART2_COUNT] = {
-    {   /* UART2 */
-        .object      = &uart2CC26X2Objects[UART2],
-        .hwAttrs     = &uart2CC26X2HWAttrs[UART2]
+    {   /* CONFIG_UART2_1 */
+        .object      = &uart2CC26X2Objects[CONFIG_UART2_1],
+        .hwAttrs     = &uart2CC26X2HWAttrs[CONFIG_UART2_1]
     },
 };
 
-const uint_least8_t UART2_CONST = UART2;
+const uint_least8_t CONFIG_UART2_1_CONST = CONFIG_UART2_1;
 const uint_least8_t UART2_count = CONFIG_UART2_COUNT;
 
 
@@ -686,7 +661,7 @@ const uint_least8_t UART2_count = CONFIG_UART2_COUNT;
 #include <ti/devices/cc13x2x7_cc26x2x7/inc/hw_memmap.h>
 #include <ti/devices/cc13x2x7_cc26x2x7/inc/hw_ints.h>
 
-#define CONFIG_GPTIMER_COUNT 2
+#define CONFIG_GPTIMER_COUNT 3
 
 /*
  *  ======== gptimerCC26XXObjects ========
@@ -697,7 +672,7 @@ GPTimerCC26XX_Object gptimerCC26XXObjects[CONFIG_GPTIMER_COUNT];
  *  ======== gptimerCC26XXHWAttrs ========
  */
 const GPTimerCC26XX_HWAttrs gptimerCC26XXHWAttrs[CONFIG_GPTIMER_COUNT] = {
-    /* CONFIG_GPTIMER_1, used by CONFIG_PWM_1 */
+    /* CONFIG_GPTIMER_0, used by CONFIG_PWM_HEADLIGHT */
     {
         .baseAddr = GPT0_BASE,
         .intNum      = INT_GPT0A,
@@ -705,8 +680,7 @@ const GPTimerCC26XX_HWAttrs gptimerCC26XXHWAttrs[CONFIG_GPTIMER_COUNT] = {
         .powerMngrId = PowerCC26XX_PERIPH_GPT0,
         .pinMux      = GPT_PIN_0A
     },
-    /* CONFIG_GPTIMER_0, used by CONFIG_PWM_0 */
-    /* LaunchPad LED Green */
+    /* CONFIG_GPTIMER_1, used by CONFIG_PWM_BUZZER */
     {
         .baseAddr = GPT0_BASE,
         .intNum      = INT_GPT0B,
@@ -714,29 +688,43 @@ const GPTimerCC26XX_HWAttrs gptimerCC26XXHWAttrs[CONFIG_GPTIMER_COUNT] = {
         .powerMngrId = PowerCC26XX_PERIPH_GPT0,
         .pinMux      = GPT_PIN_0B
     },
+    /* CONFIG_GPTIMER_2, used by CONFIG_PWM_LIGHT1 */
+    {
+        .baseAddr = GPT1_BASE,
+        .intNum      = INT_GPT1A,
+        .intPriority = (~0),
+        .powerMngrId = PowerCC26XX_PERIPH_GPT1,
+        .pinMux      = GPT_PIN_1A
+    },
 };
 
 /*
  *  ======== GPTimer_config ========
  */
 const GPTimerCC26XX_Config GPTimerCC26XX_config[CONFIG_GPTIMER_COUNT] = {
+    /* CONFIG_GPTIMER_0 */
+    {
+        .object    = &gptimerCC26XXObjects[CONFIG_GPTIMER_0],
+        .hwAttrs   = &gptimerCC26XXHWAttrs[CONFIG_GPTIMER_0],
+        .timerPart = GPT_A
+    },
     /* CONFIG_GPTIMER_1 */
     {
         .object    = &gptimerCC26XXObjects[CONFIG_GPTIMER_1],
         .hwAttrs   = &gptimerCC26XXHWAttrs[CONFIG_GPTIMER_1],
-        .timerPart = GPT_A
-    },
-    /* CONFIG_GPTIMER_0 */
-    /* LaunchPad LED Green */
-    {
-        .object    = &gptimerCC26XXObjects[CONFIG_GPTIMER_0],
-        .hwAttrs   = &gptimerCC26XXHWAttrs[CONFIG_GPTIMER_0],
         .timerPart = GPT_B
+    },
+    /* CONFIG_GPTIMER_2 */
+    {
+        .object    = &gptimerCC26XXObjects[CONFIG_GPTIMER_2],
+        .hwAttrs   = &gptimerCC26XXHWAttrs[CONFIG_GPTIMER_2],
+        .timerPart = GPT_A
     },
 };
 
-const uint_least8_t CONFIG_GPTIMER_1_CONST = CONFIG_GPTIMER_1;
 const uint_least8_t CONFIG_GPTIMER_0_CONST = CONFIG_GPTIMER_0;
+const uint_least8_t CONFIG_GPTIMER_1_CONST = CONFIG_GPTIMER_1;
+const uint_least8_t CONFIG_GPTIMER_2_CONST = CONFIG_GPTIMER_2;
 const uint_least8_t GPTimer_count = CONFIG_GPTIMER_COUNT;
 
 #include <stdbool.h>

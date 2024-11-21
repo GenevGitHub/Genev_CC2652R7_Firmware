@@ -22,17 +22,20 @@ extern "C"
 #include <icall.h>
 
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/gGo_debug_config.h"
 
 #include "simple_peripheral.h"
 
 /*********************************************************************
 * CONSTANTS
 */
+
 #define SBP_MC_GATT_EVT                        0x0020
 #define SBP_MC_ADV_EVT                         0x0040   // appears not used
 #define PWR_MGNT_STACK_SIZE                    128      // appears not used
 #define PWR_MGNT_PRIORITY                      5        // appears not used
-
+#define ABOVE_MIN_SPEED                        0x01     // Above the minimum speed
+#define BELOW_MIN_SPEED                        0x00     // Below the minimum speed
 /* ********************************************************************
  * TYPEDEFS
 */
@@ -70,8 +73,10 @@ typedef struct STM32MCPData{
  */
 extern uint8_t Boot();
 extern void motor_control_init(void);
+extern uint8_t motor_control_minSpeed(void);
 extern void motor_control_setIQvalue();
-extern void motor_control_speedModeParamsChg();
+//extern void motor_control_speedModeParamsChg();
+extern void motor_control_changeSpeedMode();
 extern void motor_control_brakeStatusChg();
 extern void motor_control_taillightStatusChg();
 

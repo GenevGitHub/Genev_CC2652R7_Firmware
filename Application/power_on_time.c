@@ -130,7 +130,8 @@ static void power_on_time_taskFxn(UArg a0, UArg a1)
  *
  * @return  powerOnTimeMinute
  *********************************************************************/
-extern uint16_t power_on_time_getPowerOnTime(){
+extern uint16_t power_on_time_getPowerOnTime()
+{
     return (powerOnTimeMinutes);
 }
 

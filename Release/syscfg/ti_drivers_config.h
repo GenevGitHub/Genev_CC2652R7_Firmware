@@ -10,7 +10,7 @@
  *  Library source code must extern the correct symbol--which is resolved
  *  when the application is linked.
  *
- *  DO NOT EDIT - This file is generated for the LP_CC2652R7
+ *  DO NOT EDIT - This file is generated for the CC2652R7RGZ
  *  by the SysConfig tool.
  */
 #ifndef ti_drivers_config_h
@@ -18,7 +18,7 @@
 
 #define CONFIG_SYSCONFIG_PREVIEW
 
-#define CONFIG_LP_CC2652R7
+#define CONFIG_CC2652R7RGZ
 #ifndef DeviceFamily_CC26X2X7
 #define DeviceFamily_CC26X2X7
 #endif
@@ -98,38 +98,36 @@ extern const uint_least8_t CONFIG_GPIO_ADC_THR_AIN_CONST;
 extern const uint_least8_t CONFIG_GPIO_ADC_BRK_AIN_CONST;
 #define CONFIG_GPIO_ADC_BRK_AIN 23
 
-extern const uint_least8_t CONFIG_GPIO_BTN1_CONST;
-#define CONFIG_GPIO_BTN1 13
-
-extern const uint_least8_t CONFIG_GPIO_LED_0_CONST;
-#define CONFIG_GPIO_LED_0 6
-
-extern const uint_least8_t CONFIG_GPIO_0_CONST;
-#define CONFIG_GPIO_0 0
+extern const uint_least8_t CONFIG_GPIO_MPB_CONST;
+#define CONFIG_GPIO_MPB 10
 
 /* Owned by CONFIG_I2C as  */
 extern const uint_least8_t CONFIG_GPIO_I2C_SDA_CONST;
-#define CONFIG_GPIO_I2C_SDA 5
+#define CONFIG_GPIO_I2C_SDA 19
 
 /* Owned by CONFIG_I2C as  */
 extern const uint_least8_t CONFIG_GPIO_I2C_SCL_CONST;
-#define CONFIG_GPIO_I2C_SCL 4
-
-/* Owned by CONFIG_GPTIMER_1 as  */
-extern const uint_least8_t CONFIG_GPIO_PWM_1_CONST;
-#define CONFIG_GPIO_PWM_1 12
-
-/* Owned by UART2 as  */
-extern const uint_least8_t CONFIG_GPIO_UART2_TX_CONST;
-#define CONFIG_GPIO_UART2_TX 3
-
-/* Owned by UART2 as  */
-extern const uint_least8_t CONFIG_GPIO_UART2_RX_CONST;
-#define CONFIG_GPIO_UART2_RX 2
+#define CONFIG_GPIO_I2C_SCL 18
 
 /* Owned by CONFIG_GPTIMER_0 as  */
 extern const uint_least8_t CONFIG_GPIO_PWM_0_CONST;
-#define CONFIG_GPIO_PWM_0 7
+#define CONFIG_GPIO_PWM_0 11
+
+/* Owned by CONFIG_GPTIMER_1 as  */
+extern const uint_least8_t CONFIG_GPIO_PWM_1_CONST;
+#define CONFIG_GPIO_PWM_1 13
+
+/* Owned by CONFIG_GPTIMER_2 as  */
+extern const uint_least8_t CONFIG_GPIO_PWM_2_CONST;
+#define CONFIG_GPIO_PWM_2 12
+
+/* Owned by CONFIG_UART2_1 as  */
+extern const uint_least8_t CONFIG_GPIO_UART2_1_TX_CONST;
+#define CONFIG_GPIO_UART2_1_TX 8
+
+/* Owned by CONFIG_UART2_1 as  */
+extern const uint_least8_t CONFIG_GPIO_UART2_1_RX_CONST;
+#define CONFIG_GPIO_UART2_1_RX 9
 
 /* The range of pins available on this device */
 extern const uint_least8_t GPIO_pinLowerBound;
@@ -148,8 +146,8 @@ extern const uint_least8_t GPIO_pinUpperBound;
  */
 
 /*
- *  SCL: DIO4
- *  SDA: DIO5
+ *  SCL: DIO18
+ *  SDA: DIO19
  */
 extern const uint_least8_t              CONFIG_I2C_CONST;
 #define CONFIG_I2C                      0
@@ -180,13 +178,16 @@ extern const uint_least8_t              CONFIG_NVSINTERNAL_CONST;
  *  ======== PWM ========
  */
 
-/* DIO7, LaunchPad LED Green */
-extern const uint_least8_t              CONFIG_PWM_0_CONST;
-#define CONFIG_PWM_0                    0
+/* DIO11 */
+extern const uint_least8_t              CONFIG_PWM_HEADLIGHT_CONST;
+#define CONFIG_PWM_HEADLIGHT            0
+/* DIO13 */
+extern const uint_least8_t              CONFIG_PWM_BUZZER_CONST;
+#define CONFIG_PWM_BUZZER               1
 /* DIO12 */
-extern const uint_least8_t              CONFIG_PWM_1_CONST;
-#define CONFIG_PWM_1                    1
-#define CONFIG_TI_DRIVERS_PWM_COUNT     2
+extern const uint_least8_t              CONFIG_PWM_LIGHT1_CONST;
+#define CONFIG_PWM_LIGHT1               2
+#define CONFIG_TI_DRIVERS_PWM_COUNT     3
 
 
 
@@ -205,12 +206,11 @@ extern const uint_least8_t              CONFIG_TRNG_0_CONST;
  */
 
 /*
- *  TX: DIO3
- *  RX: DIO2
- *  XDS110 UART
+ *  TX: DIO8
+ *  RX: DIO9
  */
-extern const uint_least8_t                  UART2_CONST;
-#define UART2                               0
+extern const uint_least8_t                  CONFIG_UART2_1_CONST;
+#define CONFIG_UART2_1                      0
 #define CONFIG_TI_DRIVERS_UART2_COUNT       1
 
 
@@ -218,11 +218,13 @@ extern const uint_least8_t                  UART2_CONST;
  *  ======== GPTimer ========
  */
 
-extern const uint_least8_t                  CONFIG_GPTIMER_1_CONST;
-#define CONFIG_GPTIMER_1                    0
 extern const uint_least8_t                  CONFIG_GPTIMER_0_CONST;
-#define CONFIG_GPTIMER_0                    1
-#define CONFIG_TI_DRIVERS_GPTIMER_COUNT     2
+#define CONFIG_GPTIMER_0                    0
+extern const uint_least8_t                  CONFIG_GPTIMER_1_CONST;
+#define CONFIG_GPTIMER_1                    1
+extern const uint_least8_t                  CONFIG_GPTIMER_2_CONST;
+#define CONFIG_GPTIMER_2                    2
+#define CONFIG_TI_DRIVERS_GPTIMER_COUNT     3
 
 
 /*

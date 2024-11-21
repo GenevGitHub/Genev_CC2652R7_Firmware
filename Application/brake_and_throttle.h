@@ -19,6 +19,7 @@ extern "C"
 #include <stdint.h>
 #include <math.h>
 #include "Hardware/gGo_device_params.h"
+#include "Hardware/gGo_debug_config.h"
 #include "Hardware/STM32MCP.h"
 
 #include "Application/motor_control.h"
@@ -32,11 +33,6 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
-// Speed limit protection selection
-// * Direct Law -> speed limit protection is deactivated
-// * Normal law -> speed limit protection is activated
-#define BRAKE_AND_THROTTLE_NORMALLAW                              1
-#define BRAKE_AND_THROTTLE_DIRECTLAW                              0
 
 // The parameters GPT_TIME & BRAKE_AND_THROTTLE_SAMPLES control the sensitivity of the throttle input to motor output
 #define BRAKE_AND_THROTTLE_SAMPLES                                3     // 3 samples seem ideal, 5 is okay, 8 is too laggy
@@ -80,12 +76,14 @@ extern "C"
 #define BRAKE_AND_THROTTLE_NORMAL                                 0x00
 #define THROTTLE_ERROR                                            0x0C
 #define BRAKE_ERROR                                               0x0E
-#define HARD_BRAKING_ERROR                                        0x0F
 
 /*********************************************************************
  * MACROS
  */
 
+/*********************************************************************
+ * Typedef
+ */
 
 /*********************************************************************
  * FUNCTIONS
