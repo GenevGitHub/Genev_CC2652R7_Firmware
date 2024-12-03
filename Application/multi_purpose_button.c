@@ -38,7 +38,7 @@
 * LOCAL VARIABLES
 */
 
-static bool         POWER_ON = 1;               // send pointer to POWER_ON to gpt to register its address
+bool         POWER_ON = 1;               // send pointer to POWER_ON to gpt to register its address
 
 static uint8_t      mpb_buttonState = MPB_WAITING_STATE; //It's a default waiting state!!!!
 static uint32_t     timerPeriod;
@@ -47,7 +47,7 @@ static uint8_t      fallingEdgeCount = 0;   // make this static if not debugging
 
 static mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 
-static uint8_t             mpb_buzzerStatus = 0;
+static uint8_t      mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
 static uint8_t      *ptr_dashboardErrorCodePriority;
 
@@ -276,7 +276,7 @@ void mpb_processTimerOv()
  * @return  none
  ************************************************************************/
 
-void mpb_bootAlarm(uint16_t duration,uint8_t bootcase)
+void mpb_bootAlarm(uint16_t duration, uint8_t bootcase)
 {
     mpb_buzzerStatus = 1;
     if(bootcase == 0x00)
@@ -343,13 +343,19 @@ void mpb_execute_event(uint8_t messageID)
             {
                 if ((mpb_GAPflag != 1 ) && (*ptr_mpb_advertiseFlag != 1))// if not already advertising and if GAPflag is not already 1
                 {
-                    mpb_GAPflag = 1;
+                    mpb_GAPflag = 1;    // flag to advertise
                 }
             }
+            /***** Terminates BLE when user opted to turn off BLE from MPB  -  Added 2024/12/02  *****/
+            else if((*ptr_GAPopcode == GAP_LINK_ESTABLISHED_EVENT) || ( *ptr_GAPopcode == GAP_LINK_PARAM_UPDATE_EVENT))
+            {
+                mpb_GAPflag = 2;    // flag to terminate
+            }   // End added 2024/12/02
             if (*ptr_mpb_advertiseFlag) // if advertising is 1, reset GAPflag to 0
             {
-                mpb_GAPflag = 0;
+                mpb_GAPflag = 0;    // flag to indicate no need to call GapAdv_enable
             }
+
             break;
         }
     case MPB_DOUBLE_SHORT_PRESS_MSG:      // case = 0x04 - toggle speed modes

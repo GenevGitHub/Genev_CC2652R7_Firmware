@@ -13,6 +13,8 @@
 #include "Application/lights.h"
 #include "Application/ALS_control.h"
 #include "Application/led_display.h"
+#include "Application/brake_and_throttle.h"
+
 #include "UDHAL/UDHAL_PWM.h"
 
 #include "Profiles/controller_profile.h"
@@ -32,6 +34,7 @@ uint8_t     light_mode;
 uint8_t     light_mode_Index;
 uint8_t     light_status = LIGHT_STATUS_INITIAL;
 uint8_t     taillightStatus = ESCOOTER_TAIL_LIGHT_OFF;
+uint8_t     auxiliary_light_status  = LIGHT_STATUS_INITIAL;
 
 static uint8_t     lightStatusNew = LIGHT_STATUS_INITIAL;
 
@@ -88,6 +91,7 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_
     ptr_lights_profileCharVal = profile_charVal_profileCharValRegister();
     lights_uart2ErrorStatus = uart2ErrorStatus;
     ptr_lights_flagb = ALS_control_flagbRegister();
+    auxiliary_light_status = bat_auxiliaryLightStatusRegister(&auxiliary_light_status);
 
     lights_sampleBits = ALS_control_init();
 
@@ -336,4 +340,30 @@ extern void lights_STM32MCPDArrayRegister(STM32MCPD_t *ptrSTM32MCDArray){
 extern void lights_setLightOff( void ){
     light_mode = LIGHT_MODE_OFF;
     lights_MODE_OFF();
+}
+
+
+uint16_t AuxiliaryLight_PWMDuty;
+void auxiliaryLightStatusChg()
+{
+    switch(auxiliary_light_status)
+    {
+    case LIGHT_STATUS_ON:
+    {
+        AuxiliaryLight_PWMDuty = AUXLIGHT_PWM_DUTY;
+        break;
+    }
+    case LIGHT_STATUS_OFF:
+    {
+        AuxiliaryLight_PWMDuty = 0;
+        break;
+    }
+    default:
+        break;
+    }
+#ifdef AUXILIARY_LIGHT
+    /*** activate auxiliary light ***/
+    UDHAL_PWM_setALDutyAndPeriod(AuxiliaryLight_PWMDuty);
+#endif // AUXILIARY_LIGHT
+
 }

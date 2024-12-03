@@ -22,6 +22,8 @@ extern "C"
 /* Driver configuration */
 #include <ti_drivers_config.h>
 
+#include "Hardware/gGo_device_params.h"
+
 #define LIGHT_PWM_PERIOD                                1000    // 1000 microsecond => 1kHz
 #define BUZZER_PWM_FREQUENCY                            4200
 /* Auxiliary Light  */

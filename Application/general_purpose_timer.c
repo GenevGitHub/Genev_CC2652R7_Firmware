@@ -46,7 +46,7 @@ static bool     *ptr_gpt_POWER_ON;
 /* Local Functions declaration */
 static void GeneralPurposeTimer_init( void );
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1);
-static bool gpt_PWR_OFF();
+//static bool gpt_PWR_OFF();
 
 /*********************************************************************
  * @fn      gpt_InitComplFlagRegister
@@ -208,10 +208,6 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               data_analytics_sampling();
               data_analytics_Main();
 
-              if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
-              {
-
-              }
               /* Performs Ambient light sensor operations @ every N = 2 */
               if (!(ptr_sysFatalError->I2Cfailure))
               {
@@ -257,40 +253,28 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           /******************************************************************************
            * When instructed to Power Off, the programme enters here to exit for loop
            ******************************************************************************/
-          if (gpt_PWR_OFF() == true)  //or alternatively: if (!(*ptr_gpt_powerOn))
+//          if (gpt_PWR_OFF() == true)  //or alternatively:
+          if (!(*ptr_gpt_POWER_ON))
           {
               data_analytics();
               data2snvBuffer();
               gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
-              Task_sleep(500 * 1000 / Clock_tickPeriod); /*Wait for a while before sending shutdown command!*/
-
+              /*********************************************************************************
+               * When instructed to Power Off and after breaking out of FOR loop,
+               *    the programme exits and reaches here.
+               *    The following codes and power off procedure are executed
+               ***************************************************************************************/
+//              Task_sleep(300 * 1000 / Clock_tickPeriod); /* Provide a pause for saving snvBuffer to snv before break and running shutdown command!*/
+              lights_setLightOff();       /* Ensure lights are turned off */
+              // Add: STM32 command turn off tail-light and auxiliary light
+              led_display_setAllOff();    /* turns off all led lights */
+//              led_display_deinit();       /* turns off led display */
+              STM32MCP_toggleCommunication();
+              STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
               break;      // break out of GPT infinite FOR loop
           }
       }
   } /* GPT infinite FOR loop */
-
-  /**** When instructed to Power Off and after breaking out of FOR loop,
-   *    the programme exits and reaches here.
-   *    The following codes and power off procedure are executed
-   ***************************************************************************************/
-//    for (;;)    // remain in this loop until snv_writeComplete_flag = 1
-//    {
-//        if (*ptr_gpt_snvWriteComplete_flag){
-            // set light_status to OFF --> turn light off
-              lights_setLightOff();
-              led_display_setAllOff(); /*turns off all led lights*/
-              led_display_deinit(); /*turns off led driver*/
-              //            break;  // break out of this loop
-//        }
-//    }
-    STM32MCP_toggleCommunication();
-    STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
-
-
-
-
-    SystemShutDownRoutine();
-//    pinConfig = PINCC26XX_setWakeup(ExternalWakeUpPin); /*The system resets (REBOOTS) automatically*/
 
 }
 
@@ -317,28 +301,28 @@ void GeneralPurposeTimer_init( void )
  * @return  return true if *ptr_gpt_POWER_ON = 0 (OFF)
  *          return false if *ptr_gpt_POWER_ON = 1 (ON)
  **********************************************************************/
-bool gpt_PWR_OFF()
-{
-    if(*ptr_gpt_POWER_ON == 0)
-    {
-        return (true);
-    }
-    else if(*ptr_gpt_POWER_ON == 1)
-    {
-        return (false);
-    }
-    return (false);
-}
+//bool gpt_PWR_OFF()
+//{
+//    if(*ptr_gpt_POWER_ON == 0)
+//    {
+//        return (true);
+//    }
+//    else if(*ptr_gpt_POWER_ON == 1)
+//    {
+//        return (false);
+//    }
+//    return (false);
+//}
 
 /*********************************************************************
- * @fn      snvWriteFlageRegister
+ * @fn      gpt_snvWriteFlageRegister
  *
  * @brief   Return the pointer to snvWriteFlag to calling function
  *
  * @return  pointer to snvWriteFlag
  *
  **********************************************************************/
-extern void* snvWriteFlageRegister()
+extern void* gpt_snvWriteFlageRegister()
 {
     return (&gpt_snvWriteFlag);
 }

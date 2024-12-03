@@ -38,6 +38,8 @@ extern "C"
 //#define veml6030            1
 #define veml3235            1
 
+//#define AUXILIARY_LIGHT                     1
+
 /*********************************************************************************************
  *  Regional / Regulation Options
  *********************************************************************************************/
@@ -181,7 +183,7 @@ extern "C"
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477       // 18 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   636       // 24 Km/hr.
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 24 Km/hr.
 // We can set sports mode max speed to different value lower than the regulation maximum speed.
 // The set value shall be less than or equal to regulation max speed.
 

@@ -511,9 +511,7 @@ void SimplePeripheral_createTask(void)
   taskParams.stack = spTaskStack;
   taskParams.stackSize = SP_TASK_STACK_SIZE;
   taskParams.priority = SP_TASK_PRIORITY;
-
   Task_construct(&spTask, SimplePeripheral_taskFxn, &taskParams, NULL);
-
 }
 
 /*********************************************************************
@@ -692,7 +690,7 @@ static void SimplePeripheral_init(void)
  *
  * @param   a0, a1 - not used.
  */
-static uint8_t      sp_initComplete_flag = GPT_INACTIVE;
+uint8_t      sp_initComplete_flag = GPT_INACTIVE;
 static bool         *ptr_sp_POWER_ON;       // register for POWER_ON status
 static sysFatalError_t *ptr_sysFatalError;
 static uint8_t      *ptr_snvWriteFlag;
@@ -700,16 +698,18 @@ uint8_t     snv_writeComplete_flag = 0;
 uint8_t            snv_reset = 0;   // if snv_reset = 0, it means the non-volatile storage was NOT reset by the Firmware.
 uint8_t     sp_counter = 0;
 static uint8_t     sp_i2cOpenStatus;
-static bStatus_t   check_enableStatus;       // for debugging purpose only
-static uint8_t     check_snvWriteFlag = 0;   // for debugging purpose only
+static bStatus_t   check_enableStatus;
 static uint8_t     *ptr_sp_dashboardErrorCodePriority;
 
 uint8_t how_boot = 0xFF;
+
 static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 {
   /*******   Initialize application   ********/
       Boot_Init();                                                   //Start Boot Process
+
       PowerModeStatusManager();
+
       gpt_InitComplFlagRegister(&sp_initComplete_flag);             // send pointer to sp_initComplet_flag to gpt.c
 
       pot_InitComplFlagRegister(&sp_initComplete_flag);
@@ -724,9 +724,9 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       led_display_advertiseFlagRegister(&sp_advertiseFlag);         // pass pointer to sp_advertiseFlag to led display
 
-      ptr_snvWriteFlag = snvWriteFlageRegister();                   // call snvWriteFlagRegister to get pointer to snvWriteFlag
+      ptr_snvWriteFlag = gpt_snvWriteFlageRegister();                   // call snvWriteFlagRegister to get pointer to snvWriteFlag
 
-      gpt_snvWriteCompleteFlag_register(&snv_writeComplete_flag);
+      pot_snvWriteCompleteFlag_register(&snv_writeComplete_flag);
 
       ptr_sp_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister(); // call bat_dashboardErrorCodePriorityRegister to get pointer to sp_dashboardErrorCodePriority
 
@@ -819,6 +819,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
     *  sp_initComplete_flag is a flag for GPT that enables codes to execute only after SP completed initialization
     ****************************/
     sp_initComplete_flag = GPT_ACTIVE;
+
     if(HowToBoot() == 0x00)
     {
         mpb_bootAlarm(400,0x00);
@@ -844,7 +845,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
         /***** Handles GapAdv_enable when user turns on BLE from MPB    *****/
         if( (sp_opcode == GAP_LINK_TERMINATED_EVENT) || (sp_opcode == GAP_DEVICE_INIT_DONE_EVENT) )
         {
-            if (*ptr_GAPflag)
+            if (*ptr_GAPflag == 1)
             {         // if BLE is not advertising, do the following
                 if (!sp_advertiseFlag)             // if advertising request = 1, enable advertise
                 {
@@ -853,6 +854,15 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
                 }
             }
         }
+        /***** Terminates BLE when user opted to turn off BLE from MPB  -  added 2024/12/02  *****/
+        else if( (sp_opcode == GAP_LINK_ESTABLISHED_EVENT) || (sp_opcode == GAP_LINK_PARAM_UPDATE_EVENT) )
+        {
+            if (*ptr_GAPflag == 2)
+            {
+                GAP_TerminateLinkReq(advHandleLegacy, HCI_DISCONNECT_REMOTE_USER_TERM);
+                *ptr_GAPflag = 0;
+            }
+        } // End added 2024/12/02
 
         if (events)
         {
@@ -908,7 +918,6 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
         if (!(*ptr_sp_POWER_ON)) // i.e. if power off
         {
             /*** If power off, the following actions are executed before shut down  ***/
-
             // if BLE is connected/linked -> terminate all connections
             if( (sp_opcode == GAP_LINK_ESTABLISHED_EVENT) || (sp_opcode == GAP_LINK_PARAM_UPDATE_EVENT) )
             {
@@ -919,19 +928,14 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
                 GAP_TerminateLinkReq(advHandleLegacy, HCI_DISCONNECT_REMOTE_USER_TERM);
             }
 
-            for (;;)    // wait snvWrite FOR loop
-            {
-                if (*ptr_snvWriteFlag)   // remain in FOR loop until snvWriteFlag = 1
+               if (*ptr_snvWriteFlag)   // remain in FOR loop until snvWriteFlag = 1
                 {
-                    check_snvWriteFlag++;   // for debugging purpose only
                     /****   write snv_internal_80 to snv    *******/
                     snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), &snv_internal_80);
-                    snv_writeComplete_flag = 1;
-                    *ptr_sp_POWER_ON = 1;   // for testing purposes only -> exit and set POWER_ON back to 1
-                    break; // break out of wait snvWrite FOR loop
+                    snv_writeComplete_flag = 1; // signify that osal_snv_write is complete.
+
+                    break;    // break out of main FOR loop
                 }
-            }
-            break;    // break out of main FOR loop
         }
     }   // main FOR loop
 }

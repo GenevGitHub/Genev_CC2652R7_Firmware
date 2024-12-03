@@ -1155,8 +1155,6 @@ static void data_analytics_setCharVal()
     ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_controllerErrorCode);
     profile_setCharVal(ptr_da_charVal, CONTROLLER_ERROR_CODE_LEN, ADArray.controllerErrorCode);
 
-
-
     /*************************************  Battery services   *************************************/
     ptr_da_charVal = (ptr_da_profileCharVal->ptr_batt_charVal->ptr_batterayErrorCode);
     profile_setCharVal(ptr_da_charVal, BATTERY_BATTERY_ERROR_CODE_LEN, ADArray.batteryCode);

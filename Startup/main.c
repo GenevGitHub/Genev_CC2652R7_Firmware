@@ -125,7 +125,6 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
  *
  * @return      None.
  */
-
 int main()
 {
   /* Register Application callback to trap asserts raised in the Stack */
@@ -164,14 +163,13 @@ int main()
   SimplePeripheral_createTask();
 
   /* Power On Timer: Priority 2 */
-  power_on_time_createTask();       // this task is dedicated to counting time without the delay caused by running other tasks/functions/applications
+  power_on_time_createTask();               // this task is dedicated to counting time without the delay caused by running other tasks/functions/applications
 
   /* Multi-purpose button: Priority 3 */
-  mpb_createTask();    // mpb_createTask is for clock and timer interrupt for multi-purpose button
+  mpb_createTask();                         // mpb_createTask is for clock and timer interrupt for multi-purpose button
 
   /* General purpose timer: Priority 4 */
-  GeneralPurposeTimer_createTask();       // task with timer for general purpose, running most tasks
-
+  GeneralPurposeTimer_createTask();         // task with timer for general purpose, running most tasks
 
   /* enable interrupts and start SYS/BIOS */
   BIOS_start();

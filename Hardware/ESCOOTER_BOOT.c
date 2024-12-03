@@ -24,9 +24,9 @@
 uint8_t bootReady = 0x00;
 uint8_t howToBoot = 0xFF;
 
-static Clock_Handle ClockHandle;
+static Clock_Handle bootCountClockHandle;
 static Clock_Params clkParams;
-static uint32_t clockTicks;
+static uint32_t bootClockTicks;
 static Error_Block eb;
 
 /*Power Notify Objects*/
@@ -71,36 +71,35 @@ void PowerModeStatusManager()
 void BootCountDownCreate()
 {
     Error_init(&eb);
-//    clockTicks = 500 * (1000 / Clock_tickPeriod) - 1; //500 ms overflow
-    clockTicks = BOOTREADY_TIME * (1000 / Clock_tickPeriod) - 1; // BOOTREADY_TIME to overflow
-    //Create the clock !!
-    ClockHandle = Clock_create(BootCountOVFxn, clockTicks, &clkParams, &eb);
+    bootClockTicks = BOOTREADY_TIME * (1000 / Clock_tickPeriod) - 1; // BOOTREADY_TIME to overflow
+    //Create BootCountDown clock !!
+    bootCountClockHandle = Clock_create(BootCountOVFxn, bootClockTicks, &clkParams, &eb);
 }
 
 void BootCountDownInit()
 {
     Clock_Params_init(&clkParams);
-    clkParams.period = clockTicks;
+    clkParams.period = bootClockTicks;
     clkParams.startFlag = FALSE;
     clkParams.arg = (UArg)0x0000;
-    Clock_setTimeout(ClockHandle, clockTicks);
-    Clock_setPeriod(ClockHandle, clockTicks);
+    Clock_setTimeout(bootCountClockHandle, bootClockTicks);
+    Clock_setPeriod(bootCountClockHandle, bootClockTicks);
 }
 
 void BootCountStart()
 {
     //Set the initial timeout
-    Clock_start(ClockHandle);
+    Clock_start(bootCountClockHandle);
 }
 
 void BootCountStop()
 {
-    Clock_stop(ClockHandle);
+    Clock_stop(bootCountClockHandle);
 }
 
 void BootCountEliminate()
 {
-    Clock_delete(&ClockHandle);
+    Clock_delete(&bootCountClockHandle);
 }
 
 void BootCountOVFxn()
@@ -187,7 +186,6 @@ void BootServiceRoutine(uint8_t isWakeUp)
              {
                  /*Count-Down Timer Stops*/
                  BootCountStop();
-
                  /*Enters Shut Down Mode again*/
                  SystemShutDownRoutine();
              }
@@ -196,8 +194,7 @@ void BootServiceRoutine(uint8_t isWakeUp)
               *To have 1.5 seconds delay, bootReady is 3.
               *To see the blink, wait until the bootReady is 3 while you are pressing the button!
               * */
-//             if(bootReady == 3)
-             if(bootReady == BOOTREADY_COUNT)
+             if(bootReady >= BOOTREADY_COUNT)
              {
                  /*Count-Down finished*/
                  BootCountStop();

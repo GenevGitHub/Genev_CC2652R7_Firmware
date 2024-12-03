@@ -58,7 +58,7 @@ extern "C"
 
 //Throttle calibration values = value range the throttle ADC is conditioned to be within
 #define THROTTLE_ADC_CALIBRATE_H                                  2300
-#define THROTTLE_ADC_CALIBRATE_L                                  830
+#define THROTTLE_ADC_CALIBRATE_L                                  850
 
 //Throttle error thresholds = values that should not be possible under nominal operation
 #define THROTTLE_ADC_THRESHOLD_H                                  2700
@@ -110,6 +110,7 @@ extern uint16_t brake_and_throttle_getBrakePercent();
 extern uint8_t brake_and_throttle_getControlLaw();
 extern void brake_and_throttle_setControlLaw(uint8_t control_law);
 
+extern uint8_t bat_auxiliaryLightStatusRegister(uint8_t *ptrAuxiliaryLightStatus);
 /*********************************************************************
 *********************************************************************/
 

@@ -13,6 +13,8 @@
 #include "snv_internal.h"
 
 #include "Hardware/gGo_device_params.h"
+#include "Application/lights.h"
+#include "Application/brake_and_throttle.h"
 
 /*********************************************************************
  * MACROS
@@ -21,8 +23,6 @@
 /*********************************************************************
  * CONSTANTS
  */
-//#define RESET_NVS                    1
-//#undef  DUMMY_NVS
 
 /*********************************************************************
  * TYPEDEFS
@@ -109,8 +109,8 @@ extern void snv_internal_resetSNVdata()
 #ifdef ZERO_NVS    // RESET_NVS defines in simple peripheral
     UDBuffer[26] = RESETCODE01;        // reset code 1
     UDBuffer[27] = RESETCODE02;        // reset code 2
-    UDBuffer[28] = 1;                  // speed mode {0 = Amble, 1 = Leisure, 2 = Sports}
-    UDBuffer[30] = 2;                  // light mode {0 = Off, 1 = On, 2 = Auto}
+    UDBuffer[28] = BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE;                  // speed mode {0 = Amble, 1 = Leisure, 2 = Sports}
+    UDBuffer[30] = LIGHT_MODE_AUTO;                  // light mode {0 = Off, 1 = On, 2 = Auto}
 #endif  // ZERO_NVS
 
         /***** TEST CASE: case 01 (SETSIZE = 2) *****/

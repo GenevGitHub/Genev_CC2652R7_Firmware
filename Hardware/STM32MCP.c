@@ -170,7 +170,7 @@ static uint8_t STM32MCP_calChecksum(uint8_t *txMessage, uint8_t size);
  */
 void STM32MCP_init()
 {
-//   STM32MCP_heartbeatManager = UDHAL_TIMER2_timerRegister(); //We removed heartbeat feature
+//    STM32MCP_heartbeatManager = UDHAL_TIMER2_timerRegister(); //We removed heartbeat feature
 
     STM32MCP_initQueue();
 
@@ -625,7 +625,7 @@ void STM32MCP_setCurrentReferencesFrame(uint8_t motorID, int16_t torqueReference
     }
 }
 /*********************************************************************
- * @fn      STM32MCP_setSystemControlConfigFrame
+ * @fn      STM32MCP_controlEscooterBehavior
  *
  * @brief   It is used for sending system control config frame (Heartbeat Signal)
  *
@@ -652,7 +652,6 @@ void STM32MCP_controlEscooterBehavior(uint8_t behaviorID)
            STM32MCP_timerManager->timerStart();
            STM32MCP_enqueueMsg(txFrame, 4);
            STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
-
        }
        else
        {
@@ -1001,7 +1000,6 @@ void STM32MCP_retransmission()
         retransmissionCount ++;
         packet_loss++;  // FungGor
         if(retransmissionCount > STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE) // FungGor
-//        if(retransmissionCount >= STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE)
         {
             STM32MCP_CBs->exMsgCb(STM32MCP_EXCEED_MAXIMUM_RETRANSMISSION_ALLOWANCE); //Exception Handling
 
@@ -1100,7 +1098,6 @@ static void STM32MCP_enqueueMsg(uint8_t *txMsg, uint8_t size)
        free(txMsg);
     }
 }
-
 /*********************************************************************
  * @fn      STM32MCP_dequeueMsg
  *

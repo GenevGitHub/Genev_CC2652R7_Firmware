@@ -37,7 +37,7 @@
  *          Normal law algorithm modulates the speed to not exceed the defined limit
  *          Direct law algorithm does not modulate the speed in any way
  */
-uint8_t     ControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
+uint8_t     ControlLaw = BRAKE_AND_THROTTLE_NORMALLAW;
 /*  Options:
  *  (1) BRAKE_AND_THROTTLE_NORMALLAW
  *  (2) BRAKE_AND_THROTTLE_DIRECTLAW
@@ -84,7 +84,7 @@ profileCharVal_t *ptr_bat_profileCharVal;
 static uint8_t   *ptr_charVal;
 uint8_t *ptr_bat_errorPriority;
 
-//static uint8_t  state = 0;
+static uint8_t  *ptr_bat_auxiliaryLightStatus;
 static uint8_t  brakeAndThrottleIndex = 0;
 static uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
@@ -172,7 +172,6 @@ void brake_and_throttle_init()
     led_control_setControlLaw(ControlLaw);
 
 }
-
 
 /*********************************************************************
  * @fn      brake_and_throttle_ADC_conversion
@@ -450,7 +449,12 @@ void brake_and_throttle_ADC_conversion()
 #ifdef MOTOR_0RPM_START_MODE
             /*The E-Scooter Starts*/
             /*DRIVE_START = 1 --> The We could send dynamic Iq messages to the motor controller */
-            IQ_input = speedModeIQmax * throttlePercent / 100;
+            if (brakeStatus){
+                IQ_input = 0;
+            }
+            else {
+                IQ_input = speedModeIQmax * throttlePercent / 100;
+            }
 #endif  // MOTOR_0RPM_START_MODE
         }
         else
@@ -687,7 +691,7 @@ uint8_t brake_and_throttle_toggleSpeedMode()
 {
     if (brake_errorStatus == 0) // no brake error
     {
-        if (throttleADCsample <= THROTTLE_ADC_CALIBRATE_L)    // Fully release throttle to change speed mode,  no change when throttle is applied - will by-pass if throttle is not zero
+        if (throttleADCsample <= 1.1 * THROTTLE_ADC_CALIBRATE_L)    // Fully release throttle to change speed mode,  no change when throttle is applied - will by-pass if throttle is not zero
         {
             if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE)  // if Amble mode, change to Leisure mode
             {
@@ -703,6 +707,9 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
                 }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
+
+                // turn off auxiliary light
+                *ptr_bat_auxiliaryLightStatus = 0;
             }
             else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE) // if Leisure mode, change to Sports mode
             {
@@ -733,6 +740,9 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
                 }
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
+
+                // turn on auxiliary light
+                *ptr_bat_auxiliaryLightStatus = 1;
             }
         }
     }
@@ -752,6 +762,9 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                 allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
             }
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
+
+            // turn on auxiliary light
+            *ptr_bat_auxiliaryLightStatus = 1;
         }
     }
 
@@ -874,4 +887,17 @@ uint16_t brake_and_throttle_getBrakePercent()
 extern uint8_t* bat_dashboardErrorCodePriorityRegister()
 {
     return (&dashboardErrorCodePriority);
+}
+
+
+extern uint8_t bat_auxiliaryLightStatusRegister(uint8_t *ptrAuxiliaryLightStatus)
+{
+    ptr_bat_auxiliaryLightStatus = ptrAuxiliaryLightStatus;
+    if (speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE){
+        *ptr_bat_auxiliaryLightStatus = 1;
+    }
+    else {
+        *ptr_bat_auxiliaryLightStatus = 0;
+    }
+    return (*ptr_bat_auxiliaryLightStatus);
 }

@@ -179,6 +179,9 @@ static void UDHAL_I2C_ErrorHandler(I2C_Transaction *transaction)
 {
     switch (transaction->status)
     {
+//        case I2C_STATUS_SUCCESS:
+//            UDHAL_I2C_ErrorStatus = 0;
+//            break;
         case I2C_STATUS_TIMEOUT:
             UDHAL_I2C_ErrorStatus = 1;
             break;

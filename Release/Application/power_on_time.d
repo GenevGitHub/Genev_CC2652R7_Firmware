@@ -25,6 +25,7 @@ Application/power_on_time.o: ../Application/power_on_time.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/target/_common/_hal_types.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/hal_defs.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/ESCOOTER_BOOT.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/battery_profile.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/controller_profile.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/profile_charVal.h
@@ -76,6 +77,8 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/target
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/hal_defs.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/ESCOOTER_BOOT.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/battery_profile.h:
 

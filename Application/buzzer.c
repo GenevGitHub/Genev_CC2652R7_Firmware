@@ -74,7 +74,7 @@ void buzzer_buttonHandler(uint8_t buttonStatus)
     /* Stop buzzer if buzzer is ON */
     if (buttonStatus == 0){
         if (buzzerStart >= 2){
-            UDHAL_PWM_setBUZDutyAndPeriod(0, BUZZER_MPB_FREQUENCY);   // set duty to 0
+            UDHAL_PWM_setBUZDutyAndPeriod(0, BUZZER_MPB_FREQUENCY);   // set duty to 0 = sound off
             buzzerStart = 0;
         }
     }

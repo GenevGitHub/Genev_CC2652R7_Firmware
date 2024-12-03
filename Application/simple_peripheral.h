@@ -86,7 +86,7 @@ extern "C"
 #define DUMMY_NVS                            1    // when ZERO_NVS not defined -> reset to dummy data with override check code
 #endif
 
-#define SP_ADVERTISING_TIMEOUT               3000  // each tick is in 10 ms, hence 3000 x 10 ms = 30 seconds
+#define SP_ADVERTISING_TIMEOUT               2000  // each tick is in 10 ms, hence 3000 x 10 ms = 30 seconds
 
 /*********************************************************************
  * MACROS

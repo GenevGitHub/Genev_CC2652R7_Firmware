@@ -41,8 +41,8 @@ extern "C"
 #define LIGHT_STATUS_ON                                 0x01
 #define LIGHT_STATUS_INITIAL                            LIGHT_STATUS_OFF
 
-#define LIGHT_PWM_DUTY                                  75     //  in percentage, 50%
-
+#define LIGHT_PWM_DUTY                                  75     //  in percentage, eg 50 = 50%
+#define AUXLIGHT_PWM_DUTY                               75     //  in percentage, eg 50 = 50%
 
 //ALS is abbreviation for Ambient Light Sensor
 /* ********************************************************************
@@ -70,6 +70,8 @@ extern void lights_ALSFxn();
 extern void lights_statusChg(void);
 extern uint8_t lights_getLightStatus();
 extern uint8_t lights_lightModeChange( void );
+
+void auxiliaryLightStatusChg();
 
 #ifdef _cplusplus
 }

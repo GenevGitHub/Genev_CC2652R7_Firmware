@@ -107,7 +107,6 @@ void periodic_communication_MCUSampling()
     ptr_pc_MCUDArray->phase_current_mA = 6500;  //1500 * sin(PI_CONSTANT * xtt * 0.0075) + 5000;         // +50                     //  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
 
     xtt++;
-
 #endif // MOTOR_CONNECT
 
 #ifdef MOTOR_CONNECT
@@ -133,7 +132,6 @@ void periodic_communication_MCUSampling()
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_VOLTAGE_REG_ID);
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_CURRENT_REG_ID);
     }
-
 #endif // MOTOR_CONNECT
 
     xhf++;
@@ -144,12 +142,10 @@ void periodic_communication_MCUSampling()
 
 }
 
-
 /**************************************************************************
  * func:    periodic_communication_MCUSamplingRPM
  *          Get rpm data directly from MCU
  **************************************************************************/
-
 void periodic_communication_MCUSamplingRPM()
 {
 #ifndef MOTOR_CONNECT   // if NOT defined
@@ -168,10 +164,9 @@ void periodic_communication_MCUSamplingRPM()
         pc_rpm = (uint16_t) (-rawRPM & 0xFFFF);
         pc_rpmStatus = 0;  // when mc_rpm < 0
     }
-    ptr_pc_MCUDArray->speed_rpm = pc_rpm; //180 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 140;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz
+    ptr_pc_MCUDArray->speed_rpm = pc_rpm;
     ptr_pc_MCUDArray->rpm_status = pc_rpmStatus;
     xrpm++;
-
 #endif // MOTOR_CONNECT
 
 #ifdef MOTOR_CONNECT

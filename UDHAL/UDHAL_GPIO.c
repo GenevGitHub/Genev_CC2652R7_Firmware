@@ -146,6 +146,3 @@ void UDHAL_GPIO_InterruptFxn(uint_least8_t index)
        break;
    }
 }
-
-
-

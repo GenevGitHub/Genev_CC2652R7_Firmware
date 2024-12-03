@@ -102,7 +102,6 @@ void motor_control_init(void)
 
     brake_and_throttle_STM32MCDArrayRegister(&STM32MCDArray);
     lights_STM32MCPDArrayRegister(&STM32MCDArray);
-
     /*STM32 MCP Control Protocol*/
     STM32MCP_registerCBs(&motor_control_STM32MCP_CBs);      // pass pointer to motor_control_STM32MCP_CBs to STM32MCP.c
     STM32MCP_startCommunication();    //ACTIVATE UART COMMUNICATION
@@ -319,7 +318,7 @@ static void motorcontrol_rxMsgCb(uint8_t *rxMsg, STM32MCP_txMsgNode_t *STM32MCP_
     case DEFINE_ESCOOTER_BEHAVIOR_ID:
         msg_rx++;
         motorcontrol_processGetMotorErrorFrameMsg(txPayload, txPayloadLength, rxPayload, rxPayloadLength);
-    break;
+        break;
 //    case STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID:
 //        break;
     case STM32MCP_SET_DRIVE_MODE_CONFIG_FRAME_ID:
@@ -466,16 +465,6 @@ extern void motor_control_setIQvalue()
  *
  * @return  None.
  */
-//static void motor_control_speedModeParamsChg(uint16_t torqueIQ, uint16_t allowableSpeed, uint16_t rampRate)
-//extern void motor_control_speedModeParamsChg()
-//{
-//    //STM32MCP_setSpeedModeConfiguration(STM32MCDArray.speed_mode_IQmax, STM32MCDArray.allowable_rpm, STM32MCDArray.ramp_rate);
-//#ifdef MOTOR_CONNECT
-//    /*** send speed mode change parameters to motor control   ***/
-//    STM32MCP_setSpeedModeConfiguration(STM32MCDArray.speed_mode_IQmax, STM32MCDArray.allowable_rpm, STM32MCDArray.ramp_rate);
-//#endif //MOTOR_CONNECT
-//}
-
 extern void motor_control_changeSpeedMode()
 {
 #ifdef MOTOR_CONNECT

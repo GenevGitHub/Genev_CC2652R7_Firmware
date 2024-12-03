@@ -16,7 +16,7 @@
 /*********************************************************************
  * LOCAL VARIABLES
  */
-static sysFatalError_t UDHAL_sysFatalError;
+sysFatalError_t UDHAL_sysFatalError;
 
 
 extern void* UDHAL_sysFatalErrorRegister(){
@@ -26,8 +26,6 @@ extern void* UDHAL_sysFatalErrorRegister(){
 /*********************************************************************
  * GLOBAL FUNCTION
  */
-uint8_t UDHAL_UARTOpenStatus;
-
 uint8_t UDHAL_init()
 {
 //    uint32_t bootSource = 0xFF;
@@ -38,7 +36,7 @@ uint8_t UDHAL_init()
     uint8_t UDHAL_ADC_brakeOpenStatus;
     uint8_t UDHAL_I2COpenStatus;
     uint8_t UDHAL_PWMOpenStatus;
-//    uint8_t UDHAL_UARTOpenStatus;
+    uint8_t UDHAL_UARTOpenStatus;
 
     /* Initiate GPIO */
     UDHAL_GPIO_init();
