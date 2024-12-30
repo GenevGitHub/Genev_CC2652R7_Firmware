@@ -66,7 +66,9 @@ extern "C"
  * CONSTANTS
  */
 // periodic event time interval (in ms) - the interval between BLE refresh/updates. 6 (Strava) to 10 seconds are common.
-#define SP_PERIODIC_EVT_PERIOD               6000
+#define SP_PERIODIC_EVT_PERIOD               750        // 750 ms
+#define SP_PERIODIC_EVT_COUNT1               8          // 6000 ms
+#define SP_PERIODIC_EVT_COUNT2               4          // 3000 ms
 
 // Task configuration
 #define SP_TASK_PRIORITY                     1

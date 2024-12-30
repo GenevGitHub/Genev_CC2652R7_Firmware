@@ -287,7 +287,7 @@ static Queue_Handle appMsgQueueHandle;
 // GattServApp will handle notifying all connected GATT clients
 static Clock_Struct clkPeriodic;
 // Clock instance for RPA read events.
-static Clock_Struct clkRpaRead;   // can this be removed?
+static Clock_Struct clkRpaRead;
 
 // Memory to pass periodic event ID to clock handler
 spClockEventData_t argPeriodic =
@@ -295,7 +295,7 @@ spClockEventData_t argPeriodic =
 
 // Memory to pass RPA read event ID to clock handler
 spClockEventData_t argRpaRead =
-{ .event = SP_READ_RPA_EVT };   // can this be removed?
+{ .event = SP_READ_RPA_EVT };
 
 // Per-handle connection info
 static spConnRec_t connList[MAX_NUM_BLE_CONNS];
@@ -319,7 +319,7 @@ static uint8 advHandleLegacy;
 static GAP_Addr_Modes_t addrMode = DEFAULT_ADDRESS_MODE;
 
 // Current Random Private Address
-static uint8 rpa[B_ADDR_LEN] = {0};   // can this be removed?
+static uint8 rpa[B_ADDR_LEN] = {0};
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -340,15 +340,15 @@ static void SimplePeripheral_processCharValueChangeEvt(uint8_t paramId);
 static void dashboard_processCharValueChangeEvt(uint8_t paramId);
 
 static void SimplePeripheral_performPeriodicTask(void);
-static void SimplePeripheral_updateRPA(void);   // can this be removed?
+static void SimplePeripheral_updateRPA(void);
 static void SimplePeripheral_clockHandler(UArg arg);
 static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr, uint16_t connHandle,
                                         uint8_t uiInputs, uint8_t uiOutputs,
                                         uint32_t numComparison);
 static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
                                          uint8_t status);
-static void SimplePeripheral_processPairState(spPairStateData_t *pPairState);  // can this be removed?
-static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData);  // can this be removed?
+static void SimplePeripheral_processPairState(spPairStateData_t *pPairState);
+static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData);
 
 static void SimplePeripheral_charValueChangeCB(uint8_t paramId);
 static void SimplePeripheral_dashboardCB(uint8_t paramID);
@@ -822,12 +822,12 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
     if(HowToBoot() == 0x00)
     {
-        mpb_bootAlarm(400,0x00);
+        mpb_bootAlert(400,0x00);
         sendBootMessage();
     }
     else
     {
-        mpb_bootAlarm(150,0x01);
+        mpb_bootAlert(150,0x01);
     }
 
     /****** Simple Peripheral Application main loop  ******/
@@ -934,7 +934,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
                     snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), &snv_internal_80);
                     snv_writeComplete_flag = 1; // signify that osal_snv_write is complete.
 
-                    break;    // break out of main FOR loop
+                    break;    // break out of main FOR loop when snv_write is completed.
                 }
         }
     }   // main FOR loop
@@ -1118,19 +1118,19 @@ static void SimplePeripheral_processAppMsg(spEvt_t *pMsg)
       break;
 
     case SP_PAIR_STATE_EVT:
-      SimplePeripheral_processPairState((spPairStateData_t*)(pMsg->pData)); // can this be removed?
+      SimplePeripheral_processPairState((spPairStateData_t*)(pMsg->pData));
       break;
 
     case SP_PASSCODE_EVT:
-      SimplePeripheral_processPasscode((spPasscodeData_t*)(pMsg->pData));  // can this be removed?
+      SimplePeripheral_processPasscode((spPasscodeData_t*)(pMsg->pData));
       break;
 
     case SP_PERIODIC_EVT:
       SimplePeripheral_performPeriodicTask();
       break;
 
-    case SP_READ_RPA_EVT:   // can this be removed?
-      SimplePeripheral_updateRPA();   // can this be removed?
+    case SP_READ_RPA_EVT:
+      SimplePeripheral_updateRPA();
       break;
 
     case SP_SEND_PARAM_UPDATE_EVT:
@@ -1168,6 +1168,9 @@ static void SimplePeripheral_processAppMsg(spEvt_t *pMsg)
  *
  * @param   pMsg - message to process
  */
+uint8_t sp_periodic_evt_counter = 0;
+uint8_t sp_periodic_evt_counter2 = 0;
+
 static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
 {
   switch(pMsg->opcode)
@@ -1242,9 +1245,9 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
 
         if (addrMode > ADDRMODE_RANDOM)
         {
-          SimplePeripheral_updateRPA();   // can this be removed?
+          SimplePeripheral_updateRPA();
 
-          // Create one-shot clock for RPA check event.   // can this be removed?
+          // Create one-shot clock for RPA check event.
           Util_constructClock(&clkRpaRead, SimplePeripheral_clockHandler,
                               READ_RPA_PERIOD, 0, true,
                               (UArg) &argRpaRead);
@@ -1314,6 +1317,8 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
 //      *ptr_GAPflag = 0;  // whenever advertising is enabled, set GAPflag to 0
 //      check_enableStatus = status;
 
+      sp_periodic_evt_counter = 0;
+      sp_periodic_evt_counter2 = 0;
       break;
     }
 
@@ -1501,7 +1506,7 @@ static void SimplePeripheral_processCharValueChangeEvt(uint8_t paramId)
  */
 static void SimplePeripheral_performPeriodicTask(void)
 {
-  uint8_t valueToCopy;
+//  uint8_t valueToCopy;
   uint8_t arrayToCopy1[1];
   uint8_t arrayToCopy2[2];
   uint8_t arrayToCopy4[4];
@@ -1510,22 +1515,43 @@ static void SimplePeripheral_performPeriodicTask(void)
    *                 For Notify Permit
    ****************************************************************/
 
-  /******** Simple Peripheral Notification **********/
+  /******** Speed and rpm Notification - Refresh every SP_PERIODIC_EVT_TIME **********/
 
+  if (Controller_GetParameter(CONTROLLER_MOTOR_RPM, arrayToCopy2) == SUCCESS)
+    {
+      Controller_SetParameter(CONTROLLER_MOTOR_RPM, CONTROLLER_MOTOR_RPM_LEN, arrayToCopy2);
+    }
+
+  if (Controller_GetParameter(CONTROLLER_MOTOR_SPEED, arrayToCopy2) == SUCCESS)
+    {
+      Controller_SetParameter(CONTROLLER_MOTOR_SPEED, CONTROLLER_MOTOR_SPEED_LEN, arrayToCopy2);
+    }
+
+  //if (sp_periodic_evt_counter2 == SP_PERIODIC_EVT_COUNT2)   // Notification is performed once every 4th sp_periodic_evt_counts
+  //{
+    if (Dashboard_GetParameter(DASHBOARD_LIGHT_STATUS, arrayToCopy1) == SUCCESS)
+    {
+      Dashboard_SetParameter(DASHBOARD_LIGHT_STATUS, DASHBOARD_LIGHT_STATUS_LEN, arrayToCopy1);
+    }
+
+    if (Dashboard_GetParameter(DASHBOARD_LIGHT_MODE, arrayToCopy1) == SUCCESS)
+    {
+      Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
+    }
+  //}
+
+/******** Speed and rpm Notification - Refresh every 7 x SP_PERIODIC_EVT_TIME **********/
+if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is performed once every 4th sp_periodic_evt_counts
+{
   /******** Dashboard Profile Notification **********/
+  if (Dashboard_GetParameter(DASHBOARD_ERROR_CODE, arrayToCopy1) == SUCCESS)
+  {
+    Dashboard_SetParameter(DASHBOARD_ERROR_CODE, DASHBOARD_ERROR_CODE_LEN, arrayToCopy1);
+  }
+
   if (Dashboard_GetParameter(DASHBOARD_SPEED_MODE, arrayToCopy1) == SUCCESS)
   {
     Dashboard_SetParameter(DASHBOARD_SPEED_MODE, DASHBOARD_SPEED_MODE_LEN, arrayToCopy1);
-  }
-
-  if (Dashboard_GetParameter(DASHBOARD_LIGHT_STATUS, arrayToCopy1) == SUCCESS)
-  {
-    Dashboard_SetParameter(DASHBOARD_LIGHT_STATUS, DASHBOARD_LIGHT_STATUS_LEN, arrayToCopy1);
-  }
-
-  if (Dashboard_GetParameter(DASHBOARD_LIGHT_MODE, arrayToCopy1) == SUCCESS)
-  {
-    Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
   }
 
   if (Dashboard_GetParameter(DASHBOARD_POWER_ON_TIME, arrayToCopy2) == SUCCESS)
@@ -1599,16 +1625,6 @@ static void SimplePeripheral_performPeriodicTask(void)
       Controller_SetParameter(CONTROLLER_ERROR_CODE, CONTROLLER_ERROR_CODE_LEN, arrayToCopy1);
     }
 
-  if (Controller_GetParameter(CONTROLLER_MOTOR_RPM, arrayToCopy2) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_MOTOR_RPM, CONTROLLER_MOTOR_RPM_LEN, arrayToCopy2);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_MOTOR_SPEED, arrayToCopy2) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_MOTOR_SPEED, CONTROLLER_MOTOR_SPEED_LEN, arrayToCopy2);
-    }
-
   if (Controller_GetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, arrayToCopy4) == SUCCESS)
     {
       Controller_SetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, CONTROLLER_TOTAL_DISTANCE_TRAVELLED_LEN, arrayToCopy4);
@@ -1643,7 +1659,14 @@ static void SimplePeripheral_performPeriodicTask(void)
     {
       Controller_SetParameter(CONTROLLER_MOTOR_TEMPERATURE, CONTROLLER_MOTOR_TEMPERATURE_LEN, arrayToCopy1);
     }
+}
 
+if (sp_periodic_evt_counter >= SP_PERIODIC_EVT_COUNT1){
+    sp_periodic_evt_counter = 0;
+}
+if (sp_periodic_evt_counter2 >= SP_PERIODIC_EVT_COUNT2){
+    sp_periodic_evt_counter2 = 0;
+}
 }
 
 /*********************************************************************
@@ -1656,7 +1679,7 @@ static void SimplePeripheral_performPeriodicTask(void)
  *
  * @return  None.
  */
-static void SimplePeripheral_updateRPA(void)   // can this be removed?
+static void SimplePeripheral_updateRPA(void)
 {
   uint8_t* pRpaNew;
 
@@ -1687,16 +1710,19 @@ static void SimplePeripheral_clockHandler(UArg arg)
    // Start the next period
    Util_startClock(&clkPeriodic);
 
+   sp_periodic_evt_counter++;
+   sp_periodic_evt_counter2++;
+
    // Post event to wake up the application
    SimplePeripheral_enqueueMsg(SP_PERIODIC_EVT, NULL);
  }
- else if (pData->event == SP_READ_RPA_EVT)   // can this be removed?
+ else if (pData->event == SP_READ_RPA_EVT)
  {
    // Start the next period
-   Util_startClock(&clkRpaRead);   // can this be removed?
+   Util_startClock(&clkRpaRead);
 
    // Post event to read the current RPA
-   SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);   // can this be removed?
+   SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);
  }
  else if (pData->event == SP_SEND_PARAM_UPDATE_EVT)
  {
@@ -1848,7 +1874,6 @@ static void SimplePeripheral_processAdvEvent(spGapAdvEventData_t *pEventData)
  *
  * @return  none
  */
-// can SimplePeripheral_pairStateCb() be removed?
 static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
                                          uint8_t status)
 {
@@ -1876,7 +1901,6 @@ static void SimplePeripheral_pairStateCb(uint16_t connHandle, uint8_t state,
  *
  * @return  none
  */
-// Can SimplePeripheral_passcodeCb() be removed?
 static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr,
                                         uint16_t connHandle,
                                         uint8_t uiInputs,
@@ -1909,7 +1933,6 @@ static void SimplePeripheral_passcodeCb(uint8_t *pDeviceAddr,
  *
  * @return  none
  */
-// can SimplePeripheral_processPairState() be removed?
 static void SimplePeripheral_processPairState(spPairStateData_t *pPairData)
 {
   uint8_t state = pPairData->state;
@@ -1943,7 +1966,6 @@ static void SimplePeripheral_processPairState(spPairStateData_t *pPairData)
  *
  * @return  none
  */
-// can SimplePeripheral_processPasscode() be removed?
 static void SimplePeripheral_processPasscode(spPasscodeData_t *pPasscodeData)
 {
   // Send passcode response

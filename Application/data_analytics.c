@@ -381,11 +381,19 @@ extern void data_analytics_sampling()
     batteryVoltage_mV[dA_Count] = ptr_MCUDArray->bat_voltage_mV;
     phaseCurrent_mA[dA_Count] = ptr_MCUDArray->phase_current_mA;
     phaseVoltage_mV[dA_Count] = ptr_MCUDArray->phase_voltage_mV;
-    heatSinkTempOffset50_C[dA_Count] = ptr_MCUDArray->heatSinkTempOffset50_Celcius;  // +50
-    motorTempOffset50_C[dA_Count] = ptr_MCUDArray->motorTempOffset50_Celcius;    // +50
+    heatSinkTempOffset50_C[dA_Count] = ptr_MCUDArray->heatSinkTempOffset50_Celcius;     // +50
+    motorTempOffset50_C[dA_Count] = ptr_MCUDArray->motorTempOffset50_Celcius;           // +50
+
+//    uint16_t instant_rpm = rpm[dA_Count];
+    uint16_t instant_speed_100kmph = ((float) speed_cmps[dA_Count] * 3.6);  // speed in 100 x kmph
+    // update rpm and speed profile characteristic values
+    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorSpeed);
+    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_SPEED_LEN, instant_speed_100kmph);
+    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorRPM);
+    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_RPM_LEN, rpm[dA_Count]);
 
     /*****  Send speed to led display  *****/
-    data_analytics_LEDSpeed();       // covert speed to the selected dashboard unit (dashSpeed) and refresh led display
+    data_analytics_LEDSpeed();       // convert speed to the selected dashboard unit (dashSpeed) and refresh led display
 
 }
 
@@ -654,20 +662,19 @@ void computeAvgVoltages()
 
         if (avgBatteryVoltage_mV < BATTERY_CRITICALLY_LOW)  // If battery voltage is critically low
         {
-            led_display_ErrorPriority(BATTERY_CRITICALLY_LOW_WARNING);   // battery low buzzer alert
-
+            led_display_ErrorPriority(BATTERY_CRITICALLY_LOW_PRIORITY);   // battery low buzzer alert
             /***  battery critically low is a warning, not error  **/
-            if (batteryErrorCodePriority > BATTERY_CRITICALLY_LOW_WARNING)
+            if (batteryErrorCodePriority > BATTERY_CRITICALLY_LOW_PRIORITY)
             {
-                batteryErrorCodePriority = BATTERY_CRITICALLY_LOW_WARNING;
+                batteryErrorCodePriority = BATTERY_CRITICALLY_LOW_PRIORITY;
                 ADArray.batteryCode = BATTERY_VOLTAGE_CRIT_LOW_CODE;
             }
             /* battery level critically low -> power shut down */
             /****  POWER OFF    ****/
             batteryLowCounter++;
-            if (batteryLowCounter >= 10)
+            if (batteryLowCounter >= 100)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
             {
-                //*ptr_da_POWER_ON = 0;
+                *ptr_da_POWER_ON = 0;
             }
         }
         else if (avgBatteryVoltage_mV > BATTERY_CEILING_VOLTAGE)    // if voltage exceeded ceiling voltage
@@ -1115,11 +1122,11 @@ static void data_analytics_setCharVal()
     //device uptime setCharVal is performed in power_on_time.c
 
     /************************  Controller services     *************************************/
-    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorSpeed);
-    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_SPEED_LEN, ADArray.avgSpeed_100kph);
-
-    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorRPM);
-    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_RPM_LEN, avgRPM);
+//    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorSpeed);
+//    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_SPEED_LEN, ADArray.avgSpeed_100kph);
+//
+//    ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_motorRPM);
+//    profile_setCharVal(ptr_da_charVal, CONTROLLER_MOTOR_RPM_LEN, avgRPM);
 
     ptr_da_charVal = (ptr_da_profileCharVal->ptr_cont_charVal->ptr_voltage);
     profile_setCharVal(ptr_da_charVal, CONTROLLER_VOLTAGE_LEN, ADArray.avgPhaseVoltage_mV);

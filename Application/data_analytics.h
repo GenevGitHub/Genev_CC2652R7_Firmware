@@ -54,7 +54,7 @@ extern "C"
 // Option 2:  (13-1) x 400ms = 4800ms.  4800ms x 75 = 360000ms = 6 minutes. 6 minutes x 10 = 60 minutes (1 hour)
 // Option 3:  (13-1) x 400ms = 4800ms.  4800ms x 125 = 600000ms = 10 minutes. 10 minutes x 6 = 60 minutes = 1 hour
 // Option 4:  (17-1) x 300ms = 4800ms.  4800ms x 75 = 360000ms = 6 minutes. 6 minutes x 10 = 60 minutes = 1 hour
-// Option 5:  (21-1) x 2 x 150ms = 6000ms.  6000ms x 100 = 600000ms = 10 minutes. 10 minutes x 12 = 120 minutes = 2 hour 0 minutes
+// Option 5:  (21-1) x 300ms = 6000ms.  6000ms x 100 = 600000ms = 10 minutes. 10 minutes x 12 = 120 minutes = 2 hour 0 minutes
 
 //typedef
 // This set of data is stored in ram, and to be stored in flash (NVS) memory
@@ -62,33 +62,27 @@ typedef struct userData{
         uint32_t UDCounter;                             // to Cloud - require device parameters
         uint32_t totalPowerConsumption_mWh;             // to Cloud, App display input - require device parameters
         uint32_t totalMileage_dm;                       // to Cloud, App display input - require device parameters
+        // gps location and time stamp
 }UD_t;
 
 // This set of data is temporary on the dashboard - this set of data is sent to the APP for displaying when connected with BLE
 typedef struct appData{                                 // is appData needed here??
         uint32_t    ADCounter;                             // length = 4 . to Cloud - require device parameters
-
         uint32_t    accumPowerConsumption_mWh;             // length = 4 . to Cloud, App display input - require device parameters
         uint32_t    accumMileage_dm;                       // length = 4 . to Cloud, App display input - require device parameters
         uint32_t    range_m;                               // length = 4 . App display input - require device parameters
         uint32_t    co2Saved_g;                            // length = 4 . App display input
         uint32_t    economy_100Whpk;                       // length = 4 . App display input - require retrieving saved data
-
         uint16_t    instantEconomy_100Whpk;                // length = 2 .
-
         uint16_t    avgPhaseVoltage_mV;                    // Controller Phase Current
         uint16_t    avgPhaseCurrent_mA;                    // Controller Phase Current - no need to display current on the mobile app
         uint16_t    avgBatteryVoltage_mV;                  // length = 2 . to Cloud - require device parameters
         uint16_t    avgBusCurrent_mA;
-
         uint16_t    avgSpeed_100kph;                       // length = 2 . to Cloud - require device parameters
-
         uint8_t     controllerErrorCode;                   // length = 1 .
         uint8_t     HeatSinkTempOffset50_C;                // temperature can be sub-zero
         uint8_t     motorTempOffset50_C;                   // temperature can be sub-zero
-
         uint8_t     dashboardErrorCode;
-
         uint8_t     batteryCode;
         uint8_t     batteryPercentage;                      // length = 1 (0-100%). App display input - require device parameters
         uint8_t     batteryStatus;                          // length = 1 . Both LED display and App display input - require device parameters

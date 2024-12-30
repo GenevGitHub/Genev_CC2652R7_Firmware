@@ -86,7 +86,7 @@ uint8_t *ptr_bat_errorPriority;
 
 static uint8_t  *ptr_bat_auxiliaryLightStatus;
 static uint8_t  brakeAndThrottleIndex = 0;
-static uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
+uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        RPM_array[BRAKE_AND_THROTTLE_SAMPLES];
 
@@ -380,7 +380,7 @@ void brake_and_throttle_ADC_conversion()
         }
     }
     else
-    {  // when brake_errorStatus == 1
+    {  // when brake_errorStatus == 1, we cannot know if the brake lever is pulled or not. Therefore, set brake status = 0 at all times.
         brakeStatus = 0;    // if we set brakeStatus = 1 when brake error exists, the motor will be disabled completely.
                             // if we set brakeStatus = 0 when brake error exists, we could still operate the motor with throttle
     }
@@ -408,22 +408,6 @@ void brake_and_throttle_ADC_conversion()
     /******** Get RPM from mcu  ******************/
     RPM_prev = RPM_temp;        // this is the previous RPM_temp value.  For studying purposes only
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
-
-    /******** compute drpm / dIQ  -  For studying purposes only   **********/
-//    drpm = (RPM_temp - RPM_prev);
-//    dIQ = (IQ_applied - IQapp_prev);
-//    if (((IQ_applied - IQapp_prev) == 0) || ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) >= 0xFFFF) ||
-//            ((RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev) <= -0xFFFF))
-//    {
-//        drpmdIQ = 0;
-//    }
-//    else
-//    {
-//        drpmdIQ = (float)(RPM_temp - RPM_prev)/(IQ_applied - IQapp_prev);
-//    }
-//    IQapp_prev = IQ_applied;                            // for studying purposes only
-
-    /******** End compute drpm / dIQ  -  For investigation only   **********/
 
     /******** Throttle Error Safety Protocol -> when throttle error detected or speed is negative, IQ_input is set to zero
      *  Calculating the IQ Value

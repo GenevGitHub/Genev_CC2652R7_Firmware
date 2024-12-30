@@ -266,7 +266,7 @@ void mpb_processTimerOv()
 }
 
 /*********************************************************************
- * @fn      mpb_bootAlarm
+ * @fn      mpb_bootAlert
  * @brief   Alarm signal is given when we turn on the dash-board
  *
  * @param   duration: how long does it beep beep??
@@ -276,7 +276,7 @@ void mpb_processTimerOv()
  * @return  none
  ************************************************************************/
 
-void mpb_bootAlarm(uint16_t duration, uint8_t bootcase)
+void mpb_bootAlert(uint16_t duration, uint8_t bootcase)
 {
     mpb_buzzerStatus = 1;
     if(bootcase == 0x00)

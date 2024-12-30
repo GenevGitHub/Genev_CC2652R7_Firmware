@@ -97,24 +97,18 @@ uint16_t buzzer_buzzerTrigger = BUZZER_WARNING_BEEP_PERIOD / GPT_TIME;
 
 extern void buzzer_ErrorHandler( void )
 {
-
-    if (!(*ptr_buzzer_buzzerStatus) && !(buzzer_buzzerCounter) && (*ptr_buzzer_errorPriority <= BATTERY_CRITICALLY_LOW_WARNING) && !(buzzer_buzzerOn))
+    if (!(*ptr_buzzer_buzzerStatus) && (!buzzer_buzzerCounter) && (*ptr_buzzer_errorPriority <= BATTERY_CRITICALLY_LOW_PRIORITY) && (!buzzer_buzzerOn))
     {
-//        buzzer_errorHandler(BUZZER_WARNING_DUTYPERCENT, BUZZER_WARNING_FREQUENCY);
         UDHAL_PWM_setBUZDutyAndPeriod(BUZZER_WARNING_DUTYPERCENT, BUZZER_WARNING_FREQUENCY);
-
         buzzer_buzzerOn = 1;
     }
     else if (buzzer_buzzerOn == 1)
     {
-//        buzzer_errorHandler(0, BUZZER_WARNING_FREQUENCY);
         UDHAL_PWM_setBUZDutyAndPeriod(0, BUZZER_WARNING_FREQUENCY);
-
         buzzer_buzzerOn = 0;
     }
 
     buzzer_buzzerCounter++;
-
     if (buzzer_buzzerCounter >= buzzer_buzzerTrigger)
     {
         buzzer_buzzerCounter = 0;

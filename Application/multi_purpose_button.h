@@ -35,11 +35,11 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  *********************************************************************/
-//#define TIMER_INTERVAL              200  //
+
 // Task configuration
-#define MPB_TASK_PRIORITY           3
+#define MPB_TASK_PRIORITY                3
 #ifndef MPB_TASK_STACK_SIZE
-#define MPB_TASK_STACK_SIZE         512  //400 //360    // Stack size must be multiples of 8
+#define MPB_TASK_STACK_SIZE              512  //400 //360    // Stack size must be multiples of 8
 #endif
 
 //Constants for timing duration
@@ -51,13 +51,13 @@ extern "C"
 #define MPB_EXECUTING_STATE              0x01
 
 //constants for Multi-Purpose Button processed messageID
-#define  MPB_SINGLE_LONG_PRESS_MSG        0x01
-#define  MPB_SINGLE_SHORT_PRESS_MSG       0x02
-#define  MPB_SINGLE_SHORT_LONG_PRESS_MSG  0x03
-#define  MPB_DOUBLE_SHORT_PRESS_MSG       0x04
-#define  MPB_TREBLE_SHORT_PRESS_MSG       0x05
-#define  MPB_QUADRUPLE_SHORT_PRESS_MSG    0x06
-#define  MPB_UNDEFINED_MSG                0x00
+#define MPB_SINGLE_LONG_PRESS_MSG        0x01
+#define MPB_SINGLE_SHORT_PRESS_MSG       0x02
+#define MPB_SINGLE_SHORT_LONG_PRESS_MSG  0x03
+#define MPB_DOUBLE_SHORT_PRESS_MSG       0x04
+#define MPB_TREBLE_SHORT_PRESS_MSG       0x05
+#define MPB_QUADRUPLE_SHORT_PRESS_MSG    0x06
+#define MPB_UNDEFINED_MSG                0x00
 
 /*********************************************************************
  * MACROS
@@ -96,19 +96,16 @@ typedef struct {
  */
 /* Task creation function for the multi-purpose button */
 extern void mpb_createTask(void);
-
 extern void mpb_registerTimer(mpb_timerManager_t *mpbTimer);//Register in peripherals already
 //extern void mpb_registerCBs(mpbCBs_t *mpbCBs);//Register in main function.
 extern void mpb_processButtonEvt(uint_fast8_t logicLevel);
 extern void mpb_processTimerOv();
-extern void mpb_bootAlarm(uint16_t duration, uint8_t bootcase);
+extern void mpb_bootAlert(uint16_t duration, uint8_t bootcase);
 extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);
 extern void *mpb_powerOnRegister(void);
 
 #ifdef _cplusplus
 }
 #endif
-
-
 
 #endif /* APPLICATION_MULTI_PURPOSE_BUTTON_H_ */

@@ -33,7 +33,7 @@ extern uint8_t pRandomAddress[B_ADDR_LEN];
 #define DEFAULT_ADDRESS_MODE                  ADDRMODE_RP_WITH_PUBLIC_ID
 
 // How often to read current RPA (in ms)
-#define READ_RPA_PERIOD                       500
+#define READ_RPA_PERIOD                       750
 
 // Maximum number of BLE HCI PDUs. If the maximum number connections (above)
 // is set to 0 then this number should also be set to 0.

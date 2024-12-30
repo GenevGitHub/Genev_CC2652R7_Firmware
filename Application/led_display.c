@@ -11,7 +11,7 @@
 /* This Header file contains all BLE API and icall structure definition */
 #include <icall_ble_api.h>
 
-#include "led_display.h"
+#include "Application/led_display.h"
 #include "Hardware/IS31FL3236A.h"
 
 /*********************************************************************
@@ -1460,24 +1460,47 @@ void led_display_setDashSpeed(uint8_t dashSpeed){
  *
  * @return  none
  *********************************************************************/
+uint8_t ledSpeed_counter = 0;  // added to alternate between speed and Brake error code
+uint8_t brake_error_on = 0; // added
+uint8_t ledSpeed_maxCount = 12; // added
 void led_display_changeDashSpeed()
 {
-    if (led_error_code_old >= BATTERY_CRITICALLY_LOW_WARNING) //((led_error_code_old == SYSTEM_NORMAL_PRIORITY) || (led_error_code_old >= BATTERY_CRITICALLY_LOW_WARNING))
-    {
-        if(ledSpeed_old != ledSpeed || ledBrightness != ledBrightness_old)
-        {
-            int dashspeed_unit;
-            int dashspeed_ten;
-            dashspeed_unit = ledSpeed % 10;
-            dashspeed_ten = ledSpeed / 10;
-            if(dashspeed_ten==0){
-                IS31FL3236A_Digit_1_off(I_OUT);
+    if (led_error_code_old >= BRAKE_ERROR_PRIORITY) {
+        if ((led_error_code_old > BRAKE_ERROR_PRIORITY) || (!brake_error_on)) {// added to alternate between speed and Brake error code
+            if(ledSpeed_old != ledSpeed || ledBrightness != ledBrightness_old) {
+                int dashspeed_ones;
+                int dashspeed_tens;
+                dashspeed_ones = ledSpeed % 10;
+                dashspeed_tens = ledSpeed / 10;
+                if(dashspeed_tens == 0){
+                    IS31FL3236A_Digit_1_off(I_OUT);
+                }
+                else {
+                    functionTable[35 + dashspeed_tens](I_OUT,ledBrightness);
+                }
+                functionTable[45 + dashspeed_ones](I_OUT,ledBrightness);
+                ledSpeed_old = ledSpeed;
             }
-            else{
-                functionTable[35+dashspeed_ten](I_OUT,ledBrightness);
-            }
-            functionTable[45+dashspeed_unit](I_OUT,ledBrightness);
-            ledSpeed_old=ledSpeed;
+        }
+        else if ((led_error_code_old == BRAKE_ERROR_PRIORITY) && (brake_error_on)) {// added to alternate between speed and Brake error code
+            functionTable[35](I_OUT,ledBrightness);//0 // added
+            functionTable[60](I_OUT,ledBrightness);//E // added
+        } // added
+
+        // controls the timing when the led displays the speed or the error code when minor error is present
+        if ((led_error_code_old >= BRAKE_ERROR_PRIORITY) && (led_error_code_old < BATTERY_CRITICALLY_LOW_PRIORITY)) {
+            ledSpeed_counter++;  // added to alternate between speed and Brake error code
+            if (ledSpeed_counter >= ledSpeed_maxCount) { // added to alternate between speed and Brake error code
+                ledSpeed_counter = 0; // added
+                if (brake_error_on == 0) {// added
+                    brake_error_on = 1; // added
+                    ledSpeed_maxCount = LEDSPEED_LOWCOUNT; // added
+                } // added
+                else {// added
+                    brake_error_on = 0; // added
+                    ledSpeed_maxCount = LEDSPEED_HIGHCOUNT; // added
+                } // added
+            } // added
         }
     }
 }
@@ -1829,19 +1852,19 @@ uint8_t led_display_ErrorDisplay()
             functionTable[35](I_OUT,ledBrightness);//0
             functionTable[58](I_OUT,ledBrightness);//C
         }
-        else if(led_error_priority == BRAKE_ERROR_PRIORITY)     // Brake throttle error code = 0E
-        {
-            functionTable[35](I_OUT,ledBrightness);//0
-            functionTable[60](I_OUT,ledBrightness);//E
-        }
-        else if(led_error_priority == SOFTWARE_ERROR_PRIORITY)  // software error code = 4A
-        {
-            functionTable[39](I_OUT,ledBrightness);//4
-            functionTable[56](I_OUT,ledBrightness);//A
-        }
+//        else if(led_error_priority == BRAKE_ERROR_PRIORITY)     // Brake throttle error code = 0E
+//        {
+//            functionTable[35](I_OUT,ledBrightness);//0
+//            functionTable[60](I_OUT,ledBrightness);//E
+//        }
+//        else if(led_error_priority == SOFTWARE_ERROR_PRIORITY)  // software error code = 4A
+//        {
+//            functionTable[39](I_OUT,ledBrightness);//4
+//            functionTable[56](I_OUT,ledBrightness);//A
+//        }
 
         /*********** led display warning light icon ******************/
-        if (led_error_priority < BATTERY_CRITICALLY_LOW_WARNING) // if led_error_priority is less than 0x20 (32), warning light on
+        if (led_error_priority < BATTERY_CRITICALLY_LOW_PRIORITY) // if led_error_priority is less than 0x20 (32), warning light on
         {
             functionTable[7](I_OUT,ledBrightness); // attention light
         }

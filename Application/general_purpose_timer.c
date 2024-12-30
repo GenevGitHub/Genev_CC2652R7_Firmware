@@ -264,7 +264,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                *    the programme exits and reaches here.
                *    The following codes and power off procedure are executed
                ***************************************************************************************/
-//              Task_sleep(300 * 1000 / Clock_tickPeriod); /* Provide a pause for saving snvBuffer to snv before break and running shutdown command!*/
+
               lights_setLightOff();       /* Ensure lights are turned off */
               // Add: STM32 command turn off tail-light and auxiliary light
               led_display_setAllOff();    /* turns off all led lights */

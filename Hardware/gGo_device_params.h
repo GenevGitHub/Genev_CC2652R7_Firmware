@@ -26,6 +26,22 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
+// Device Information
+#define DEVICE_MODEL_NUMBER               "Genev gGo ES01"
+#define DEVICE_SERIAL_NUMBER              "MSN T00001"     // MSN is unique for each production eScooter. Input the MSN here before uploading firmware.
+#define FIRMWARE_REVISION                 "ES01.0.V01.R00"
+#define MANUFACTURER_NAME                 "Genev"
+
+/*********************************************************************************************
+ *  Regional / Regulation Options
+ *********************************************************************************************/
+#undef  REGION0                                     // Unregulated
+#define REGION1                             1       // HK, Singapore
+#undef  REGION2                                     // EU
+#undef  REGION3                                     // Japan
+#undef  REGION4                                     // Australia
+#undef  REGION5                                     // Canada, USA
+
 // Speed limit protection selection
 // * Direct Law -> speed limit protection is deactivated
 // * Normal law -> speed limit protection is activated
@@ -39,16 +55,6 @@ extern "C"
 #define veml3235            1
 
 //#define AUXILIARY_LIGHT                     1
-
-/*********************************************************************************************
- *  Regional / Regulation Options
- *********************************************************************************************/
-#undef  REGION0                                     // Unregulated
-#define REGION1                             1       // HK, Singapore
-#undef  REGION2                                     // EU
-#undef  REGION3                                     // Japan
-#undef  REGION4                                     // Australia
-#undef  REGION5                                     // Canada, USA
 
 /******   CONSTANTS   *******/
 #define PI_CONSTANT                         3.14159265359
@@ -129,11 +135,11 @@ extern "C"
 #define THROTTLE_ERROR_PRIORITY                         0x10    // 17:Throttle error priority                   (LED display error code 0C)
 
 // Minor hardware/firmware/software errors
-#define BRAKE_ERROR_PRIORITY                            0x11    // 16:Brake error priority                      (LED display error code 0E)
-#define SOFTWARE_ERROR_PRIORITY                         0X12
+//#define SOFTWARE_ERROR_PRIORITY                         0X12
+#define BRAKE_ERROR_PRIORITY                            0x1A    // 16:Brake error priority                      (LED display error code 0E)
 
 // Warnings
-#define BATTERY_CRITICALLY_LOW_WARNING                  0x20    // 32:Battery level critically low warning
+#define BATTERY_CRITICALLY_LOW_PRIORITY                 0x20    // 32:Battery level critically low warning
 
 /*********************************************************************************************/
 /**  LED Display and MOBILE APP Error Codes  **/

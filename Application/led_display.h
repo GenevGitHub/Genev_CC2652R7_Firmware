@@ -18,6 +18,7 @@ extern "C"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ti/sysbios/knl/Task.h>
 
 #include "Hardware/gGo_device_params.h"
 /*********************************************************************
@@ -25,6 +26,9 @@ extern "C"
 */
 #define LED_POWER_LIGHT_ON                          1
 #define LED_POWER_LIGHT_OFF                         0
+
+#define LEDSPEED_LOWCOUNT                           5
+#define LEDSPEED_HIGHCOUNT                          16
 
 /* ********************************************************************
  * TYPEDEFS
