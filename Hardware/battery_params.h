@@ -51,6 +51,7 @@ extern "C"
 #define LEVEL23                         46020           // equivalent to 45%
 #define LEVEL12                         43368           // equivalent to 28%
 #define LEVEL01                         39000           // equivalent to  0%
+#define LEVEL00                         36000
 #endif // BATTERY_S13P2
 
 /* Battery specification parameters     44.4V */
@@ -67,6 +68,7 @@ extern "C"
 #define LEVEL23                         42480           // equivalent to 45%
 #define LEVEL12                         40032           // equivalent to 28%
 #define LEVEL01                         36000           // equivalent to  0%
+#define LEVEL00                         33000
 #endif // BATTERY_S12P2
 
 
@@ -84,6 +86,7 @@ extern "C"
 #define LEVEL23                         38940           // equivalent to 45%
 #define LEVEL12                         36696           // equivalent to 28%
 #define LEVEL01                         33000           // equivalent to  0%
+#define LEVEL00                         30000
 #endif // BATTERY_S11P2
 
 
@@ -101,6 +104,7 @@ extern "C"
 #define LEVEL23                         38940           // equivalent to 45%
 #define LEVEL12                         36696           // equivalent to 28%
 #define LEVEL01                         33000           // equivalent to  0%
+#define LEVEL00                         30000
 #endif // BATTERY_S11P2
 
 /* Battery specification parameters     37.0V */
@@ -117,6 +121,7 @@ extern "C"
 #define LEVEL23                         35400           // equivalent to 45%
 #define LEVEL12                         33360           // equivalent to 28%
 #define LEVEL01                         30000           // equivalent to  0%
+#define LEVEL00                         27000
 #endif // BATTERY_S10P2
 
 #define VOLTAGE_DROP_COEFFICIENT        0.269           // for Cest Power 37V 9.6Ah Battery pack Voltage drop empirical coefficient

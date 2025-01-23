@@ -119,7 +119,7 @@ extern void data_analytics( void );
 extern void data2snvBuffer( void );
 extern void data_analytics_sampling(void);
 extern void data_analytics_Main( void );
-
+static void da_startupAnalytics();
 
 #ifdef __cplusplus
 }

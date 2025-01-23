@@ -34,6 +34,11 @@ extern "C"
  * CONSTANTS
  */
 
+
+
+
+
+
 // The parameters GPT_TIME & BRAKE_AND_THROTTLE_SAMPLES control the sensitivity of the throttle input to motor output
 #define BRAKE_AND_THROTTLE_SAMPLES                                3     // 3 samples seem ideal, 5 is okay, 8 is too laggy
 
@@ -109,7 +114,9 @@ extern uint16_t brake_and_throttle_getBrakePercent();
 
 extern uint8_t brake_and_throttle_getControlLaw();
 extern void brake_and_throttle_setControlLaw(uint8_t control_law);
-
+extern void bat_powerOnRegister(uint8_t *ptrpowerOn);
+extern void bat_zeroIQ();
+extern void bat_dashboard_speedmode_service();
 extern uint8_t bat_auxiliaryLightStatusRegister(uint8_t *ptrAuxiliaryLightStatus);
 /*********************************************************************
 *********************************************************************/

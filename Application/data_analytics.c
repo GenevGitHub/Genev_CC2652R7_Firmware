@@ -109,7 +109,7 @@ static bool     batteryLow = 0;
 //static uint8_t heatSinkOVTempState = 0;
 //static uint8_t motorOVTempState = 0;
 //static uint8_t dataAnalysis_batteryError = 0;
-
+uint8_t  da_startup = 1;
 uint8_t  UDTriggerCounter = 0;
 uint32_t ADDataCounter = 0;
 uint32_t sumDeltaMileage_dm;                 // unit in decimeters.  This is the previous data on the total distance travelled
@@ -233,29 +233,21 @@ extern void data_analytics_init()
      * initialize Simpsons 1/3 rule coefficient_array
      *****************************************************/
     coefficient_array_init();
-
+    periodic_communication_MCUSampling();
     /****************************************************
      * At the instant of POWER ON, retrieve BATTERY status for LED display
      * dashboard will instruct motor controller to obtain a battery voltage and current measurement
      */
 #ifdef MOTOR_CONNECT
     STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID,STM32MCP_BUS_VOLTAGE_REG_ID);
-    uint16_t batteryVoltageStartUp_mV = ptr_MCUDArray->bat_voltage_mV;
-    uint16_t batteryCurrentStartUp_mA = ptr_MCUDArray->bat_current_mA;
-    uint16_t phaseVoltageStartUp_mV = ptr_MCUDArray->phase_voltage_mV;
-    uint16_t phaseCurrentStartUp_mA = ptr_MCUDArray->phase_current_mA;
-    uint8_t mTStartUp = ptr_MCUDArray->motorTempOffset50_Celcius;
-    uint8_t hSTStartUp = ptr_MCUDArray->heatSinkTempOffset50_Celcius;
 #endif // MOTOR_CONNECT
 
-#ifndef MOTOR_CONNECT   // if MOTOR_CONNECT not defined --> use dummy data
-    uint16_t batteryVoltageStartUp_mV = LEVEL45;
-    uint16_t batteryCurrentStartUp_mA = 3000;
-    uint16_t phaseVoltageStartUp_mV = 30000;
-    uint16_t phaseCurrentStartUp_mA = 3000;
-    uint8_t mTStartUp = 65;                     //temperature + offset = 15+50;
-    uint8_t hSTStartUp = 65;                    //temperature + offset = 15+50;
-#endif // MOTOR_CONNECT
+    uint16_t batteryVoltageStartUp_mV = ptr_MCUDArray->bat_voltage_mV; //LEVEL01; //LEVEL45;
+    uint16_t batteryCurrentStartUp_mA = ptr_MCUDArray->bat_current_mA;//3000;
+    uint16_t phaseVoltageStartUp_mV = ptr_MCUDArray->phase_voltage_mV;//30000;
+    uint16_t phaseCurrentStartUp_mA = ptr_MCUDArray->phase_current_mA;//3000;
+    uint8_t mTStartUp = ptr_MCUDArray->motorTempOffset50_Celcius;//65;                     //temperature + offset = 15+50;
+    uint8_t hSTStartUp = ptr_MCUDArray->heatSinkTempOffset50_Celcius;//65;                    //temperature + offset = 15+50;
 
     /****** Initialize the following data arrays: ********
      * - RPM
@@ -406,8 +398,15 @@ extern void data_analytics_sampling()
  *
  * @return  Nil
 ******************************************************************************************************/
+uint8_t batteryLowCounter = 0;
+
 extern void data_analytics_Main( void )
 {
+    if (da_startup)
+    {
+        da_startupAnalytics();
+        da_startup = 0;
+    }
     /******  if dA_Count = (DATA_ANALYSIS_POINTS -1), triggers data_analytics()  *********/
     if (dA_Count == (DATA_ANALYSIS_POINTS - 1)) // and also when Power OFF // Caution of the case where dA_Count >= DATA_ANALYSIS_POINTS & POWER OFF
     {
@@ -447,10 +446,10 @@ extern void data_analytics_Main( void )
  *
  * @return  Nil
 ******************************************************************************************************/
-uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
+//uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
 extern void data_analytics()
 {
-//    uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
+    uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
     ADDataCounter++;
     ADArray.ADCounter = ADDataCounter;                // Why not ADDataCounter + 1?              // totalDataCount is total count of all computed datasets
     deltaPowerConsumption_mWh = computePowerConsumption();
@@ -486,6 +485,24 @@ extern void data_analytics()
 }
 
 /***************************************************************************************************
+ * @fn      da_startupAnalytics
+ *
+ * @brief   Run at start up to evaluate battery initial percentage and status
+ *
+ * @param   Nil
+ *
+ * @return  Nil
+******************************************************************************************************/
+void da_startupAnalytics()
+{
+    dA_Count = (DATA_ANALYSIS_POINTS - 1);
+    computeAvgVoltages();
+    ADArray.avgBatteryVoltage_mV = avgBatteryVoltage_mV;
+    ADArray.batteryPercentage = computeBatteryPercentage(); // battery percentage must be called before battery status
+    ADArray.batteryStatus = determineBatteryStatus();
+    dA_Count = 1;
+}
+/***************************************************************************************************
  * @fn      computePowerConsumption
  *
  * @brief   This function calculates the change in power consumption of the e_scooter
@@ -500,7 +517,7 @@ uint32_t computePowerConsumption()
     uint32_t temp_deltaPowerConsumption_mWh = 0;
     for( uint8_t ii = 0; ii < DATA_ANALYSIS_POINTS; ii++ )
     {
-        uint32_t deltaPower_mWh = batteryVoltage_mV[ii] * batteryCurrent_mA[ii] / 10000;         // look out for possible byte size limitation issue
+        uint32_t deltaPower_mWh = batteryVoltage_mV[ii] * batteryCurrent_mA[ii] / 1000;         // look out for possible byte size limitation issue
         temp_deltaPowerConsumption_mWh += coefficient_array[ii] * deltaPower_mWh;
     }
     temp_deltaPowerConsumption_mWh = round((float) temp_deltaPowerConsumption_mWh / 3000 * data_analytics_sampling_time / 3600);       // output in milli-W-hr
@@ -545,6 +562,7 @@ uint16_t computeAvgSpeed(uint32_t deltaMileage_dm)
     uint16_t avgSpeed_100kph;
     if (dA_Count == (DATA_ANALYSIS_POINTS - 1))
     {
+        // (deltaMileage_dm / 10000) / ( Dt / 1000 / 3600) x 100 =  deltaMileage_dm / Dt * 360 * 100 (100 km/hr)
         avgSpeed_100kph = (uint16_t) round ((float) deltaMileage_dm * 36000 / (data_analytics_sampling_time * (DATA_ANALYSIS_POINTS - 1))); // output in km/hr
         avgRPM = round ((float) avgSpeed_100kph / 3.6 / WHEELRADIUS_CM *60 / 2 / PI_CONSTANT);
     }
@@ -642,8 +660,6 @@ uint8_t computeMotorTemperature()
  *
  * @return  AvgBatteryVoltage in milli-Volt
 ******************************************************************************************************/
-uint8_t batteryLowCounter = 0;
-
 void computeAvgVoltages()
 {
     uint32_t    sumBatteryVoltage_mV = 0;
@@ -672,9 +688,9 @@ void computeAvgVoltages()
             /* battery level critically low -> power shut down */
             /****  POWER OFF    ****/
             batteryLowCounter++;
-            if (batteryLowCounter >= 100)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
+            if (batteryLowCounter >= 5)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
             {
-                *ptr_da_POWER_ON = 0;
+                *ptr_da_POWER_ON = 0;   // Set POWER ON to 0, i.e., Power Off
             }
         }
         else if (avgBatteryVoltage_mV > BATTERY_CEILING_VOLTAGE)    // if voltage exceeded ceiling voltage
@@ -730,7 +746,6 @@ static void computeAvgCurrents()
 ******************************************************************************************************/
 uint8_t computeBatteryPercentage()
 {
-    //avgBatteryPercent = 0;
     int16_t     instantBatteryLevel = 0;
     uint16_t     sumBatteryLevel = 0;
 

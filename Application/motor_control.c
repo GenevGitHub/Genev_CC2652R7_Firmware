@@ -38,7 +38,7 @@ MCUD_t MCUDArray = {LEVEL45,
                     0,//3000,
                     0,  // speed rpm
                     1,  // rpm_status. 1 = 0 or positive, 0 = negative
-                    70,
+                    70, // 50 + 20 deg.C
                     70,
                     0
                     };

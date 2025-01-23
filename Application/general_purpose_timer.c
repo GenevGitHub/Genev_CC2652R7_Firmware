@@ -46,7 +46,7 @@ static bool     *ptr_gpt_POWER_ON;
 /* Local Functions declaration */
 static void GeneralPurposeTimer_init( void );
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1);
-//static bool gpt_PWR_OFF();
+
 
 /*********************************************************************
  * @fn      gpt_InitComplFlagRegister
@@ -71,10 +71,10 @@ extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
  *
  * @return  None
  */
-extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag)
-{
-    ptr_gpt_snvWriteComplete_flag = ptr_snvWriteComplete_flag;
-}
+//extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag)
+//{
+//    ptr_gpt_snvWriteComplete_flag = ptr_snvWriteComplete_flag;
+//}
 
 /*********************************************************************
  * @fn      gpt_powerOnRegister
@@ -256,21 +256,23 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 //          if (gpt_PWR_OFF() == true)  //or alternatively:
           if (!(*ptr_gpt_POWER_ON))
           {
+              bat_zeroIQ();  /* Send IQ = 0 to Motor controller  */
               data_analytics();
               data2snvBuffer();
               gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
+              Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
               /*********************************************************************************
                * When instructed to Power Off and after breaking out of FOR loop,
                *    the programme exits and reaches here.
                *    The following codes and power off procedure are executed
                ***************************************************************************************/
-
               lights_setLightOff();       /* Ensure lights are turned off */
               // Add: STM32 command turn off tail-light and auxiliary light
               led_display_setAllOff();    /* turns off all led lights */
-//              led_display_deinit();       /* turns off led display */
+              led_display_deinit();       /* turns off led display */
               STM32MCP_toggleCommunication();
               STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
+
               break;      // break out of GPT infinite FOR loop
           }
       }
@@ -292,27 +294,6 @@ void GeneralPurposeTimer_init( void )
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;
     periodic_communication_init();
 }
-
-/*********************************************************************
- * @fn      gpt_PWR_OFF
- *
- * @brief   Process whether POWER OFF is true or false
- *
- * @return  return true if *ptr_gpt_POWER_ON = 0 (OFF)
- *          return false if *ptr_gpt_POWER_ON = 1 (ON)
- **********************************************************************/
-//bool gpt_PWR_OFF()
-//{
-//    if(*ptr_gpt_POWER_ON == 0)
-//    {
-//        return (true);
-//    }
-//    else if(*ptr_gpt_POWER_ON == 1)
-//    {
-//        return (false);
-//    }
-//    return (false);
-//}
 
 /*********************************************************************
  * @fn      gpt_snvWriteFlageRegister

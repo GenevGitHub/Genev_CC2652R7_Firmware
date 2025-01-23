@@ -92,6 +92,8 @@ extern void led_display_changeLightStatus();
 extern void led_display_setLEDPower( uint8_t ledPower );                 // Set LED Power Level / Brightness
 extern void led_display_changeLEDPower();
 extern void* led_display_errorPriorityRegister();
+static void led_display_speedModeLockStatus();
+extern void* led_display_speedmodeIsLockRegister();
 
 extern void led_display_opcodeRegister( uint8_t *ptr_opcode );
 extern void led_display_advertiseFlagRegister(uint8_t *ptr_advertiseFlag);

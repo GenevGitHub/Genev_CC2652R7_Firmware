@@ -37,11 +37,14 @@
  *          Normal law algorithm modulates the speed to not exceed the defined limit
  *          Direct law algorithm does not modulate the speed in any way
  */
-uint8_t     ControlLaw = BRAKE_AND_THROTTLE_NORMALLAW;
+uint8_t     ControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
 /*  Options:
  *  (1) BRAKE_AND_THROTTLE_NORMALLAW
  *  (2) BRAKE_AND_THROTTLE_DIRECTLAW
 */
+
+// Power On Status Variable
+static uint8_t     *ptr_bat_POWER_ON;
 
 uint8_t     speedMode;
 
@@ -86,7 +89,7 @@ uint8_t *ptr_bat_errorPriority;
 
 static uint8_t  *ptr_bat_auxiliaryLightStatus;
 static uint8_t  brakeAndThrottleIndex = 0;
-uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
+uint16_t        brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 uint16_t        RPM_array[BRAKE_AND_THROTTLE_SAMPLES];
 
@@ -191,9 +194,9 @@ uint16_t    throttleADCsample = 0;  //throttleADCsample
 uint16_t    brakeADCsample = 0;     //brakeADCsample
 
 /**  for studying purposes - evaluating speed and IQ *******************/
-uint16_t    bat_count = 0;
-uint16_t    RPM_prev;
-uint16_t    IQapp_prev = 0;
+static uint16_t    bat_count = 0;
+static uint16_t    RPM_prev;
+static uint16_t    IQapp_prev = 0;
 float       drpmdIQ;
 int         drpm;
 int         dIQ;
@@ -367,8 +370,8 @@ void brake_and_throttle_ADC_conversion()
      *              dashboard will instruct motor controller to cut power to motor.
      *              Once power to motor is cut, both the brake & throttle must be fully released before power delivery can be resumed
     **********************************************************************************************************************************************/
-    if (brake_errorStatus == 0)
-    {/* if there is no brake error .... */
+    if (brake_errorStatus == 0)/* if there is no brake error .... */
+    {
      /* condition where brake is engaged (1) and throttle is greater than 30% */
         if ((brakeStatus == 1) && (brakePercent <= BRAKEPERCENTTHRESHOLD) && (throttlePercent <= THROTTLEPERCENTTHRESHOLD))
         { // This condition resets brakeStatus to zero
@@ -381,24 +384,24 @@ void brake_and_throttle_ADC_conversion()
     }
     else
     {  // when brake_errorStatus == 1, we cannot know if the brake lever is pulled or not. Therefore, set brake status = 0 at all times.
-        brakeStatus = 0;    // if we set brakeStatus = 1 when brake error exists, the motor will be disabled completely.
-                            // if we set brakeStatus = 0 when brake error exists, we could still operate the motor with throttle
+        brakeStatus = 0;    // if we set brakeStatus = 1 when brake error exists, IQ value sent to motor is set to zero.
+                            // if we set brakeStatus = 0 when brake error exists, command to motor is as normal.
     }
-
+    #ifdef MOTOR_CONNECT
     switch(brakeStatus)
     {
         case 0:
-            //STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_RELEASE);
+//            STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_RELEASE);
             break;
 
         case 1:
-            //STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_PRESS);
+//            STM32MCP_setEscooterControlFrame(STM32MCP_ESCOOTER_BRAKE_PRESS);
             break;
 
         default:
             break;
     }
-
+    #endif //MOTOR_CONNECT
     /**************************************************************************************
      *       Send / update brake% and brake status in STM32MCPDArray
      **************************************************************************************/
@@ -408,6 +411,22 @@ void brake_and_throttle_ADC_conversion()
     /******** Get RPM from mcu  ******************/
     RPM_prev = RPM_temp;        // this is the previous RPM_temp value.  For studying purposes only
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /******** Throttle Error Safety Protocol -> when throttle error detected or speed is negative, IQ_input is set to zero
      *  Calculating the IQ Value
@@ -444,7 +463,7 @@ void brake_and_throttle_ADC_conversion()
         else
         {
         /*The E-Scooter Starts*/
-        /*DRIVE_START = 1 --> The We could send dynamic Iq messages to the motor controller */
+        /*DRIVE_START = 1 --> Then, We could send dynamic Iq messages to the motor controller */
             IQ_input = speedModeIQmax * throttlePercent / 100;
         }
 
@@ -655,6 +674,24 @@ extern void brake_and_throttle_getSpeedModeParams()
     led_display_setSpeedMode(speedMode);    // update led display
     /******  Dashboard services *************************************/
     /* updates speed mode Characteristic Value -> Mobile App */
+    bat_dashboard_speedmode_service();
+//    ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_speedMode);  // obsolette.  remove after testing complete
+//    profile_setCharVal(ptr_charVal, DASHBOARD_SPEED_MODE_LEN, speedMode);  // obsolette.  remove after testing complete
+}
+
+/*********************************************************************
+ * @fn      bat_dashboard_speedmode_service
+ *
+ * @brief   Dashboard services updates speed mode Characteristic Value to Mobile App
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+extern void bat_dashboard_speedmode_service()
+{
+    /******  Dashboard services *************************************/
+    /* updates speed mode Characteristic Value -> Mobile App */
     ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_speedMode);
     profile_setCharVal(ptr_charVal, DASHBOARD_SPEED_MODE_LEN, speedMode);
 }
@@ -769,8 +806,9 @@ uint8_t brake_and_throttle_toggleSpeedMode()
 
     /******  Dashboard services *************************************/
     /* updates speed mode Characteristic Value -> Mobile App */
-    ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_speedMode);
-    profile_setCharVal(ptr_charVal, DASHBOARD_SPEED_MODE_LEN, speedMode);
+    bat_dashboard_speedmode_service();
+//    ptr_charVal = (ptr_bat_profileCharVal->ptr_dash_charVal->ptr_speedMode);  // obsolette.  remove after testing complete
+//    profile_setCharVal(ptr_charVal, DASHBOARD_SPEED_MODE_LEN, speedMode);     // obsolette.  remove after testing complete
 
     return (speedMode);
 }
@@ -884,4 +922,37 @@ extern uint8_t bat_auxiliaryLightStatusRegister(uint8_t *ptrAuxiliaryLightStatus
         *ptr_bat_auxiliaryLightStatus = 0;
     }
     return (*ptr_bat_auxiliaryLightStatus);
+}
+
+/*********************************************************************
+ * @fn      bat_powerOnRegister
+ *
+ * @brief   call to assign and register the pointer to powerOn
+ *
+ * @param   a pointer to powerOn, i.e. ptr_powerOn
+ *
+ * @return  None
+ */
+extern void bat_powerOnRegister(uint8_t *ptrpowerOn)
+{
+    ptr_bat_POWER_ON = ptrpowerOn;
+}
+
+/*********************************************************************
+ * @fn      bat_sendIQZero
+ *
+ * @brief   call at Power Off to send IQ = 0 to motor controller
+ *
+ * @param   None
+ *
+ * @return  None
+ */
+extern void bat_zeroIQ()
+{
+    IQ_input = 0;
+    IQ_applied = IQ_input;
+    /********************************************************************************************************************************
+    * Update IQ_applied to STM32MCPDArray.IQ_value for commanding Motor via motor controller
+    ********************************************************************************************************************************/
+    ptr_bat_STM32MCPDArray->IQ_value = IQ_applied;
 }
