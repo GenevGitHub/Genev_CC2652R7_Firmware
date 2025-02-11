@@ -660,59 +660,6 @@ void STM32MCP_controlEscooterBehavior(uint8_t behaviorID)
     }
 
 }
-//void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId)
-//{
-//       //Insert into packet
-//       uint8_t *txFrame = (uint8_t *) malloc(sizeof(uint8_t) * (STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH + 3));
-//       txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID;
-//       txFrame[1] = STM32MCP_SET_SYSTEM_CONTROL_CONFIG_PAYLOAD_LENGTH;
-//       txFrame[2] = sysCmdId;
-//       txFrame[3] = STM32MCP_calChecksum(txFrame, 3);
-//
-//       //Insert it into the queue
-//
-//       if(STM32MCP_queueIsEmpty())
-//       {
-//           STM32MCP_timerManager->timerStart();
-//           STM32MCP_enqueueMsg(txFrame, 4);
-//           STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
-//       }
-//       else
-//       {
-//           STM32MCP_enqueueMsg(txFrame, 4);
-//       }
-//
-//}
-///*********************************************************************
-// * @fn      STM32MCP_setEscooterControlDebugFrame
-// *
-// * @brief   It is used for sending EScooter Control DEBUG frame
-// *
-// * @param   None
-// *
-// *
-// * @return  None
-// */
-//void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID)
-//{
-//     //Insert Into Packet
-//    uint8_t *txFrame = (uint8_t *)malloc(sizeof(uint8_t)*(STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH + 3));
-//    txFrame[0] = STM32MCP_MOTOR_1_ID | STM32MCP_ESCOOTER_CONTROL_DEBUG_FRAME_ID;
-//    txFrame[1] = STM32MCP_ESCOOTER_CONTROL_DEBUG_PAYLOAD_LENGTH;
-//    txFrame[2] = debugID;
-//    txFrame[3] = STM32MCP_calChecksum(txFrame,3);
-//    //Insert it into the queue
-//    if(STM32MCP_queueIsEmpty())
-//    {
-//        STM32MCP_timerManager->timerStart();
-//        STM32MCP_enqueueMsg(txFrame,4);
-//        STM32MCP_uartManager->uartWrite(STM32MCP_headPtr->txMsg, STM32MCP_headPtr->size);
-//    }
-//    else
-//    {
-//        STM32MCP_enqueueMsg(txFrame, 4);
-//    }
-//}
 
 /*********************************************************************
  * @fn      STM32MCP_setTorqueRampConfiguration

@@ -315,7 +315,6 @@ extern void data_analytics_init()
     if ((batteryLow == 1) && (ADArray.batteryPercentage > BATTERY_PERCENTAGE_LH)){
         batteryLow = 0;
     }
-
 }
 
 /***********************************************************************************************************
@@ -351,7 +350,6 @@ static void data_analytics_getSNVData()
     UnitSelectDash = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 3];
     lightmode_init = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 2];
     *ptr_uptimeMinutes = (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 1];
-
 }
 
 /******************************************************************************************************
@@ -386,7 +384,6 @@ extern void data_analytics_sampling()
 
     /*****  Send speed to led display  *****/
     data_analytics_LEDSpeed();       // convert speed to the selected dashboard unit (dashSpeed) and refresh led display
-
 }
 
 /******************************************************************************************************
@@ -432,9 +429,7 @@ extern void data_analytics_Main( void )
         {
             data2snvBuffer(); // This is called to update the data in snvBuffer
         }
-
     }
-
 }
 
 /***************************************************************************************************
@@ -481,7 +476,6 @@ extern void data_analytics()
     re_Initialize();    // Re-initialize rpm, speed, batteryVoltage and batteryCurrent arrays after data analysis
 
     UDTriggerCounter++;     // When UDTriggerCounter = UDTrigger, UDArray is saved to flash memory
-
 }
 
 /***************************************************************************************************
@@ -567,6 +561,7 @@ uint16_t computeAvgSpeed(uint32_t deltaMileage_dm)
         avgRPM = round ((float) avgSpeed_100kph / 3.6 / WHEELRADIUS_CM *60 / 2 / PI_CONSTANT);
     }
     avgSpeed100kph = avgSpeed_100kph;
+
     return (avgSpeed_100kph);                                // output rounded off to nearest km/hr
 }
 
@@ -609,7 +604,6 @@ uint8_t computeAvgHeatSinkTemperature()
     }
 
     return (avgheatSinkTempOffset50_C); // output in degree celsius
-
 }
 
 /**********************************************************************************************************
@@ -711,9 +705,7 @@ void computeAvgVoltages()
             ADArray.batteryCode = SYS_NORMAL_CODE;
             batteryLowCounter = 0;
         }
-
     }
-
 }
 
 static void computeAvgCurrents()
@@ -732,7 +724,6 @@ static void computeAvgCurrents()
         avgBusCurrent_mA = round((float) sumBusCurrent_mA / DATA_ANALYSIS_POINTS);            // output in mA
         avgPhaseCurrent_mA = round((float) sumPhaseCurrent_mA / DATA_ANALYSIS_POINTS);
     }
-
 }
 
 /***************************************************************************************************
@@ -754,7 +745,7 @@ uint8_t computeBatteryPercentage()
     {
         for(uint8_t ii = 0; ii < DATA_ANALYSIS_POINTS; ii++)
         {
-            /* Calculates instantaneous percentage */
+            /* Calculates instantaneous percentage with compensation for voltage drop */
             instantBatteryLevel = ( batteryVoltage_mV[ii] - BATTERY_MIN_VOLTAGE) * 100 /((BATTERY_MAX_VOLTAGE - batteryCurrent_mA[ii] * VOLTAGE_DROP_COEFFICIENT) - BATTERY_MIN_VOLTAGE);
             if (instantBatteryLevel > 100)
             {
@@ -770,8 +761,8 @@ uint8_t computeBatteryPercentage()
         avgBatteryPercent = round((float) sumBatteryLevel / DATA_ANALYSIS_POINTS);                      // output in %
 
     }
-    return (avgBatteryPercent);
 
+    return (avgBatteryPercent);
 }
 
 /***************************************************************************************************
@@ -853,6 +844,7 @@ uint32_t computeEconomy()
         overall_economy_100Whpk = 50000;
         return overall_economy_100Whpk;
     }
+
     return (overall_economy_100Whpk);  // Unit in W-hr / km x 100    -> convert to the desired unit before displaying on App
 }
 
@@ -948,7 +940,6 @@ extern void data2snvBuffer()
     UDTriggerCounter = 0;
     sumDeltaPowerConsumed_mWh = 0;
     sumDeltaMileage_dm = 0;
-
 }
 
 /*************************************************************************************************************
@@ -1196,7 +1187,6 @@ static void data_analytics_setCharVal()
     /** current is very dynamic. It does not make much sense to make current available to the user.  **/
 //    ptr_da_charVal = (ptr_da_profileCharVal->ptr_batt_charVal->ptr_batteryCurrent);
 //    profile_setCharVal(ptr_da_charVal, BATTERY_BATTERY_CURRENT_LEN, ADArray.avgBusCurrent_mA);
-
 }
 
 

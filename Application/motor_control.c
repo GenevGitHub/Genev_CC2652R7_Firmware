@@ -10,6 +10,8 @@
  */
 #include "Hardware/gGo_device_params.h"
 #include "Hardware/STM32MCP.h"
+#include "Hardware/CMFAX103_thermal_sensor.h"
+#include "Hardware/NTCG163JF103FT.h"
 
 #include "Application/motor_control.h"
 #include "Application/periodic_communication.h"
@@ -149,7 +151,9 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     case STM32MCP_HEATSINK_TEMPERATURE_REG_ID:
         {
             uint8_t heatSinkTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
-        // **** store heatSinkTemperature_Celcius in MCUArray.heatSinkTemperature_Celcius
+            // convert resistance value to temperature
+            // heatSinkTemperature_Celcius = heatSinkTempOffset50C(heatSinkNTCResistance);
+            /*****  store heatSinkTemperature_Celcius in MCUArray.heatSinkTemperature_Celcius   */
             MCUDArray.heatSinkTempOffset50_Celcius = heatSinkTemperature_Celcius + TEMPERATUREOFFSET;  // +50
             break;
         }
@@ -177,6 +181,8 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     case STM32MCP_MOTOR_TEMPERATURE_REG_ID:
         {
             uint8_t motorTemperature_Celcius = (*((uint8_t*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
+            // convert resistance value to temperature
+            // motorTemperature_Celcius = motorTempOffset50C(motorNTCResistance);
             MCUDArray.motorTempOffset50_Celcius = motorTemperature_Celcius + TEMPERATUREOFFSET;    // +50
 
             break;
@@ -423,8 +429,6 @@ uint8_t motor_control_minSpeed()
  *
  * @return  None.
  */
-//uint16_t execute_rpm;
-//static void motor_control_setIQvalue(uint16_t allowableSpeed, uint16_t IQValue, uint8_t errorMsg)
 extern void motor_control_setIQvalue()
 {
     if(STM32MCDArray.error_msg == BRAKE_AND_THROTTLE_NORMAL)
@@ -481,7 +485,7 @@ extern void motor_control_changeSpeedMode()
  *
  * @return  None.
  */
-extern void motor_control_brakeStatusChg()
+extern void motor_control_brakeStatusChg() // check with Tim
 {
     uint8_t brake_debugID;
     if (STM32MCDArray.brake_status)
@@ -510,13 +514,15 @@ extern void motor_control_brakeStatusChg()
  *
  * @return  None.
  */
-extern void motor_control_taillightStatusChg()
+extern void motor_control_taillightStatusChg() // check with Tim
 {
     uint8_t light_sysCmdId = STM32MCDArray.tail_light_status;
 
 #ifdef MOTOR_CONNECT
 
-    STM32MCP_controlEscooterBehavior(ESCOOTER_TOGGLE_TAIL_LIGHT);
+    STM32MCP_controlEscooterBehavior(ESCOOTER_TOGGLE_TAIL_LIGHT);   // is this used?  Is this correct?
+    // toggle tail light or cut motor power?
+
 
 #endif //MOTOR_CONNECT
 

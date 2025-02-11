@@ -5,6 +5,8 @@ Application/motor_control.o: ../Application/motor_control.c \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/CMFAX103_thermal_sensor.h \
+ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/NTCG163JF103FT.h \
  C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/motor_control.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/src/inc/icall.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/hal_assert.h \
@@ -45,6 +47,10 @@ C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_param
 C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/CMFAX103_thermal_sensor.h:
+
+C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/NTCG163JF103FT.h:
 
 C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/motor_control.h:
 

@@ -20,11 +20,13 @@ extern "C"
 /*********************************************************************************************
  *  Battery Options
  *********************************************************************************************/
-#undef BATTERY_48100mV_S13P2
-#undef BATTERY_44400mV_S12P2
-#undef BATTERY_40700mV_S11P3
 #define BATTERY_40700mV_S11P2           1
-#undef  BATTERY_37000mV_S10P2
+// Battery Options
+// 1: BATTERY_48100mV_S13P2
+// 2: BATTERY_44400mV_S12P2
+// 3: BATTERY_40700mV_S11P3
+// 4: BATTERY_40700mV_S11P2
+// 5: BATTERY_37000mV_S10P2
 
 /*********************************************************************************************
  *  Battery Status Constants

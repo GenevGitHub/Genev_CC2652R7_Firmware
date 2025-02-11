@@ -41,16 +41,17 @@ extern "C"
 
 // The parameters GPT_TIME & BRAKE_AND_THROTTLE_SAMPLES control the sensitivity of the throttle input to motor output
 #define BRAKE_AND_THROTTLE_SAMPLES                                3     // 3 samples seem ideal, 5 is okay, 8 is too laggy
-
+#define NN_IQ_INCREMENTS                                          25    // 20250207 Chee
+#define THROTTLE_INCREMENT_LIMIT                                  4     // in percentage, the maximum increase of applied throttle per GPT cycle
 //Speed modes
 #define BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE                       0x00
 #define BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE                     0x01
 #define BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS                      0x02
 
 //Speed mode TORQUEIQ reduction ratio
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       60        //60%   Normal law IQ applied max = 16000, Direct law Pout = 240 W
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     70        //70%   Normal law IQ applied max = 16000, Direct law Pout = 270 W
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      80        //80%   Normal law IQ applied max = 16000, Direct law Pout = 300 W
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       50        //50%   Normal law IQ applied max = 16000, Direct law IQmax = 10000
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     65        //65%   Normal law IQ applied max = 16000, Direct law IQmax = 13200
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      80        //80%   Normal law IQ applied max = 16000, Direct law IQmax = 16000
 
 //Speed mode ramp rate (acceleration) in milliseconds
 #define BRAKE_AND_THROTTLE_RAMPRATE_AMBLE                         3000      // 4000
@@ -62,20 +63,20 @@ extern "C"
 #define THROTTLEPERCENTTHRESHOLD                                  30    //%
 
 //Throttle calibration values = value range the throttle ADC is conditioned to be within
-#define THROTTLE_ADC_CALIBRATE_H                                  2300
-#define THROTTLE_ADC_CALIBRATE_L                                  850
+#define THROTTLE_ADC_CALIBRATE_H                                  2200  // @ 3.3V
+#define THROTTLE_ADC_CALIBRATE_L                                  850   // @ 3.3V
 
 //Throttle error thresholds = values that should not be possible under nominal operation
 #define THROTTLE_ADC_THRESHOLD_H                                  2700
-#define THROTTLE_ADC_THRESHOLD_L                                  700
+#define THROTTLE_ADC_THRESHOLD_L                                  500
 
 //Brake calibration values = value range the Brake ADC is conditioned to be within
-#define BRAKE_ADC_CALIBRATE_H                                     2300
-#define BRAKE_ADC_CALIBRATE_L                                     830
+#define BRAKE_ADC_CALIBRATE_H                                     2200  // @ 3.3V
+#define BRAKE_ADC_CALIBRATE_L                                     830   // @ 3.3V
 
 //Brake error thresholds = values that should not be possible under nominal operation
 #define BRAKE_ADC_THRESHOLD_H                                     2700
-#define BRAKE_ADC_THRESHOLD_L                                     700
+#define BRAKE_ADC_THRESHOLD_L                                     500
 
 //Error message
 #define BRAKE_AND_THROTTLE_NORMAL                                 0x00

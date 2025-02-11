@@ -260,11 +260,11 @@ extern "C"
 #define ESCOOTER_ERROR_REPORT                                                                0x01
 #define ESCOOTER_BRAKE_PRESS                                                                 0x03
 #define ESCOOTER_BRAKE_RELEASE                                                               0x04
-#define ESCOOTER_TOGGLE_TAIL_LIGHT                                                           0x05
+#define ESCOOTER_TOGGLE_TAIL_LIGHT                                                           0x05 // check with Tim.  where is tail light ON
 #define ESCOOTER_TAIL_LIGHT_OFF                                                              0x06
 #define ESCOOTER_POWER_OFF                                                                   0x07
 #define ESCOOTER_GET_SERIAL_NUM                                                              0x08
-////system command ID
+////system command ID // check with Tim
 //#define STM32MCP_POWER_OFF                                                                   0x00
 //#define STM32MCP_POWER_ON                                                                    0x01   //Maybe it's not necessary (?) Since we wake up the controller by GPIO EXTI
 //#define STM32MCP_HEARTBEAT                                                                   0x02
@@ -468,8 +468,6 @@ extern void STM32MCP_getRevupDataFrame(uint8_t motorID, uint8_t stage);
 extern void STM32MCP_setRevupDataFrame(uint8_t motorID, uint8_t stage, int32_t finalSpeed, int16_t finalTorque, uint16_t duration);
 extern void STM32MCP_setCurrentReferencesFrame(uint8_t motorID, int16_t torqueReference, int16_t fluxReference);
 extern void STM32MCP_controlEscooterBehavior(uint8_t sysCmdId);
-//extern void STM32MCP_setSystemControlConfigFrame(uint8_t sysCmdId);
-//extern void STM32MCP_setEscooterControlDebugFrame(uint8_t debugID);
 
 /*==========================================================E-SCOOTER Control Functions ==============================================================*/
 extern void STM32MCP_setSpeedModeConfiguration(int16_t torqueIQ, int16_t max_speed, uint16_t ramp);

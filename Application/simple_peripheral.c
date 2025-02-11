@@ -387,8 +387,7 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
 /*********************************************************************
  * PROFILE CALLBACKS
  */
-
-// GAP Bond Manager Callbacks
+//// GAP Bond Manager Callbacks
 //static gapBondCBs_t SimplePeripheral_BondMgrCBs =
 //{
 //  SimplePeripheral_passcodeCb,       // Passcode callback
@@ -400,6 +399,7 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
 //{
 //  SimplePeripheral_charValueChangeCB // Simple GATT Characteristic value change callback
 //};
+
 /****** Dashboard Profile Callbacks    *****/
 static DashboardCBs_t DashboardCBs =
 {
@@ -745,18 +745,18 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       /*  Then, RESET NVS if the following conditions (RESET CODES) are not met */
       if ((snv_internal_80[SNV_BUFFER_SIZE - 6] != RESETCODE01) && (snv_internal_80[SNV_BUFFER_SIZE - 5] != RESETCODE02))
       {
-#ifdef RESET_NVS
+#ifdef NEW_RESET_NVS        // defined in simple peripheral.h
           snv_internal_resetSNVdata();      // options available: (1) zero reset or (2) dummy reset
           snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
           snv_reset = 1;    // if snv_reset = 1, it means the non-volatile storage was reset by the Firmware.
-#endif // RESET_NVS
+#endif // NEW_RESET_NVS
       }
 
-      /* Override data if OVERRIDE_NVS is defined */
-#ifdef OVERRIDE_NVS
+      /* Override data if HARD_OVERRIDE_NVS is defined */
+#ifdef HARD_OVERRIDE_NVS    // defined in simple peripheral.h
       snv_internal_resetSNVdata();      // option available for zero reset or dummy reset
       snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
-#endif // OVERRIDE_NVS
+#endif // HARD_OVERRIDE_NVS
 
   /****    read memory again after reset     ****/
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);

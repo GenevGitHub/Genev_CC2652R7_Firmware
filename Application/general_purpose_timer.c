@@ -260,7 +260,6 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               data_analytics();
               data2snvBuffer();
               gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
-              Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
               /*********************************************************************************
                * When instructed to Power Off and after breaking out of FOR loop,
                *    the programme exits and reaches here.
@@ -272,6 +271,8 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               led_display_deinit();       /* turns off led display */
               STM32MCP_toggleCommunication();
               STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
+
+              Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
 
               break;      // break out of GPT infinite FOR loop
           }

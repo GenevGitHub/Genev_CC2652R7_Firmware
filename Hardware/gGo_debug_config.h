@@ -41,7 +41,7 @@ extern "C"
 /** Note: If MOTOR_0RPM_START_MODE is NOT defined -> Minimum IQ speed, i.e. REG_MINP_RPM, is active
  *          otherwise, minimum IQ speed is zero
  ***/
-//#define MOTOR_0RPM_START_MODE          1
+//#define MOTOR_0RPM_START_MODE          1  // Start motor at 0 rpm
 
 
 #ifdef _cplusplus
