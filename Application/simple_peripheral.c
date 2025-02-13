@@ -357,7 +357,6 @@ static void SimplePeripheral_controllerCB(uint8_t paramID);
 
 static status_t SimplePeripheral_enqueueMsg(uint8_t event, void *pData);
 
-
 static void SimplePeripheral_processCmdCompleteEvt(hciEvt_CmdComplete_t *pMsg);
 static void SimplePeripheral_initPHYRSSIArray(void);
 static void SimplePeripheral_updatePHYStat(uint16_t eventCode, uint8_t *pMsg);
@@ -388,7 +387,6 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
 /*********************************************************************
  * PROFILE CALLBACKS
  */
-
 // GAP Bond Manager Callbacks
 //static gapBondCBs_t SimplePeripheral_BondMgrCBs =
 //{
@@ -401,6 +399,7 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
 //{
 //  SimplePeripheral_charValueChangeCB // Simple GATT Characteristic value change callback
 //};
+
 /****** Dashboard Profile Callbacks    *****/
 static DashboardCBs_t DashboardCBs =
 {
@@ -690,16 +689,18 @@ static void SimplePeripheral_init(void)
  *
  * @param   a0, a1 - not used.
  */
-uint8_t      sp_initComplete_flag = GPT_INACTIVE;
+static uint8_t             sp_initComplete_flag = GPT_INACTIVE;
 static bool         *ptr_sp_POWER_ON;       // register for POWER_ON status
 static sysFatalError_t *ptr_sysFatalError;
 static uint8_t      *ptr_snvWriteFlag;
-uint8_t     snv_writeComplete_flag = 0;
+static uint8_t             snv_writeComplete_flag = 0;
 uint8_t            snv_reset = 0;   // if snv_reset = 0, it means the non-volatile storage was NOT reset by the Firmware.
-uint8_t     sp_counter = 0;
+uint8_t             sp_counter = 0;
 static uint8_t     sp_i2cOpenStatus;
 static bStatus_t   check_enableStatus;
 static uint8_t     *ptr_sp_dashboardErrorCodePriority;
+
+static uint8_t      speedmode_lock_status = 0;  //Chee added 20250110
 
 uint8_t how_boot = 0xFF;
 
@@ -717,6 +718,8 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       ptrUDBuffer = snv_internal_setReadBuffer(&snv_internal_80);   // pass the pointer to snv_internal_80 to snv_internal and get the pointer to UDArray in return
 
       data_analytics_setSNVBufferRegister(&snv_internal_80);        // pass the pointer to snv_internal_80 to data_analytics
+
+      mpb_speedmodeLockStatusRegister(&speedmode_lock_status);     // pass the pointer to speedmode_lock_status to MPB   //Chee added 20250110
 
       ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to powerOn in return
 
@@ -742,18 +745,18 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
       /*  Then, RESET NVS if the following conditions (RESET CODES) are not met */
       if ((snv_internal_80[SNV_BUFFER_SIZE - 6] != RESETCODE01) && (snv_internal_80[SNV_BUFFER_SIZE - 5] != RESETCODE02))
       {
-#ifdef RESET_NVS
+#ifdef NEW_RESET_NVS        // defined in simple peripheral.h
           snv_internal_resetSNVdata();      // options available: (1) zero reset or (2) dummy reset
           snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
           snv_reset = 1;    // if snv_reset = 1, it means the non-volatile storage was reset by the Firmware.
-#endif // RESET_NVS
+#endif // NEW_RESET_NVS
       }
 
-      /* Override data if OVERRIDE_NVS is defined */
-#ifdef OVERRIDE_NVS
+      /* Override data if HARD_OVERRIDE_NVS is defined */
+#ifdef HARD_OVERRIDE_NVS    // defined in simple peripheral.h
       snv_internal_resetSNVdata();      // option available for zero reset or dummy reset
       snv_status = osal_snv_write(SNV_NV_ID80, sizeof(snv_internal_80), ptrUDBuffer);
-#endif // OVERRIDE_NVS
+#endif // HARD_OVERRIDE_NVS
 
   /****    read memory again after reset     ****/
       snv_status = osal_snv_read(SNV_NV_ID80, sizeof(snv_internal_80), (uint32_t *)snv_internal_80);
@@ -1436,9 +1439,24 @@ static void SimplePeripheral_dashboardCB(uint8_t paramID)
 {
     switch(paramID)
     {
+    // whenever user tabs the light mode icon on the mobile app, SimplePeripheral_dashboardCB will be triggered
+    // the dashboard is instructed here to toggle the light mode by calling lights_lightModeChange()
     case DASHBOARD_LIGHT_MODE: // whenever user tabs the light mode icon on the mobile app, SimplePeripheral_dashboardCB will toggle the light mode by calling lightControl_change()
         {
             led_display_setLightMode( lights_lightModeChange() );               // set and update the light mode indicator on dashboard
+            break;
+        }
+        // whenever user tabs the speed mode icon on the mobile app, SimplePeripheral_dashboardCB will be triggered
+        // the dashboard is instructed here to toggle between lock and unlock of the speed mode
+    case DASHBOARD_SPEED_MODE:
+        {
+            if (!speedmode_lock_status){  //Chee added 20250110
+                speedmode_lock_status = 1;  //Chee added 20250110
+            }  //Chee added 20250110
+            else{  //Chee added 20250110
+                speedmode_lock_status = 0;  //Chee added 20250110
+            }  //Chee added 20250110
+            bat_dashboard_speedmode_service();
             break;
         }
     default:
@@ -1480,11 +1498,18 @@ static void SimplePeripheral_processCharValueChangeEvt(uint8_t paramId)
   {
       /* Whenever a new value is written to DASHBOARD LIGHT MODE on the APP
        * this processCharValueChangeEvt reads the new value on the App */
-    case DASHBOARD_LIGHT_MODE:
-      Dashboard_GetParameter(DASHBOARD_LIGHT_MODE, &newValue);
-
-      break;
-
+  case DASHBOARD_LIGHT_MODE:
+  {
+//      Dashboard_GetParameter(DASHBOARD_LIGHT_MODE, &newValue); // the value is not relevant
+    break;
+  }
+  /* Whenever a new value is written to DASHBOARD SPEED MODE on the APP
+   * this processCharValueChangeEvt is triggered to read the new value on the App */
+  case DASHBOARD_SPEED_MODE:
+  {
+//      Dashboard_GetParameter(DASHBOARD_SPEED_MODE, &newValue); // the value is not relevant
+    break;
+    }
     default:
       // should not reach here!
       break;
@@ -1527,8 +1552,6 @@ static void SimplePeripheral_performPeriodicTask(void)
       Controller_SetParameter(CONTROLLER_MOTOR_SPEED, CONTROLLER_MOTOR_SPEED_LEN, arrayToCopy2);
     }
 
-  //if (sp_periodic_evt_counter2 == SP_PERIODIC_EVT_COUNT2)   // Notification is performed once every 4th sp_periodic_evt_counts
-  //{
     if (Dashboard_GetParameter(DASHBOARD_LIGHT_STATUS, arrayToCopy1) == SUCCESS)
     {
       Dashboard_SetParameter(DASHBOARD_LIGHT_STATUS, DASHBOARD_LIGHT_STATUS_LEN, arrayToCopy1);
@@ -1538,7 +1561,6 @@ static void SimplePeripheral_performPeriodicTask(void)
     {
       Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
     }
-  //}
 
 /******** Speed and rpm Notification - Refresh every 7 x SP_PERIODIC_EVT_TIME **********/
 if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is performed once every 4th sp_periodic_evt_counts

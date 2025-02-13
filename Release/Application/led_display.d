@@ -101,7 +101,7 @@ Application/led_display.o: ../Application/led_display.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/rom_jt.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/led_display.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/led_display.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/xdc/std.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Queue.h \
@@ -116,9 +116,9 @@ Application/led_display.o: ../Application/led_display.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory_defs.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/IS31FL3236A.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/IS31FL3236A.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/display/Display.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/i2c/I2CCC26XX.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/Power.h \
@@ -350,7 +350,7 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/led_display.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/led_display.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h:
 
@@ -380,11 +380,11 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/IS31FL3236A.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/IS31FL3236A.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/display/Display.h:
 

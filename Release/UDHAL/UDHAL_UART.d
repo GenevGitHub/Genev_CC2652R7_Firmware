@@ -50,11 +50,11 @@ UDHAL/UDHAL_UART.o: ../UDHAL/UDHAL_UART.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/utils/RingBuf.h \
  syscfg/ti_drivers_config.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/I2C.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_UART.h
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/STM32MCP.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_debug_config.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/UDHAL/UDHAL_UART.h
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/UART2.h:
 
@@ -154,12 +154,12 @@ syscfg/ti_drivers_config.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/drivers/I2C.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/STM32MCP.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/STM32MCP.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_debug_config.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/UDHAL/UDHAL_UART.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/UDHAL/UDHAL_UART.h:

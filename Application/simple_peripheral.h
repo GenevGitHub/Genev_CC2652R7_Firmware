@@ -77,16 +77,22 @@ extern "C"
 #define SP_TASK_STACK_SIZE                   1024
 #endif
 
-/***** when RESET_NVS is defined, the firmware will reset snv_internal_80 to the define reset values at every startup ***/
-#define RESET_NVS                            1
-//#undef RESET_NVS
-//#define OVERRIDE_NVS                         1
-#undef OVERRIDE_NVS
+/***** when NEW_RESET_NVS is defined, the firmware will reset snv_internal_80 to the define reset values at every startup ***/
+#define NEW_RESET_NVS                            1
+#ifndef NEW_RESET_NVS
+//#undef NEW_RESET_NVS
+#endif // NEW_NEW_RESET_NVS
+
+//#define HARD_OVERRIDE_NVS                         1      // hard reset of snv data
+#ifndef HARD_OVERRIDE_NVS
+#undef HARD_OVERRIDE_NVS
+#endif // HARD_OVERRIDE_NVS
+
 #define ZERO_NVS                             1      // when defined -> reset to zeros and override check code
-//#undef ZERO_NVS
 #ifndef ZERO_NVS
+#undef ZERO_NVS
 #define DUMMY_NVS                            1    // when ZERO_NVS not defined -> reset to dummy data with override check code
-#endif
+#endif // ZERO_NVS
 
 #define SP_ADVERTISING_TIMEOUT               2000  // each tick is in 10 ms, hence 3000 x 10 ms = 30 seconds
 

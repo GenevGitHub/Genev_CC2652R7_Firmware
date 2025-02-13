@@ -20,11 +20,13 @@ extern "C"
 /*********************************************************************************************
  *  Battery Options
  *********************************************************************************************/
-#undef BATTERY_48100mV_S13P2
-#undef BATTERY_44400mV_S12P2
-#undef BATTERY_40700mV_S11P3
 #define BATTERY_40700mV_S11P2           1
-#undef  BATTERY_37000mV_S10P2
+// Battery Options
+// 1: BATTERY_48100mV_S13P2
+// 2: BATTERY_44400mV_S12P2
+// 3: BATTERY_40700mV_S11P3
+// 4: BATTERY_40700mV_S11P2
+// 5: BATTERY_37000mV_S10P2
 
 /*********************************************************************************************
  *  Battery Status Constants
@@ -51,6 +53,7 @@ extern "C"
 #define LEVEL23                         46020           // equivalent to 45%
 #define LEVEL12                         43368           // equivalent to 28%
 #define LEVEL01                         39000           // equivalent to  0%
+#define LEVEL00                         36000
 #endif // BATTERY_S13P2
 
 /* Battery specification parameters     44.4V */
@@ -67,6 +70,7 @@ extern "C"
 #define LEVEL23                         42480           // equivalent to 45%
 #define LEVEL12                         40032           // equivalent to 28%
 #define LEVEL01                         36000           // equivalent to  0%
+#define LEVEL00                         33000
 #endif // BATTERY_S12P2
 
 
@@ -84,6 +88,7 @@ extern "C"
 #define LEVEL23                         38940           // equivalent to 45%
 #define LEVEL12                         36696           // equivalent to 28%
 #define LEVEL01                         33000           // equivalent to  0%
+#define LEVEL00                         30000
 #endif // BATTERY_S11P2
 
 
@@ -101,6 +106,7 @@ extern "C"
 #define LEVEL23                         38940           // equivalent to 45%
 #define LEVEL12                         36696           // equivalent to 28%
 #define LEVEL01                         33000           // equivalent to  0%
+#define LEVEL00                         30000
 #endif // BATTERY_S11P2
 
 /* Battery specification parameters     37.0V */
@@ -117,6 +123,7 @@ extern "C"
 #define LEVEL23                         35400           // equivalent to 45%
 #define LEVEL12                         33360           // equivalent to 28%
 #define LEVEL01                         30000           // equivalent to  0%
+#define LEVEL00                         27000
 #endif // BATTERY_S10P2
 
 #define VOLTAGE_DROP_COEFFICIENT        0.269           // for Cest Power 37V 9.6Ah Battery pack Voltage drop empirical coefficient

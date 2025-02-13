@@ -50,6 +50,8 @@ static mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 static uint8_t      mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
 static uint8_t      *ptr_dashboardErrorCodePriority;
+static uint8_t      *ptr_speedmodeLockStatus;  //Chee added 20250110
+static uint8_t      *ptr_mpb_speedmodeIsLocked;  //Chee added 20250110
 
 void mpb_execute_event(uint8_t messageID);
 void mpb_taskFxn(UArg a0, UArg a1);
@@ -64,11 +66,15 @@ void mpb_init();
  *
  * @return  pointer to POWER_ON
  */
-void* mpb_powerOnRegister(void)
+extern void* mpb_powerOnRegister(void)
 {
     return (&POWER_ON);
 }
 
+extern void mpb_speedmodeLockStatusRegister(uint8_t *ptrSpeedmodeLockStatus)  //Chee added 20250110
+{  //Chee added 20250110
+    ptr_speedmodeLockStatus = ptrSpeedmodeLockStatus;  //Chee added 20250110
+}  //Chee added 20250110
 
 /*********************************************************************
  * @fn      mpb_registeropcode
@@ -149,6 +155,7 @@ void mpb_init()
     gpt_powerOnRegister(&POWER_ON);
     pot_powerOnRegister(&POWER_ON);
     da_powerOnRegister(&POWER_ON);
+    ptr_mpb_speedmodeIsLocked = led_display_speedmodeIsLockRegister();  //Chee added 20250110
     buzzer_buzzerStatusRegister(&mpb_buzzerStatus);
     ptr_dashunit = data_analytics_ptrUnitSelectDash();
     ptr_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
@@ -227,27 +234,31 @@ void mpb_processTimerOv()
 {
     // TOGGLE POWER ON/OFF (1 long press)
     if (risingEdgeCount == 0 && fallingEdgeCount == 1){
-        buttonEvent = 0x01;
+        buttonEvent = MPB_SINGLE_LONG_PRESS_MSG;
     }
     // Change Light Mode (1 short press)
     else if (risingEdgeCount == 1 && fallingEdgeCount == 1){
-        buttonEvent = 0x02;                             //callback -> lightControl_change();
+        buttonEvent = MPB_SINGLE_SHORT_PRESS_MSG;                             //callback -> lightControl_change();
     }
     // TOGGLE BLE Advertising (1 short + 1 long presses)
     else if (risingEdgeCount == 1 && fallingEdgeCount == 2){
-        buttonEvent = 0x03;
+        buttonEvent = MPB_SINGLE_SHORT_LONG_PRESS_MSG;
     }
     // CHANGE SPEED MODE (2 short presses)
     else if (risingEdgeCount == 2 && fallingEdgeCount == 2){
-        buttonEvent = 0x04;
+        buttonEvent = MPB_DOUBLE_SHORT_PRESS_MSG;
     }
     // TOGGLE UNITS METRIC/IMPERIAL (3 short presses)
     else if (risingEdgeCount == 3 && fallingEdgeCount == 3){
-        buttonEvent = 0x05;
+        buttonEvent = MPB_TREBLE_SHORT_PRESS_MSG;
     }
     // TOGGLE CONTROL LAW (4 short + 1 long presses) - enable normal law override in the event of normal law malfunction / mis-behave
     else if (risingEdgeCount == 4 && fallingEdgeCount == 5){
-        buttonEvent = 0x06;
+        buttonEvent = MPB_QUADRUPLE_SHORT_PRESS_MSG;
+    }
+    // TOGGLE CONTROL LAW (2 short + 1 long presses) - toggle speed mode lock and unlock
+    else if (risingEdgeCount == 2 && fallingEdgeCount == 3){
+        buttonEvent = MPB_DOUBLE_SHORT_LONG_PRESS_MSG;
     }
     // DO NOTHING
     else
@@ -319,6 +330,7 @@ void mpb_execute_event(uint8_t messageID)
             /****  toggle Power ON/OFF or Enter/Exit Sleep Mode ****/
             /**** if Powering On -> switch to Power Off ****/
             if(POWER_ON)
+//            if((POWER_ON) && (brake_and_throttle_getThrottlePercent() < 3))
             {
                 POWER_ON = 0;
                 /*  gracefully disable / exit relevant tasks and put system in sleep mode  */
@@ -360,8 +372,15 @@ void mpb_execute_event(uint8_t messageID)
         }
     case MPB_DOUBLE_SHORT_PRESS_MSG:      // case = 0x04 - toggle speed modes
         {
-            /**** toggle speed mode ****/
-            brake_and_throttle_toggleSpeedMode();
+            // if not locked
+            if (!(*ptr_speedmodeLockStatus)){  //Chee added 20250110
+                /**** toggle speed mode ****/
+                brake_and_throttle_toggleSpeedMode();
+            }  //Chee added 20250110
+            // if locked -> led_display "LC" for 0.5 seconds
+            else {  //Chee added 20250110
+                *ptr_mpb_speedmodeIsLocked = 1; // led display "LC" for 0.5 seconds  //Chee added 20250110
+            }  //Chee added 20250110
             break;
         }
     case MPB_TREBLE_SHORT_PRESS_MSG:      // case = 0x05 - toggle units
@@ -396,6 +415,15 @@ void mpb_execute_event(uint8_t messageID)
             /**** update control law change speed mode parameters ****/
             brake_and_throttle_getSpeedModeParams();
             break;
+        }
+    case MPB_DOUBLE_SHORT_LONG_PRESS_MSG:   // lock and unlock speed mode
+        {
+            if (!(*ptr_speedmodeLockStatus)) {  //Chee added 20250110
+                (*ptr_speedmodeLockStatus) = 1;  //Chee added 20250110
+            }  //Chee added 20250110
+            else{  //Chee added 20250110
+                (*ptr_speedmodeLockStatus) = 0;  //Chee added 20250110
+            }  //Chee added 20250110
         }
     default:
         {    // case 0x00 for all unrecognized cases

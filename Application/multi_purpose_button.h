@@ -51,13 +51,15 @@ extern "C"
 #define MPB_EXECUTING_STATE              0x01
 
 //constants for Multi-Purpose Button processed messageID
-#define MPB_SINGLE_LONG_PRESS_MSG        0x01
-#define MPB_SINGLE_SHORT_PRESS_MSG       0x02
-#define MPB_SINGLE_SHORT_LONG_PRESS_MSG  0x03
-#define MPB_DOUBLE_SHORT_PRESS_MSG       0x04
-#define MPB_TREBLE_SHORT_PRESS_MSG       0x05
-#define MPB_QUADRUPLE_SHORT_PRESS_MSG    0x06
-#define MPB_UNDEFINED_MSG                0x00
+#define MPB_SINGLE_LONG_PRESS_MSG         0x01
+#define MPB_SINGLE_SHORT_PRESS_MSG        0x02
+#define MPB_SINGLE_SHORT_LONG_PRESS_MSG   0x03
+#define MPB_DOUBLE_SHORT_PRESS_MSG        0x04
+#define MPB_TREBLE_SHORT_PRESS_MSG        0x05
+#define MPB_QUADRUPLE_SHORT_PRESS_MSG     0x06
+#define  MPB_DOUBLE_SHORT_LONG_PRESS_MSG  0x07
+#define  MPB_TREBLE_SHORT_LONG_PRESS_MSG  0x08
+#define MPB_UNDEFINED_MSG                 0x00
 
 /*********************************************************************
  * MACROS
@@ -103,6 +105,7 @@ extern void mpb_processTimerOv();
 extern void mpb_bootAlert(uint16_t duration, uint8_t bootcase);
 extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);
 extern void *mpb_powerOnRegister(void);
+extern void mpb_speedmodeLockStatusRegister(uint8_t *ptrSpeedmodeLockStatus);
 
 #ifdef _cplusplus
 }

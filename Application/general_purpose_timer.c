@@ -71,10 +71,10 @@ extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
  *
  * @return  None
  */
-extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag)
-{
-    ptr_gpt_snvWriteComplete_flag = ptr_snvWriteComplete_flag;
-}
+//extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag)
+//{
+//    ptr_gpt_snvWriteComplete_flag = ptr_snvWriteComplete_flag;
+//}
 
 /*********************************************************************
  * @fn      gpt_powerOnRegister
@@ -134,8 +134,8 @@ uint8_t     pinConfig = 0xFF;
 uint8_t     gpt_buttonStatus = 0;
 uint8_t     gpt_ii = 0;
 uint8_t     gpt_snvWriteFlag = 0;
-uint8_t     N_data_analytics;
-
+uint8_t     N_data_analytics = 0;
+uint8_t     N_2 = 0;
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 {
   /* Initialize application */
@@ -157,7 +157,12 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           /************** Read rpm every GPT_TIME *************************/
           if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
           {
+              /*Measures the Motor's speed --> calculates the average RPM*/
               periodic_communication_MCUSamplingRPM();
+              /*Checks UART stability*/
+              motor_control_uartFaultCheck();
+              /*Checks motor controller faults*/
+              STM32MCP_controlEscooterBehavior(ESCOOTER_ERROR_REPORT);
           }
 
           /* Motor Control Section */
@@ -212,17 +217,18 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               if (!(ptr_sysFatalError->I2Cfailure))
               {
                   lights_ALSFxn();                  // ALS is command using i2c
+                  tail_lightControl();              // Controls tail light
                   led_display_changeDashSpeed();    // led display is command using i2c
               }
           }
           /***************************************************************
            * Executes at every 2 intervals
            *
-           * if GPT_TIME = 0.100 seconds, execution time = 2 x 0.100 seconds = 0.200 seconds
-           * LED display and buzzer are refreshed/executed every 0.200 seconds
+           * if GPT_TIME = 0.100 seconds, EXECUTION_INTERVAL_2 = 0.200 seconds, then N_2 = 2
+           * The following loop is refreshed/executed every 2 loops
            *
            **************************************************************/
-          if (gpt_counter % 2 == 0)     // execute only when gpt_counter is an even number
+          if (gpt_counter % N_2 == 0)     // execute only when gpt_counter is an even number
           {
               gpt_counter2++;
 
@@ -256,6 +262,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 //          if (gpt_PWR_OFF() == true)  //or alternatively:
           if (!(*ptr_gpt_POWER_ON))
           {
+              bat_zeroIQ();  /* Send IQ = 0 to Motor controller  */
               data_analytics();
               data2snvBuffer();
               gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
@@ -264,13 +271,17 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                *    the programme exits and reaches here.
                *    The following codes and power off procedure are executed
                ***************************************************************************************/
-
               lights_setLightOff();       /* Ensure lights are turned off */
               // Add: STM32 command turn off tail-light and auxiliary light
               led_display_setAllOff();    /* turns off all led lights */
-//              led_display_deinit();       /* turns off led display */
+              STM32MCP_clearMsg();
+              led_display_deinit();       /* turns off led display */
               STM32MCP_toggleCommunication();
               STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
+              STM32MCP_clearMsg();
+
+              Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
+
               break;      // break out of GPT infinite FOR loop
           }
       }
@@ -290,29 +301,9 @@ void GeneralPurposeTimer_init( void )
     ptr_sysFatalError = UDHAL_sysFatalErrorRegister();
     ptr_gpt_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;
+    N_2 = EXECUTION_INTERVAL_2 / GPT_TIME;
     periodic_communication_init();
 }
-
-/*********************************************************************
- * @fn      gpt_PWR_OFF
- *
- * @brief   Process whether POWER OFF is true or false
- *
- * @return  return true if *ptr_gpt_POWER_ON = 0 (OFF)
- *          return false if *ptr_gpt_POWER_ON = 1 (ON)
- **********************************************************************/
-//bool gpt_PWR_OFF()
-//{
-//    if(*ptr_gpt_POWER_ON == 0)
-//    {
-//        return (true);
-//    }
-//    else if(*ptr_gpt_POWER_ON == 1)
-//    {
-//        return (false);
-//    }
-//    return (false);
-//}
 
 /*********************************************************************
  * @fn      gpt_snvWriteFlageRegister

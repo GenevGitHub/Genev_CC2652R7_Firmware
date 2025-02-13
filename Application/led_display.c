@@ -46,6 +46,7 @@ uint8_t battery_bar1_status;
 uint8_t BLE_flash_status;
 uint8_t led_controlLaw;
 
+static uint8_t      speedmodeIsLocked = 0;  //Chee added 20250110
 
 uint8_t led_allOn = 0;
 
@@ -712,8 +713,6 @@ void Brightness (uint8_t status_buf, uint8_t brightness_buf)
         IS31FL3236A_Digit_2_PIN_29(status_buf,brightness_buf);
         IS31FL3236A_Digit_2_PIN_13(status_buf,brightness_buf);
 }
-
-
 
 void IS31FL3236A_Digit_1_Number_A (uint8_t status_buf, uint8_t brightness_buf){
        IS31FL3236A_Digit_1_PIN_44( status_buf,brightness_buf);
@@ -1463,24 +1462,33 @@ void led_display_setDashSpeed(uint8_t dashSpeed){
 uint8_t ledSpeed_counter = 0;  // added to alternate between speed and Brake error code
 uint8_t brake_error_on = 0; // added
 uint8_t ledSpeed_maxCount = 12; // added
+uint8_t led_LC_on = 0; // added
 void led_display_changeDashSpeed()
 {
     if (led_error_code_old >= BRAKE_ERROR_PRIORITY) {
         if ((led_error_code_old > BRAKE_ERROR_PRIORITY) || (!brake_error_on)) {// added to alternate between speed and Brake error code
-            if(ledSpeed_old != ledSpeed || ledBrightness != ledBrightness_old) {
-                int dashspeed_ones;
-                int dashspeed_tens;
-                dashspeed_ones = ledSpeed % 10;
-                dashspeed_tens = ledSpeed / 10;
-                if(dashspeed_tens == 0){
-                    IS31FL3236A_Digit_1_off(I_OUT);
+            if (!speedmodeIsLocked){  //Chee added 20250110
+                if(ledSpeed_old != ledSpeed || ledBrightness != ledBrightness_old || led_LC_on) {
+                    int dashspeed_ones;
+                    int dashspeed_tens;
+                    dashspeed_ones = ledSpeed % 10;
+                    dashspeed_tens = ledSpeed / 10;
+                    if(dashspeed_tens == 0){
+                        IS31FL3236A_Digit_1_off(I_OUT);
+                    }
+                    else {
+                        functionTable[35 + dashspeed_tens](I_OUT,ledBrightness);
+                    }
+                    functionTable[45 + dashspeed_ones](I_OUT,ledBrightness);
+                    ledSpeed_old = ledSpeed;
+                    led_LC_on = 0; // added
                 }
-                else {
-                    functionTable[35 + dashspeed_tens](I_OUT,ledBrightness);
-                }
-                functionTable[45 + dashspeed_ones](I_OUT,ledBrightness);
-                ledSpeed_old = ledSpeed;
-            }
+            }  //Chee added 20250110
+            else {  //Chee added 20250110
+                led_display_speedModeLockStatus();  //Chee added 20250110
+                speedmodeIsLocked = 0;  //Chee added 20250110
+                led_LC_on = 1;          // Chee added 20250110
+            }  //Chee added 20250110
         }
         else if ((led_error_code_old == BRAKE_ERROR_PRIORITY) && (brake_error_on)) {// added to alternate between speed and Brake error code
             functionTable[35](I_OUT,ledBrightness);//0 // added
@@ -1731,7 +1739,7 @@ void led_display_changeBLE(uint32_t eventcounter)
         ledBLEStatus = 0;
     }
 
-    if ((ledBLEStatus == 2) && (eventcounter % 3 == 0))
+    if ((ledBLEStatus == 2) && (eventcounter % 3 == 0))  // (eventcounter % 3 == 0) determines the frequency of flashing
     {
         if(BLE_flash_status == 1)
                 {
@@ -1842,7 +1850,7 @@ uint8_t led_display_ErrorDisplay()
             functionTable[38](I_OUT,ledBrightness);//3
             functionTable[58](I_OUT,ledBrightness);//C
         }
-        else if(led_error_priority == DASH_COMM_ERROR_PRIORITY) // Dash-board communication error code = 0A
+        else if(led_error_priority == DASH_COMM_ERROR_PRIORITY) // Dashboard and MCU communication error code = 0A
         {
             functionTable[35](I_OUT,ledBrightness);//0
             functionTable[56](I_OUT,ledBrightness);//A
@@ -1967,6 +1975,20 @@ void led_display_changeLightStatus()
 }
 
 /*********************************************************************
+ * @fn      led_display_speedModeLockStatus
+ *
+ * @brief   Display "LC" on LED display
+ *
+ * @param   none
+ *
+ * @return  none
+ *********************************************************************/
+static void led_display_speedModeLockStatus()  //Chee added 20250110
+{  //Chee added 20250110
+    functionTable[67](I_OUT,ledBrightness);//L //   //Chee added 20250110
+    functionTable[58](I_OUT,ledBrightness);//C //   //Chee added 20250110
+}
+/*********************************************************************
  * @fn      led_display_registerLedDisplay
  *
  * @brief   Register for LED display
@@ -2027,3 +2049,16 @@ extern void led_display_advertiseFlagRegister(uint8_t *ptr_advertiseFlag)
     ptr_led_advertiseFlag = ptr_advertiseFlag;
 }
 
+/*********************************************************************
+ * @fn      led_display_speedmodeIsLockRegister
+ *
+ * @brief   Register for speedmodeIsLock
+ *
+ * @param   none
+ *
+ * @return  speedmodeIsLocked
+ *********************************************************************/
+extern void* led_display_speedmodeIsLockRegister()  //Chee added 20250110
+{  //Chee added 20250110
+    return (&speedmodeIsLocked);  //Chee added 20250110
+}  //Chee added 20250110

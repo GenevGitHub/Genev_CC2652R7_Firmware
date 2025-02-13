@@ -78,6 +78,9 @@ extern void motor_control_setIQvalue();
 extern void motor_control_changeSpeedMode();
 extern void motor_control_brakeStatusChg();
 extern void motor_control_taillightStatusChg();
+extern void motor_control_taillightControl(uint8_t lightStatus);
+extern void motor_control_taillightOff();
+extern void motor_control_uartFaultCheck();
 
 /*********************************************************************
 *********************************************************************/

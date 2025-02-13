@@ -118,9 +118,9 @@ Profiles/dashboard_profile.o: ../Profiles/dashboard_profile.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/rom_jt.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Profiles/dashboard_profile.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/src/inc/icall.h:
 
@@ -356,8 +356,8 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Profiles/dashboard_profile.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h:

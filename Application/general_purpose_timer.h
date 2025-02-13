@@ -43,16 +43,16 @@ extern "C"
 #endif
 
 /** GPT_TIME is the smallest time interval unit in General Purpose Timer **/
-#define GPT_TIME                    100      // in milli-seconds
+#define GPT_TIME                    20      // in milli-seconds
 #define GPT_INACTIVE                0
 #define GPT_ACTIVE                  1
-
+#define EXECUTION_INTERVAL_2        140 // milliseconds. Must be multiple of GPT_TIME
 /*********************************************************************
  * FUNCTIONS
  *********************************************************************/
 extern void GeneralPurposeTimer_createTask(void);
 extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag);
-extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag);
+//extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag);
 extern void gpt_powerOnRegister(bool *ptrpowerOn);
 extern void gpt_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag);
 extern void* gpt_snvWriteFlageRegister();

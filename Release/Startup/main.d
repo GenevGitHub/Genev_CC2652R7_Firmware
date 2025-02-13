@@ -65,9 +65,9 @@ Startup/main.o: ../Startup/main.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/hal/src/inc/hal_defs.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/simple_peripheral.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/devices/cc13x2x7_cc26x2x7/inc/hw_memmap.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/ble_user_config.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/src/inc/icall_user_config.h \
@@ -144,16 +144,16 @@ Startup/main.o: ../Startup/main.c \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/rom_jt.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/general_purpose_timer.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/general_purpose_timer.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/IHeap.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/runtime/Memory_defs.h \
  C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/multi_purpose_button.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/power_on_time.h \
- C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/multi_purpose_button.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_debug_config.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/power_on_time.h \
+ C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Profiles/dashboard_profile.h
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/xdc/runtime/Error.h:
 
@@ -283,11 +283,11 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/inc/bcomdef.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/osal/src/inc/comdef.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/simple_peripheral.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/simple_peripheral.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_device_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_device_params.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/battery_params.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/battery_params.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/devices/cc13x2x7_cc26x2x7/inc/hw_memmap.h:
 
@@ -441,7 +441,7 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/rom/map_direct
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/icall/inc/icall_api_idx.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/general_purpose_timer.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/general_purpose_timer.h:
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task.h:
 
@@ -453,10 +453,10 @@ C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios
 
 C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages/ti/sysbios/knl/Task_defs.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/multi_purpose_button.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/multi_purpose_button.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Hardware/gGo_debug_config.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Hardware/gGo_debug_config.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Application/power_on_time.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Application/power_on_time.h:
 
-C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Profiles/dashboard_profile.h:
+C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Profiles/dashboard_profile.h:

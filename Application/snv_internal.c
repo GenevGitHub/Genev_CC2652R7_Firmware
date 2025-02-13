@@ -105,16 +105,16 @@ extern void snv_internal_resetSNVdata()
 // ************* Data for resetting snv internal memory or testing assigning data to array storage **************
 // **** NOTE:  osal_snv_read at every power on -> at first time initialization, the nvs should be zeros.
 
-        /***** RESET NVS CASE: case 00 *****/
-#ifdef ZERO_NVS    // RESET_NVS defines in simple peripheral
-    UDBuffer[26] = RESETCODE01;        // reset code 1
-    UDBuffer[27] = RESETCODE02;        // reset code 2
-    UDBuffer[28] = BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE;                  // speed mode {0 = Amble, 1 = Leisure, 2 = Sports}
-    UDBuffer[30] = LIGHT_MODE_AUTO;                  // light mode {0 = Off, 1 = On, 2 = Auto}
+    /***** ZERO NVS CASE: case 00 *****/
+#ifdef ZERO_NVS    // ZERO_NVS defined in simple peripheral.h
+UDBuffer[26] = RESETCODE01;        // reset code 1
+UDBuffer[27] = RESETCODE02;        // reset code 2
+UDBuffer[28] = BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE;                  // speed mode {0 = Amble, 1 = Leisure, 2 = Sports}
+UDBuffer[30] = LIGHT_MODE_AUTO;                  // light mode {0 = Off, 1 = On, 2 = Auto}
 #endif  // ZERO_NVS
 
-        /***** TEST CASE: case 01 (SETSIZE = 2) *****/
-#ifdef DUMMY_NVS    // DUMMY_NVS defines in simple peripheral
+    /***** TEST CASE: case 01 (SETSIZE = 2) *****/
+#ifdef DUMMY_NVS    // DUMMY_NVS defined in simple peripheral.h
 
         UDBuffer[0]  = 1439;      // ADDataCounter = number of integration completed (each integration contains N = data_analysis_points)
         UDBuffer[1]  = 47;        // UDCounter = number of UDTrigger.  UDCounter % UDARRAYSIZE must correspond to the location of the very last saved dataset

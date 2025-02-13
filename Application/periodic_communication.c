@@ -76,9 +76,10 @@ void periodic_communication_MCUSampling()
     /*************************************************
      *  Get Bus Voltage
      *  Get Bus Current
-     *  Get RPM
      *  Get Heatsink Temperature
      *  Get Motor Temperature
+     *  Get MCU phase voltage
+     *  Get MCU phase current
      *************************************************/
 
     // ***** Simulate Get data directly from MCU with dummy data
@@ -101,8 +102,6 @@ void periodic_communication_MCUSampling()
     ptr_pc_MCUDArray->motorTempOffset50_Celcius = 60;//30 * sin(PI_CONSTANT * xtt * 0.0075) + 70;         // +50                     //  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
 
     ptr_pc_MCUDArray->phase_voltage_mV = 31000;
-//    ptr_pc_MCUDArray->phaseB_voltage_mV = 31000;
-//    ptr_pc_MCUDArray->phaseC_voltage_mV = 31000;
 
     ptr_pc_MCUDArray->phase_current_mA = 6500;  //1500 * sin(PI_CONSTANT * xtt * 0.0075) + 5000;         // +50                     //  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
 
@@ -110,22 +109,12 @@ void periodic_communication_MCUSampling()
 #endif // MOTOR_CONNECT
 
 #ifdef MOTOR_CONNECT
-    /******* get motor temperature from MCU: unit in degrees Celsius ****/
-    /******* Get data directly from MCU     */
-//    periodic_communication_STM32MCP_getRegisterFrame();
-    /*************************************************
-     *  Get Bus Voltage
-     *  Get Bus Current
-     *  Get Heatsink Temperature
-     *  Get Motor Temperature
-     *************************************************/
-
-    // execute motor_control_brakeStatusChg() and motor_control_setIQvalue() only UART is normal
     if (!(ptr_systemFatalError->UARTfailure))    // added if statement 20241110
     {
         STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_BUS_VOLTAGE_REG_ID);
+
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_TORQUE_MEASURED_REG_ID);       // Need to create a getRegisterFrame for battery current
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_SPEED_MEASURED_REG_ID);         // is speed in RPM
+
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_HEATSINK_TEMPERATURE_REG_ID);
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_MOTOR_TEMPERATURE_REG_ID);
         //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_BUS_CURRENT_REG_ID);
@@ -151,7 +140,7 @@ void periodic_communication_MCUSamplingRPM()
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy RPM
     uint16_t pc_rpm;   // but payload length is 0x05
-    int32_t rawRPM = 180 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 140;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    int32_t rawRPM = 180 * sin(PI_CONSTANT * 0.0025 * xrpm ) + 140;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
     uint8_t pc_rpmStatus;
 
     if(rawRPM >= 0)
@@ -171,7 +160,7 @@ void periodic_communication_MCUSamplingRPM()
 
 #ifdef MOTOR_CONNECT
     // execute motor_control_brakeStatusChg() and motor_control_setIQvalue() only UART is normal
-    if (!(ptr_sysFatalError->UARTfailure))        // added if statement 20241110
+    if (!(ptr_systemFatalError->UARTfailure))        // added if statement 20241110
     {
         STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_SPEED_MEASURED_REG_ID);         // is speed in RPM
     }

@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs1250/ccs/tools/compiler/ti-cgt-armllvm_3.2.0.LTS
+CG_TOOL_ROOT := C:/ti/ti_cgt_tiarmclang_3.2.0.LTS
 
 GEN_OPTS__FLAG := @"syscfg/ti_utils_build_compiler.opt" 
 GEN_CMDS__FLAG := 
@@ -30,8 +30,10 @@ ORDERED_OBJS += \
 "./Application/snv_internal.o" \
 "./Drivers/NV/crc.o" \
 "./Drivers/NV/nvocmp.o" \
+"./Hardware/CMFAX103_thermal_sensor.o" \
 "./Hardware/ESCOOTER_BOOT.o" \
 "./Hardware/IS31FL3236A.o" \
+"./Hardware/NTCG163JF103FT.o" \
 "./Hardware/STM32MCP.o" \
 "./Hardware/STM32MCP_util.o" \
 "./Hardware/veml3235.o" \
@@ -195,10 +197,10 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-genev_gGo_dashboard_CC2652R7.out \
+genev_gGo_dashboard_CC2652R7.out 
 
 EXE_OUTPUTS__QUOTED += \
-"genev_gGo_dashboard_CC2652R7.out" \
+"genev_gGo_dashboard_CC2652R7.out" 
 
 
 # All Target
@@ -209,7 +211,7 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 genev_gGo_dashboard_CC2652R7.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"C:/ti/ccs1250/ccs/tools/compiler/ti-cgt-armllvm_3.2.0.LTS/bin/tiarmclang.exe" @"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/config/build_components.opt" @"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/config/factory_config.opt"  -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mlittle-endian -mthumb -Oz -DFLASH_ROM_BUILD -DNVOCMP_NWSAMEITEM=1 -DHEAPMGR_CONFIG=0x80 -DHEAPMGR_SIZE=0x0 -gdwarf-3 -march=armv7e-m -Wl,-m"genev_gGo_dashboard_CC2652R7.map" -Wl,-i"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source" -Wl,-i"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages" -Wl,-i"C:/Users/yuche/workspace_v12/genev_gGo_dashboard_CC2652R7/Release/syscfg" -Wl,-i"C:/ti/ccs1250/ccs/tools/compiler/ti-cgt-armllvm_3.2.0.LTS/lib" -Wl,--reread_libs -Wl,--define=FLASH_ROM_BUILD=2 -Wl,--diag_suppress=16002-D -Wl,--diag_suppress=10247-D -Wl,--diag_suppress=10325-D -Wl,--diag_suppress=10229-D -Wl,--diag_suppress=16032-D -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="genev_gGo_dashboard_CC2652R7_linkInfo.xml" -Wl,--rom_model -o "genev_gGo_dashboard_CC2652R7.out" $(ORDERED_OBJS)
+	"C:/ti/ti_cgt_tiarmclang_3.2.0.LTS/bin/tiarmclang.exe" @"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/config/build_components.opt" @"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source/ti/ble5stack/config/factory_config.opt"  -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mlittle-endian -mthumb -Oz -DFLASH_ROM_BUILD -DNVOCMP_NWSAMEITEM=1 -DHEAPMGR_CONFIG=0x80 -DHEAPMGR_SIZE=0x0 -gdwarf-3 -march=armv7e-m -Wl,-m"genev_gGo_dashboard_CC2652R7.map" -Wl,-i"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/source" -Wl,-i"C:/ti/simplelink_cc13xx_cc26xx_sdk_7_40_00_77/kernel/tirtos7/packages" -Wl,-i"C:/Users/TerenceLeung/git/Genev_CC2652R7_Firmware_Customized/Release/syscfg" -Wl,-i"C:/ti/ti_cgt_tiarmclang_3.2.0.LTS/lib" -Wl,--reread_libs -Wl,--define=FLASH_ROM_BUILD=2 -Wl,--diag_suppress=16002-D -Wl,--diag_suppress=10247-D -Wl,--diag_suppress=10325-D -Wl,--diag_suppress=10229-D -Wl,--diag_suppress=16032-D -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="genev_gGo_dashboard_CC2652R7_linkInfo.xml" -Wl,--rom_model -o "genev_gGo_dashboard_CC2652R7.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 	@$(MAKE) --no-print-directory post-build
@@ -217,16 +219,16 @@ genev_gGo_dashboard_CC2652R7.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "syscfg\ti_ble_config.o" "syscfg\ti_devices_config.o" "syscfg\ti_radio_config.o" "syscfg\ti_drivers_config.o" "syscfg\ti_sysbios_config.o" "Application\ALS_control.o" "Application\brake_and_throttle.o" "Application\buzzer.o" "Application\data_analytics.o" "Application\general_purpose_timer.o" "Application\led_display.o" "Application\lights.o" "Application\motor_control.o" "Application\multi_purpose_button.o" "Application\periodic_communication.o" "Application\power_on_time.o" "Application\simple_peripheral.o" "Application\snv_internal.o" "Drivers\NV\crc.o" "Drivers\NV\nvocmp.o" "Hardware\ESCOOTER_BOOT.o" "Hardware\IS31FL3236A.o" "Hardware\STM32MCP.o" "Hardware\STM32MCP_util.o" "Hardware\veml3235.o" "Hardware\veml6030.o" "NPI\npi_frame_hci.o" "NPI\npi_rxbuf.o" "NPI\npi_task.o" "NPI\npi_tl.o" "NPI\npi_tl_uart.o" "Profiles\battery_profile.o" "Profiles\controller_profile.o" "Profiles\dashboard_profile.o" "Profiles\devinfoservice.o" "Profiles\profile_charVal.o" "Startup\main.o" "Startup\osal_icall_ble.o" 
-	-$(RM) "Startup\rom_init.o" "UDHAL\UDHAL.o" "UDHAL\UDHAL_ADC.o" "UDHAL\UDHAL_GPIO.o" "UDHAL\UDHAL_I2C.o" "UDHAL\UDHAL_PWM.o" "UDHAL\UDHAL_Timer2.o" "UDHAL\UDHAL_Timer3.o" "UDHAL\UDHAL_UART.o" "common\Util\util.o" "iCall\icall.o" "iCall\icall_cc2650.o" "iCall\icall_user_config.o" "iCallBLE\ble_user_config.o" "iCallBLE\ble_user_config_stack.o" "iCallBLE\icall_api_lite.o" "iCallBLE\icall_hci_tl.o" 
-	-$(RM) "syscfg\ti_ble_config.d" "syscfg\ti_devices_config.d" "syscfg\ti_radio_config.d" "syscfg\ti_drivers_config.d" "syscfg\ti_sysbios_config.d" "Application\ALS_control.d" "Application\brake_and_throttle.d" "Application\buzzer.d" "Application\data_analytics.d" "Application\general_purpose_timer.d" "Application\led_display.d" "Application\lights.d" "Application\motor_control.d" "Application\multi_purpose_button.d" "Application\periodic_communication.d" "Application\power_on_time.d" "Application\simple_peripheral.d" "Application\snv_internal.d" "Drivers\NV\crc.d" "Drivers\NV\nvocmp.d" "Hardware\ESCOOTER_BOOT.d" "Hardware\IS31FL3236A.d" "Hardware\STM32MCP.d" "Hardware\STM32MCP_util.d" "Hardware\veml3235.d" "Hardware\veml6030.d" "NPI\npi_frame_hci.d" "NPI\npi_rxbuf.d" "NPI\npi_task.d" "NPI\npi_tl.d" "NPI\npi_tl_uart.d" "Profiles\battery_profile.d" "Profiles\controller_profile.d" "Profiles\dashboard_profile.d" "Profiles\devinfoservice.d" "Profiles\profile_charVal.d" "Startup\main.d" "Startup\osal_icall_ble.d" 
-	-$(RM) "Startup\rom_init.d" "UDHAL\UDHAL.d" "UDHAL\UDHAL_ADC.d" "UDHAL\UDHAL_GPIO.d" "UDHAL\UDHAL_I2C.d" "UDHAL\UDHAL_PWM.d" "UDHAL\UDHAL_Timer2.d" "UDHAL\UDHAL_Timer3.d" "UDHAL\UDHAL_UART.d" "common\Util\util.d" "iCall\icall.d" "iCall\icall_cc2650.d" "iCall\icall_user_config.d" "iCallBLE\ble_user_config.d" "iCallBLE\ble_user_config_stack.d" "iCallBLE\icall_api_lite.d" "iCallBLE\icall_hci_tl.d" 
+	-$(RM) "syscfg\ti_ble_config.o" "syscfg\ti_devices_config.o" "syscfg\ti_radio_config.o" "syscfg\ti_drivers_config.o" "syscfg\ti_sysbios_config.o" "Application\ALS_control.o" "Application\brake_and_throttle.o" "Application\buzzer.o" "Application\data_analytics.o" "Application\general_purpose_timer.o" "Application\led_display.o" "Application\lights.o" "Application\motor_control.o" "Application\multi_purpose_button.o" "Application\periodic_communication.o" "Application\power_on_time.o" "Application\simple_peripheral.o" "Application\snv_internal.o" "Drivers\NV\crc.o" "Drivers\NV\nvocmp.o" "Hardware\CMFAX103_thermal_sensor.o" "Hardware\ESCOOTER_BOOT.o" "Hardware\IS31FL3236A.o" "Hardware\NTCG163JF103FT.o" "Hardware\STM32MCP.o" "Hardware\STM32MCP_util.o" "Hardware\veml3235.o" "Hardware\veml6030.o" "NPI\npi_frame_hci.o" "NPI\npi_rxbuf.o" "NPI\npi_task.o" "NPI\npi_tl.o" "NPI\npi_tl_uart.o" "Profiles\battery_profile.o" "Profiles\controller_profile.o" "Profiles\dashboard_profile.o" "Profiles\devinfoservice.o" 
+	-$(RM) "Profiles\profile_charVal.o" "Startup\main.o" "Startup\osal_icall_ble.o" "Startup\rom_init.o" "UDHAL\UDHAL.o" "UDHAL\UDHAL_ADC.o" "UDHAL\UDHAL_GPIO.o" "UDHAL\UDHAL_I2C.o" "UDHAL\UDHAL_PWM.o" "UDHAL\UDHAL_Timer2.o" "UDHAL\UDHAL_Timer3.o" "UDHAL\UDHAL_UART.o" "common\Util\util.o" "iCall\icall.o" "iCall\icall_cc2650.o" "iCall\icall_user_config.o" "iCallBLE\ble_user_config.o" "iCallBLE\ble_user_config_stack.o" "iCallBLE\icall_api_lite.o" "iCallBLE\icall_hci_tl.o" 
+	-$(RM) "syscfg\ti_ble_config.d" "syscfg\ti_devices_config.d" "syscfg\ti_radio_config.d" "syscfg\ti_drivers_config.d" "syscfg\ti_sysbios_config.d" "Application\ALS_control.d" "Application\brake_and_throttle.d" "Application\buzzer.d" "Application\data_analytics.d" "Application\general_purpose_timer.d" "Application\led_display.d" "Application\lights.d" "Application\motor_control.d" "Application\multi_purpose_button.d" "Application\periodic_communication.d" "Application\power_on_time.d" "Application\simple_peripheral.d" "Application\snv_internal.d" "Drivers\NV\crc.d" "Drivers\NV\nvocmp.d" "Hardware\CMFAX103_thermal_sensor.d" "Hardware\ESCOOTER_BOOT.d" "Hardware\IS31FL3236A.d" "Hardware\NTCG163JF103FT.d" "Hardware\STM32MCP.d" "Hardware\STM32MCP_util.d" "Hardware\veml3235.d" "Hardware\veml6030.d" "NPI\npi_frame_hci.d" "NPI\npi_rxbuf.d" "NPI\npi_task.d" "NPI\npi_tl.d" "NPI\npi_tl_uart.d" "Profiles\battery_profile.d" "Profiles\controller_profile.d" "Profiles\dashboard_profile.d" "Profiles\devinfoservice.d" 
+	-$(RM) "Profiles\profile_charVal.d" "Startup\main.d" "Startup\osal_icall_ble.d" "Startup\rom_init.d" "UDHAL\UDHAL.d" "UDHAL\UDHAL_ADC.d" "UDHAL\UDHAL_GPIO.d" "UDHAL\UDHAL_I2C.d" "UDHAL\UDHAL_PWM.d" "UDHAL\UDHAL_Timer2.d" "UDHAL\UDHAL_Timer3.d" "UDHAL\UDHAL_UART.d" "common\Util\util.d" "iCall\icall.d" "iCall\icall_cc2650.d" "iCall\icall_user_config.d" "iCallBLE\ble_user_config.d" "iCallBLE\ble_user_config_stack.d" "iCallBLE\icall_api_lite.d" "iCallBLE\icall_hci_tl.d" 
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
 	-@echo 'Finished clean'
 	-@echo ' '
 
 post-build:
-	-C:/ti/ccs1250/ccs/tools/compiler/ti-cgt-armllvm_3.2.0.LTS/bin/tiarmobjcopy -O ihex genev_gGo_dashboard_CC2652R7.out genev_gGo_dashboard_CC2652R7.hex
+	-C:/ti/ti_cgt_tiarmclang_3.2.0.LTS/bin/tiarmobjcopy -O ihex genev_gGo_dashboard_CC2652R7.out genev_gGo_dashboard_CC2652R7.hex
 	-@echo ' '
 
 .PHONY: all clean dependents

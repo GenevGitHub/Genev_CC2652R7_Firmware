@@ -14,6 +14,7 @@
 #include "Application/ALS_control.h"
 #include "Application/led_display.h"
 #include "Application/brake_and_throttle.h"
+//#include "Application/motor_control.h"    // Chee -> I think this is not needed anymore
 
 #include "UDHAL/UDHAL_PWM.h"
 
@@ -366,4 +367,9 @@ void auxiliaryLightStatusChg()
     UDHAL_PWM_setALDutyAndPeriod(AuxiliaryLight_PWMDuty);
 #endif // AUXILIARY_LIGHT
 
+}
+
+void tail_lightControl(void)  // Chee -> I think this is not needed anymore
+{
+    motor_control_taillightControl(lights_getLightStatus());
 }

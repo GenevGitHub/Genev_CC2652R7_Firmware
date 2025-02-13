@@ -2,6 +2,12 @@
  *  gGo_device_params.h
  *  Note:   This header file contains gGo eScooter factory settings
  *
+ *  Parameters and Constants
+ *      REGION selection
+ *      BRAKE_AND_THROTTLE_NORMALLAW
+ *      BRAKE_AND_THROTTLE_DIRECTLAW
+ *      ALS chip option. (1) veml6030 (2) veml3235
+ *
  *  Created on: 4 May 2024
  *      Author: Chee
  */
@@ -41,6 +47,7 @@ extern "C"
 #undef  REGION3                                     // Japan
 #undef  REGION4                                     // Australia
 #undef  REGION5                                     // Canada, USA
+#undef  REGION6                                     // Germany
 
 // Speed limit protection selection
 // * Direct Law -> speed limit protection is deactivated
@@ -146,8 +153,6 @@ extern "C"
 /*********************************************************************************************/
 #define SYS_NORMAL_CODE                                 0xFF
 
-#define SYS_FATAL_ERROR_CODE                            0x0F
-
 #define BATTERY_VOLTAGE_ERROR_CODE                      0x1A    // check that the e-scooter has not been connected with an incorrect battery rating. Restart (Power off, wait for 10 seconds and power on again)
 #define BATTERY_TEMP_ERROR_CODE                         0x1A    // no battery temperature sensor at present.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
 #define BMS_COMM_ERROR_CODE                             0x1C    // Replace battery with a new genev battery. Restart, contact customer service if problem persists.
@@ -160,22 +165,22 @@ extern "C"
 #define MOTOR_TEMP_ERROR_CODE                           0x3C    // Let it cool before use again.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
 #define DASH_COMM_ERROR_CODE                            0x0A    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
 #define THROTTLE_ERROR_CODE                             0x0C    // check throttle connection with Dashboard.  Restart, contact genev technical / customer services or approved distributor for inspection and repair in problem persists.
-
 #define BRAKE_ERROR_CODE                                0x0E    // check brake connection with Dashboard.  Restart, contact genev technical / customer services or approved distributor for inspection and repair in problem persists.
 #define SOFTWARE_ERROR_CODE                             0x4A    // Restart, contact genev technical / customer services or approved distributor for inspection and repair in problem persists.
+#define SYS_FATAL_ERROR_CODE                            0x0F
 
 /*********************************************************************************************
  *  Regional / Regulation Settings
  *********************************************************************************************/
 #ifdef REGION0  // unlimited
-#define REG_MAXPOUT                                          65535 //Watt
-#define REG_MAXP_SPEED                                       250  // "unlimited" km/hr
-#define REG_MAXP_RPM                                         6630 // rpm
+#define REG_MAXPOUT                                          350 //Watt
+#define REG_MAXP_SPEED                                       30  // "unlimited" km/hr
+#define REG_MAXP_RPM                                         795 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    2650       // 100 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  4770       // 180 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    318       // 100 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  572       // 180 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 250 Km/hr
 
 #endif // REGION0
@@ -247,7 +252,18 @@ extern "C"
 
 #endif // REGION5
 
+#ifdef REGION6 // Germany
+#define REG_MAXPOUT                                          350 // Watt
+#define REG_MAXP_SPEED                                       20  // km/hr
+#define REG_MAXP_RPM                                         530 // rpm
+#define REG_MINP_SPEED                                       3
+#define REG_MINP_RPM                                         80
+//Speed mode maximum "powered" speed in RPM
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 265 RPM = 10 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  398       // 488 RPM = 15 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 530 RPM = 20 Km/hr
 
+#endif // REGION6
 #ifdef _cplusplus
 }
 #endif

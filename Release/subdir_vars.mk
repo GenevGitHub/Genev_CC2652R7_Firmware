@@ -27,7 +27,7 @@ GEN_FILES += \
 ./syscfg/ti_sysbios_config.c 
 
 GEN_MISC_DIRS += \
-./syscfg/ 
+./syscfg 
 
 C_DEPS += \
 ./syscfg/ti_ble_config.d \
@@ -55,7 +55,7 @@ GEN_MISC_FILES += \
 ./syscfg/ti_sysbios_config.h 
 
 GEN_MISC_DIRS__QUOTED += \
-"syscfg\" 
+"syscfg" 
 
 OBJS__QUOTED += \
 "syscfg\ti_ble_config.o" \

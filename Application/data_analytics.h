@@ -38,7 +38,7 @@ extern "C"
  *  NVS Data Information
  *********************************************************************************************/
 /** Data analytics interval must be a multiple of GPT_TIME **/
-#define DATA_ANALYTICS_INTERVAL         300             // data analytics is performed at this time interval in milliseconds
+#define DATA_ANALYTICS_INTERVAL         300             // data analytics is performed at this time interval in milliseconds. Must be multiple of GPT_TIME
 
 #define SETSIZE                         2
 #define UDARRAYSIZE                     12              // Number of Usage Dataset stored in flash memory
@@ -119,7 +119,7 @@ extern void data_analytics( void );
 extern void data2snvBuffer( void );
 extern void data_analytics_sampling(void);
 extern void data_analytics_Main( void );
-
+static void da_startupAnalytics();
 
 #ifdef __cplusplus
 }
