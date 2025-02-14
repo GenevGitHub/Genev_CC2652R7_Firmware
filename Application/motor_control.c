@@ -436,9 +436,8 @@ extern void motor_control_setIQvalue()
         /*When driver accelerates / decelerates by twisting the throttle, the IQ signal with max. speed will be sent to the motor controller.
          * */
 #ifdef MOTOR_CONNECT
-
+        /*Throttle Percentage with Iq Value !!*/
         STM32MCP_setDynamicCurrent(brake_and_throttle_getThrottlePercent(), STM32MCDArray.IQ_value);
-
 #endif //MOTOR_CONNECT
 
     }
@@ -449,10 +448,7 @@ extern void motor_control_setIQvalue()
          *You have to ensure the wires are connected properly!
          * */
 #ifdef MOTOR_CONNECT
-
-        //STM32MCP_executeCommandFrame(STM32MCP_MOTOR_1_ID, STM32MCP_STOP_MOTOR_COMMAND_ID);
         STM32MCP_setDynamicCurrent(brake_and_throttle_getThrottlePercent(), 0);
-
 #endif //MOTOR_CONNECT
 
         /*Sends Error Report to STM32 Motor Controller --> Transition to EMERGENCY STOP state*/
@@ -485,25 +481,25 @@ extern void motor_control_changeSpeedMode()
  *
  * @return  None.
  */
-extern void motor_control_brakeStatusChg() // check with Tim
-{
-    uint8_t brake_debugID;
-    if (STM32MCDArray.brake_status)
-    {
-        brake_debugID = ESCOOTER_BRAKE_PRESS;
-    }
-    else if (!(STM32MCDArray.brake_status))
-    {
-        brake_debugID = ESCOOTER_BRAKE_RELEASE;
-    }
-
+//extern void motor_control_brakeStatusChg() // check with Tim
+//{
 //#ifdef MOTOR_CONNECT
 //
-//    STM32MCP_setEscooterControlDebugFrame(brake_debugID);
+//    if (STM32MCDArray.brake_status)
+//    {
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_BRAKE_PRESS);
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_TOGGLE_TAIL_LIGHT);
+//        /*Sends the command --> BRAKE_PRESS  = 0x03*/
+//    }
+//    else if (!(STM32MCDArray.brake_status))
+//    {
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_BRAKE_RELEASE);
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);
+//        /*Sends the command --> BRAKE_RELEASE = 0x04*/
+//    }
 //
 //#endif //MOTOR_CONNECT
-
-}
+//}
 
 /*********************************************************************
  * @fn      motor_control_taillightStatusChg
@@ -514,16 +510,62 @@ extern void motor_control_brakeStatusChg() // check with Tim
  *
  * @return  None.
  */
-extern void motor_control_taillightStatusChg() // check with Tim
+uint8_t light_sysCmdId;
+uint8_t brakeCheck = 0;
+uint8_t lightOnCheck = 0;
+uint8_t lightOffCheck = 0;
+
+extern void motor_control_taillightStatusChg()
 {
-    uint8_t light_sysCmdId = STM32MCDArray.tail_light_status;
+    light_sysCmdId = STM32MCDArray.tail_light_status;
 
-#ifdef MOTOR_CONNECT
+//#ifdef MOTOR_CONNECT
 
-    STM32MCP_controlEscooterBehavior(ESCOOTER_TOGGLE_TAIL_LIGHT);   // is this used?  Is this correct?
-    // toggle tail light or cut motor power?
+    if (STM32MCDArray.brake_status)
+    {
+        STM32MCP_controlEscooterBehavior(ESCOOTER_BRAKE_PRESS);
+        STM32MCP_controlEscooterBehavior(ESCOOTER_TOGGLE_TAIL_LIGHT);
+        /*Sends the command --> BRAKE_PRESS  = 0x03*/
+        brakeCheck++;
+    }
+    else
+    {
+        STM32MCP_controlEscooterBehavior(ESCOOTER_BRAKE_RELEASE);
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);    //  should not be needed
 
+        if(light_sysCmdId == ESCOOTER_TAIL_LIGHT_ON)
+        {
+            STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_ON);
+            lightOnCheck++;
+        }
+        else if(light_sysCmdId == ESCOOTER_TAIL_LIGHT_OFF)
+        {
+            STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);
+            lightOffCheck++;
+        }
+    }
 
-#endif //MOTOR_CONNECT
+//#endif //MOTOR_CONNECT
+}
 
+//extern void motor_control_taillightControl(uint8_t lightStatus)
+//{
+//    if(lightStatus)
+//    {
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_ON);
+//    }
+//    else if(!lightStatus)
+//    {
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF_AUTO);
+//    }
+//}
+
+//extern void motor_control_taillightOff()
+//{
+//    STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF_AUTO);
+//}
+
+extern void motor_control_uartFaultCheck()
+{
+    STM32MCP_controlEscooterBehavior(ESCOOTER_TIMEOUT_CHECKING);
 }

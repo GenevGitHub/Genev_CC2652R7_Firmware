@@ -53,7 +53,7 @@ extern "C"
 #define STM32MCP_NUMBER_OF_MOTORS                                                            0x01
 
 //The maximum number of node that the buffer can hold
-#define STM32MCP_MAXIMUM_NUMBER_OF_NODE                                                      0x1E //Max Buffer = 32
+#define STM32MCP_MAXIMUM_NUMBER_OF_NODE                                                      0x1F //Max Buffer = 32
 
 //The maximum number of retransmission is allowed
 #define STM32MCP_MAXIMUM_RETRANSMISSION_ALLOWANCE                                            0x14
@@ -83,7 +83,7 @@ extern "C"
 #define STM32MCP_GET_REVUP_DATA_FRAME_ID                                                     0x08
 #define STM32MCP_SET_REVUP_DATA_FRAME_ID                                                     0x09
 #define STM32MCP_SET_CURRENT_REFERENCES_FRAME_ID                                             0x0A
-#define DEFINE_ESCOOTER_BEHAVIOR_ID                                                          0x0E
+#define DEFINE_ESCOOTER_BEHAVIOR_ID                                                          0x1B
 //#define STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID                                          0x0E
 //#define STM32MCP_ESCOOTER_CONTROL_DEBUG_FRAME_ID                                             0x1E
 #define STM32MCP_SET_DRIVE_MODE_CONFIG_FRAME_ID                                              0x13
@@ -256,31 +256,32 @@ extern "C"
 #define STM32MCP_ENCODER_ALIGN_COMMAND_ID                                                    0x08
 
 //Define E-Scooter Behavior
-#define ESCOOTER_BOOT_ACK                                                                    0x00
-#define ESCOOTER_ERROR_REPORT                                                                0x01
-#define ESCOOTER_BRAKE_PRESS                                                                 0x03
-#define ESCOOTER_BRAKE_RELEASE                                                               0x04
-#define ESCOOTER_TOGGLE_TAIL_LIGHT                                                           0x05 // check with Tim.  where is tail light ON
-#define ESCOOTER_TAIL_LIGHT_OFF                                                              0x06
-#define ESCOOTER_POWER_OFF                                                                   0x07
-#define ESCOOTER_GET_SERIAL_NUM                                                              0x08
-////system command ID // check with Tim
-//#define STM32MCP_POWER_OFF                                                                   0x00
-//#define STM32MCP_POWER_ON                                                                    0x01   //Maybe it's not necessary (?) Since we wake up the controller by GPIO EXTI
-//#define STM32MCP_HEARTBEAT                                                                   0x02
-//#define STM32MCP_GET_SERIAL_NUMBER                                                           0x03
-//#define STM32MCP_TAIL_LIGHT_ON                                                               0x04
-//#define STM32MCP_TAIL_LIGHT_OFF                                                              0x05
-//#define STM32MCP_TOGGLE_TAIL_LIGHT                                                           0x06
+/************* E-Scooter Protocol Command List (Defines E-Scooter Behavior) *********************
+ * Boot Acknowledge                 BOOT_ACK          = 0x00
+ * Motor Driver Error Checking      ERROR_REPORT      = 0x01
+ * Trigger Throttle                 THROTTLE_TRIGGER  = 0x02
+ * Press the Brake                  BRAKE_PRESS       = 0x03
+ * Release the Brake                BRAKE_RELEASE     = 0x04
+ * Toggle Tail Light                TAIL_LIGHT_TOGGLE = 0x05
+ * Turn off Tail Light              TAIL_LIGHT_OFF    = 0x06
+ * System Shut Down                 SHUT_DOWN         = 0x07
+ * Get Serial Number                GET_SERIAL_NUM    = 0x08
+ * ***********************************************************************************************/
+#define ESCOOTER_BOOT_ACK                       0x00
+#define ESCOOTER_ERROR_REPORT                   0x01
+#define ESCOOTER_BRAKE_PRESS                    0x03
+#define ESCOOTER_BRAKE_RELEASE                  0x04
+#define ESCOOTER_TOGGLE_TAIL_LIGHT              0x05
+#define ESCOOTER_TAIL_LIGHT_OFF                 0x06
+#define ESCOOTER_POWER_OFF                      0x07
+#define ESCOOTER_TAIL_LIGHT_ON                  0x08
+//#define ESCOOTER_TAIL_LIGHT_OFF_AUTO            0x09
+#define ESCOOTER_TIMEOUT_CHECKING               0x0A
+#define ESCOOTER_MOTOR_DRIVE_TEMP               0x0B
+#define ESCOOTER_MOTOR_TEMP                     0x0C
 
-//Escooter Application Control Command ID (Fast Debugging for Basic Operations)
-//#define STM32MCP_ESCOOTER_THROTTLE_PRESS                                                     0x00
-//#define STM32MCP_ESCOOTER_BRAKE_PRESS                                                        0x01
-//#define STM32MCP_ESCOOTER_BRAKE_RELEASE                                                      0x02
-//#define STM32MCP_ESCOOTER_DRIVE_MODE_CONFIG                                                  0x03
-
-#define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE                                                      48000  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
-#define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE                                                      28000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack
+#define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE         48000  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
+#define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE         28000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack
 /*********************************************************************
  * MACROS
  */
@@ -471,7 +472,7 @@ extern void STM32MCP_controlEscooterBehavior(uint8_t sysCmdId);
 
 /*==========================================================E-SCOOTER Control Functions ==============================================================*/
 extern void STM32MCP_setSpeedModeConfiguration(int16_t torqueIQ, int16_t max_speed, uint16_t ramp);
-extern void STM32MCP_setDynamicCurrent(int16_t throttlePercent, int16_t IQValue);
+extern void STM32MCP_setDynamicCurrent(uint16_t throttlePercent, int16_t IQValue);
 ///*==========================================================E-SCOOTER Shutdown Functions ==============================================================*/
 //extern void STM32MCP_EscooterShutdown(uint8_t sysCmdId);
 
@@ -484,6 +485,7 @@ extern void STM32MCP_setBoardInfo(uint8_t *msg, uint8_t size);
 /*===============================================Functions to be added to callback functions==========================================*/
 extern void STM32MCP_flowControlHandler(uint8_t receivedByte);//Add to UART Rx ISR or UART RX callback
 extern void STM32MCP_retransmission();
+extern void STM32MCP_clearMsg();
 
 /*********************************************************************
 *********************************************************************/

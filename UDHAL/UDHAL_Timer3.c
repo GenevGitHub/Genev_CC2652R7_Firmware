@@ -174,5 +174,3 @@ extern void UDHAL_TIMER3_clockDelete()
 {
     Clock_delete(&ClockHandle);
 }
-
-

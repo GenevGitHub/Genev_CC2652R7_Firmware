@@ -39,7 +39,6 @@ uint8_t     auxiliary_light_status  = LIGHT_STATUS_INITIAL;
 static uint8_t     lightStatusNew = LIGHT_STATUS_INITIAL;
 
 static uint16_t    lightControl_pwmPeriod = 1000;
-//static uint16_t    lightControl_pwmDuty = 500;
 static uint8_t     lightControl_pwmOpenStatus = 0;
 
 profileCharVal_t    *ptr_lights_profileCharVal;
@@ -113,7 +112,7 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_
     {
         light_status = LIGHT_STATUS_ON;
         *ptr_lights_flagb = lights_sampleBits;
-        taillightStatus = ESCOOTER_TOGGLE_TAIL_LIGHT;
+        taillightStatus = ESCOOTER_TAIL_LIGHT_ON;
     }
     else
     {
@@ -123,6 +122,8 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_
     }
 
     lightStatusNew = light_status;
+    ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
+
     /** set light mode on LED display **/
     led_display_setLightMode( light_mode );
 
@@ -147,12 +148,14 @@ void lights_MODE_AUTO(){
         light_status = lightStatusNew;
         if (light_status == LIGHT_STATUS_ON)
         {
-            taillightStatus = ESCOOTER_TOGGLE_TAIL_LIGHT;
+            taillightStatus = ESCOOTER_TAIL_LIGHT_ON;
         }
         else
         {
             taillightStatus = ESCOOTER_TAIL_LIGHT_OFF;
         }
+        /**** send new tail light status to motor_controller to command tail light ****/
+        ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
         lights_statusChg();
     }
 }
@@ -172,6 +175,8 @@ void lights_MODE_OFF(){
         light_status = LIGHT_STATUS_OFF;
         *ptr_lights_flagb = 0;
         taillightStatus = ESCOOTER_TAIL_LIGHT_OFF;
+        /**** send new tail light status to motor_controller to command tail light ****/
+        ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
         lights_statusChg();
     }
 }
@@ -190,7 +195,9 @@ void lights_MODE_ON(){
     {
         light_status = LIGHT_STATUS_ON;
         *ptr_lights_flagb = lights_sampleBits;
-        taillightStatus = ESCOOTER_TOGGLE_TAIL_LIGHT;
+        taillightStatus = ESCOOTER_TAIL_LIGHT_ON;
+        /**** send new tail light status to motor_controller to command tail light ****/
+        ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
         lights_statusChg();
     }
 }
@@ -230,14 +237,16 @@ void lights_statusChg(void){
         break;
     }
 
-    /*** activate headlight ***/
+    /*** execute headlight commands ***/
     UDHAL_PWM_setHLDutyAndPeriod(lights_PWMDuty);
-    /**** send new tail light status to motor_controller to command tail light ****/
-    ptr_lights_STM32MCPDArray->tail_light_status = taillightStatus;
-    if (lights_uart2ErrorStatus == 0)// if no uart error
+
+    /*** execute taillight commands ***/
+    if (!lights_uart2ErrorStatus)// if no uart error
     {
+//        motor_control_taillightControl(light_status);
         motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
     }
+
     /* updates light status Characteristic Value -> Mobile App */
     /******  Dashboard services  *************************************/
     ptr_charVal = (ptr_lights_profileCharVal->ptr_dash_charVal->ptr_lightStatus);
@@ -367,3 +376,8 @@ void auxiliaryLightStatusChg()
 #endif // AUXILIARY_LIGHT
 
 }
+
+//void tail_lightControl(void)  // Chee -> I think this is not needed anymore
+//{
+//        motor_control_taillightControl(lights_getLightStatus());
+//}

@@ -217,6 +217,3 @@ static void UDHAL_I2C_ErrorHandler(I2C_Transaction *transaction)
             break;
     }
 }
-
-
-

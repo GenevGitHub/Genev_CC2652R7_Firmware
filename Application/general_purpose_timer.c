@@ -63,20 +63,6 @@ extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
 }
 
 /*********************************************************************
- * @fn      gpt_snvWriteCompleteFlag_register
- *
- * @brief   call to assign and register the pointer to gpt_snvWriteCompleteFlag_register
- *
- * @param   a pointer to gpt_snvWriteCompleteFlag_register, i.e. ptr_gpt_snvWriteComplete_flag
- *
- * @return  None
- */
-//extern void gpt_snvWriteCompleteFlag_register(uint8_t *ptr_snvWriteComplete_flag)
-//{
-//    ptr_gpt_snvWriteComplete_flag = ptr_snvWriteComplete_flag;
-//}
-
-/*********************************************************************
  * @fn      gpt_powerOnRegister
  *
  * @brief   call to assign and register the pointer to powerOn
@@ -126,6 +112,7 @@ void GeneralPurposeTimer_createTask(void)
 uint32_t    gpt_counter = 0;
 uint32_t    gpt_counter_NDA = 0;
 uint32_t    gpt_counter2 = 0;
+uint32_t    gpt_counter3 = 0;
 
 uint8_t     autoLightMode = 1;
 uint8_t     gpt_i2cOpenStatus;
@@ -134,7 +121,11 @@ uint8_t     pinConfig = 0xFF;
 uint8_t     gpt_buttonStatus = 0;
 uint8_t     gpt_ii = 0;
 uint8_t     gpt_snvWriteFlag = 0;
-uint8_t     N_data_analytics;
+uint8_t     N_data_analytics = 0;
+uint8_t     N_2 = 0;
+uint8_t     N_3 = 0;
+uint8_t     brakeStatusOld = 0;
+uint8_t     brakeStatusNew = 0;
 
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 {
@@ -152,11 +143,13 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
       if (*ptr_gpt_initComplete_flag)
       {
           /**************************   N = 1  ********************
+           * EXECUTED EVERY LOOP
            * N = 1 executes codes at the fundamental time interval unit for general purpose timer - GPT_TIME
            * N = 1 is Use for reading motor rpm, brake and throttle, controlling MCU and Motor */
           /************** Read rpm every GPT_TIME *************************/
           if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
           {
+              /*Measures the Motor's speed --> calculates the average RPM*/
               periodic_communication_MCUSamplingRPM();
           }
 
@@ -165,12 +158,10 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           if (!(ptr_sysFatalError->ADCfailure) /* && !(ptr_sysFatalError->UARTfailure)*/ )
           {
               /***  Read ADC values and processes brake and throttle input  ***/
-              brake_and_throttle_ADC_conversion();      // uses ADC
+              brakeStatusNew = brake_and_throttle_ADC_conversion();      // uses ADC
               // execute motor_control_brakeStatusChg() and motor_control_setIQvalue() only UART is normal
               if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
               {
-                  /***  execute Motor control command due to brake status change  ***/
-                  motor_control_brakeStatusChg();   // uses UART
                   /***  execute Motor control command due to IQ value  ***/
                   motor_control_setIQvalue();       // uses UART
               }
@@ -183,15 +174,18 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               // 1: error handling shall allow led display to display the error code
               // 2: in error mode, system shall be put into the designate error handling protocol
               // 3: in error mode, button shall allow user to Power OFF and ON to reset the firmware and restart the system
+
           }
 
           /*********************************************************************************
+           * DATA_ANALYTICS_INTERVAL
+           *
            * Executes after every N_data_analytics intervals
            *
-           * if GPT_TIME = 0.100 seconds,
+           * if GPT_TIME = 0.020 seconds,
            * then
            *    N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME ;
-           *                     = 0.300 / 0.100  = 3
+           *                     = 0.300 / 0.020  = 15
            * N_data_analytics is used to control data_analytics and Ambient light sensor executions
            *
            ********************************************************************************/
@@ -215,14 +209,15 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   led_display_changeDashSpeed();    // led display is command using i2c
               }
           }
+
           /***************************************************************
-           * Executes at every 2 intervals
+           * EXECUTION_INTERVAL_2
            *
-           * if GPT_TIME = 0.100 seconds, execution time = 2 x 0.100 seconds = 0.200 seconds
-           * LED display and buzzer are refreshed/executed every 0.200 seconds
+           * if GPT_TIME = 0.02 seconds, EXECUTION_INTERVAL_2 = 0.140 seconds, then N_2 = 7
+           * The following loop is refreshed/executed every N_2 loops
            *
            **************************************************************/
-          if (gpt_counter % 2 == 0)     // execute only when gpt_counter is an even number
+          if (gpt_counter % N_2 == 0)     // execute only when gpt_counter is an even number
           {
               gpt_counter2++;
 
@@ -245,11 +240,43 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   led_display_changeBLE(gpt_counter2);
                   led_display_changeBatteryStatus(gpt_counter2);
               }
+
+              if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
+              {
+                  /***  execute Motor control command due to brake status change  ***/
+                  if (brakeStatusOld != brakeStatusNew)     // Added by Chee 20250213
+                  {
+                      motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
+//                      motor_control_brakeStatusChg();
+                      brakeStatusOld = brakeStatusNew;
+                  }      // Added by Chee 20250213
+              }
               buzzer_ErrorHandler();
+          }
+
+          /***************************************************************
+           * EXECUTION_INTERVAL_3
+           *
+           * if GPT_TIME = 0.020 seconds, EXECUTION_INTERVAL_3 = 500 milliseconds, then N_3 = 25
+           * The following loop is refreshed/executed every N_3 loops
+           *
+           **************************************************************/
+          if (gpt_counter % N_3 == 0)     // execute only when gpt_counter is an even number
+          {
+              gpt_counter3++;
+              /** MCU fault check **/
+              if (!(ptr_sysFatalError->UARTfailure))    // Added by Chee 20250213
+              {
+                  /*Checks UART stability*/
+                  motor_control_uartFaultCheck();   // Moved here by Chee 20250213
+                  /*Checks motor controller faults*/
+                  STM32MCP_controlEscooterBehavior(ESCOOTER_ERROR_REPORT);   // Moved here by Chee 20250213
+              }
           }
 
           /**** counter only active if (*ptr_gpt_initComplete_flag) == 1  *****/
           gpt_counter++;
+
           /******************************************************************************
            * When instructed to Power Off, the programme enters here to exit for loop
            ******************************************************************************/
@@ -269,8 +296,12 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               // Add: STM32 command turn off tail-light and auxiliary light
               led_display_setAllOff();    /* turns off all led lights */
               led_display_deinit();       /* turns off led display */
+
+              STM32MCP_clearMsg();
               STM32MCP_toggleCommunication();
+              STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);
               STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
+              STM32MCP_clearMsg();
 
               Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
 
@@ -293,6 +324,8 @@ void GeneralPurposeTimer_init( void )
     ptr_sysFatalError = UDHAL_sysFatalErrorRegister();
     ptr_gpt_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;
+    N_2 = EXECUTION_INTERVAL_2 / GPT_TIME;
+    N_3 = EXECUTION_INTERVAL_3 / GPT_TIME;
     periodic_communication_init();
 }
 

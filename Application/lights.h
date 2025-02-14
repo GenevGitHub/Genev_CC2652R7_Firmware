@@ -72,7 +72,7 @@ extern uint8_t lights_getLightStatus();
 extern uint8_t lights_lightModeChange( void );
 
 void auxiliaryLightStatusChg();
-
+extern void tail_lightControl(void);
 #ifdef _cplusplus
 }
 #endif

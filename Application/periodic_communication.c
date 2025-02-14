@@ -136,7 +136,7 @@ void periodic_communication_MCUSamplingRPM()
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy RPM
     uint16_t pc_rpm;   // but payload length is 0x05
-    int32_t rawRPM = 550; //300 * sin(PI_CONSTANT * 0.0075 * xrpm ) + 270;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    int32_t rawRPM = 300 * sin(PI_CONSTANT * 0.0025 * xrpm ) + 270;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
     uint8_t pc_rpmStatus;
 
     if(rawRPM >= 0)

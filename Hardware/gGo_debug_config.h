@@ -36,7 +36,12 @@ extern "C"
  *              If MOTOR_CONNECT = 1 -> Receiving MCU data = MCU_DATA_ON
  **/
 #define MOTOR_CONNECT           1         // MOTOR_CONNECT = 1 = Receiving MCU data = MCU_DATA_ON
-
+#ifdef MOTOR_CONNECT
+#define ADC_CORRECTION_FACTOR   1       //  ADC_CORRECTION_FACTOR corrects ADC value due to VCC difference between LaunchPad and MOTOR CONNECT
+#endif // MOTOR_CONNECT
+#ifndef MOTOR_CONNECT
+#define ADC_CORRECTION_FACTOR   1.03    //  ADC_CORRECTION_FACTOR corrects ADC value due to VCC difference between LaunchPad and MOTOR CONNECT
+#endif // MOTOR_CONNECT
 
 /** Note: If MOTOR_0RPM_START_MODE is NOT defined -> Minimum IQ speed, i.e. REG_MINP_RPM, is active
  *          otherwise, minimum IQ speed is zero

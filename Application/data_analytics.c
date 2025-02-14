@@ -135,10 +135,10 @@ static void data_analytics_setCharVal(void);
 //Performance related Function declaration
 static uint32_t computePowerConsumption( void ); // output in mW-hr
 static uint32_t computeDistanceTravelled( void );// output in decimeter
-static uint16_t  computeAvgSpeed(uint32_t deltaMileage_dm);   // output in km/hr
+static uint16_t computeAvgSpeed(uint32_t deltaMileage_dm);   // output in km/hr
 static uint8_t  computeAvgHeatSinkTemperature( void );         // output in degrees celsius
-static void computeAvgVoltages( void ); // output in mV
-static void computeAvgCurrents(void);
+static void     computeAvgVoltages( void ); // output in mV
+static void     computeAvgCurrents(void);
 static uint16_t computeInstantEconomy(uint32_t deltaPowerConsumption_mWh, uint32_t deltaMileage_dm); // unit in W-hr / km x 100
 static uint32_t computeEconomy( void );  // unit in W-hr / km x 100
 static uint32_t computeRange( void ); // output in metres
@@ -917,7 +917,7 @@ extern void data2snvBuffer()
 
     (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 4] = brake_and_throttle_getSpeedMode();
     (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 3] = UnitSelectDash;
-    (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 2] = LIGHT_MODE_AUTO; //*ptr_lightmode;
+    (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 2] = *ptr_lightmode;
     (*ptr_snvBuffer)[SNV_BUFFER_SIZE - 1] = *ptr_uptimeMinutes;
 
     /******************************************************************************************************

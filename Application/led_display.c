@@ -1056,17 +1056,6 @@ void IS31FL3236A_Digit_2_Number_ (uint8_t status_buf, uint8_t brightness_buf){
     update_bit();
 }
 
-//void Flashing (uint8_t status_buf, uint8_t brightness_buf, uint8_t index){
-//    if(brightness_buf == PWM_ZERO){
-//        functionTable[index]( status_buf, brightness_buf);
-//        functionTable[index]( status_buf, PWM_ZERO);
-//    }
-////    if(brightness_buf == brightness_buf){         // <---- Why is this if statement required?  isn't (brightness_buf == brightness_buf) always true?
-//        functionTable[index]( status_buf, PWM_ZERO);
-//        functionTable[index]( status_buf, brightness_buf);
-////    }
-//}
-
 void LED_Turn_OFF_ALL(){
        IS31FL3236A_Sports_Mode_pin(I_OUT,PWM_ZERO);
        IS31FL3236A_Leisure_Mode_pin(I_OUT,PWM_ZERO);
@@ -1481,13 +1470,13 @@ void led_display_changeDashSpeed()
                     functionTable[45 + dashspeed_ones](I_OUT,ledBrightness);
                     ledSpeed_old = ledSpeed;
                     led_LC_on = 0; // added
-         }
+                }
             }  //Chee added 20250110
             else {  //Chee added 20250110
                 led_display_speedModeLockStatus();  //Chee added 20250110
                 speedmodeIsLocked = 0;  //Chee added 20250110
                 led_LC_on = 1;          // Chee added 20250110
-           }  //Chee added 20250110
+            }  //Chee added 20250110
         }
         else if ((led_error_code_old == BRAKE_ERROR_PRIORITY) && (brake_error_on)) {// added to alternate between speed and Brake error code
             functionTable[35](I_OUT,ledBrightness);//0 // added
@@ -1738,7 +1727,7 @@ void led_display_changeBLE(uint32_t eventcounter)
         ledBLEStatus = 0;
     }
 
-    if ((ledBLEStatus == 2) && (eventcounter % 3 == 0))
+    if ((ledBLEStatus == 2) && (eventcounter % 3 == 0))  // (eventcounter % 3 == 0) determines the frequency of flashing
     {
         if(BLE_flash_status == 1)
                 {
@@ -1849,7 +1838,7 @@ uint8_t led_display_ErrorDisplay()
             functionTable[38](I_OUT,ledBrightness);//3
             functionTable[58](I_OUT,ledBrightness);//C
         }
-        else if(led_error_priority == DASH_COMM_ERROR_PRIORITY) // Dash-board communication error code = 0A
+        else if(led_error_priority == DASH_COMM_ERROR_PRIORITY) // Dashboard and MCU communication error code = 0A
         {
             functionTable[35](I_OUT,ledBrightness);//0
             functionTable[56](I_OUT,ledBrightness);//A

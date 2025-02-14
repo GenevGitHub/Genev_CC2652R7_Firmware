@@ -37,12 +37,13 @@ extern "C"
 
 
 
-
-
 // The parameters GPT_TIME & BRAKE_AND_THROTTLE_SAMPLES control the sensitivity of the throttle input to motor output
 #define BRAKE_AND_THROTTLE_SAMPLES                                3     // 3 samples seem ideal, 5 is okay, 8 is too laggy
-#define NN_IQ_INCREMENTS                                          25    // 20250207 Chee
-#define THROTTLE_INCREMENT_LIMIT                                  4     // in percentage, the maximum increase of applied throttle per GPT cycle
+#define NN_IQ_INCREMENTS                                          40    // 20250207 Chee
+#define THROTTLE_INCREMENT_LIMIT                                  1     // in percentage, the maximum increase of applied throttle per GPT cycle
+#define SPEEDCONTROLLIMITFACTOR1                                  75
+#define SPEEDCONTROLLIMITFACTOR2                                  10
+
 //Speed modes
 #define BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE                       0x00
 #define BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE                     0x01
@@ -63,19 +64,19 @@ extern "C"
 #define THROTTLEPERCENTTHRESHOLD                                  30    //%
 
 //Throttle calibration values = value range the throttle ADC is conditioned to be within
-#define THROTTLE_ADC_CALIBRATE_H                                  2200  // @ 3.3V
-#define THROTTLE_ADC_CALIBRATE_L                                  850   // @ 3.3V
+#define THROTTLE_ADC_CALIBRATE_H                                  2250  // @ 3.32V
+#define THROTTLE_ADC_CALIBRATE_L                                  870   // @ 3.32V
 
 //Throttle error thresholds = values that should not be possible under nominal operation
-#define THROTTLE_ADC_THRESHOLD_H                                  2700
+#define THROTTLE_ADC_THRESHOLD_H                                  2800
 #define THROTTLE_ADC_THRESHOLD_L                                  500
 
 //Brake calibration values = value range the Brake ADC is conditioned to be within
-#define BRAKE_ADC_CALIBRATE_H                                     2200  // @ 3.3V
-#define BRAKE_ADC_CALIBRATE_L                                     830   // @ 3.3V
+#define BRAKE_ADC_CALIBRATE_H                                     2300  // @ 3.32V
+#define BRAKE_ADC_CALIBRATE_L                                     830   // @ 3.32V
 
 //Brake error thresholds = values that should not be possible under nominal operation
-#define BRAKE_ADC_THRESHOLD_H                                     2700
+#define BRAKE_ADC_THRESHOLD_H                                     2800
 #define BRAKE_ADC_THRESHOLD_L                                     500
 
 //Error message
@@ -109,7 +110,7 @@ extern uint8_t brake_and_throttle_getSpeedMode();
 extern uint8_t brake_and_throttle_toggleSpeedMode();
 extern void brake_and_throttle_getSpeedModeParams();
 
-extern void brake_and_throttle_ADC_conversion();
+extern uint8_t brake_and_throttle_ADC_conversion();
 extern uint16_t brake_and_throttle_getThrottlePercent();
 extern uint16_t brake_and_throttle_getBrakePercent();
 
