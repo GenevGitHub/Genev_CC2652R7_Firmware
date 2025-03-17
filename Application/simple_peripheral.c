@@ -1567,6 +1567,11 @@ static void SimplePeripheral_performPeriodicTask(void)
       Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
     }
 
+    if (Battery_GetParameter(BATTERY_BATTERY_CURRENT, arrayToCopy2) == SUCCESS)
+      {
+        Battery_SetParameter(BATTERY_BATTERY_CURRENT, BATTERY_BATTERY_CURRENT_LEN, arrayToCopy2);
+      }
+
 /******** Speed and rpm Notification - Refresh every 7 x SP_PERIODIC_EVT_TIME **********/
 if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is performed once every 4th sp_periodic_evt_counts
 {
@@ -1625,11 +1630,6 @@ if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is perf
     {
       Battery_SetParameter(BATTERY_BATTERY_STATUS, BATTERY_BATTERY_STATUS_LEN, arrayToCopy1);
     }
-
-//  if (Battery_GetParameter(BATTERY_BATTERY_CURRENT, arrayToCopy2) == SUCCESS)
-//    {
-//      Battery_SetParameter(BATTERY_BATTERY_CURRENT, BATTERY_BATTERY_CURRENT_LEN, arrayToCopy2);
-//    }
 
   /******** Controller Profile Notification **********/
   if (Controller_GetParameter(CONTROLLER_VOLTAGE, arrayToCopy2) == SUCCESS)

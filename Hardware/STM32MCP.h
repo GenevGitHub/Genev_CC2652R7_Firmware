@@ -271,14 +271,15 @@ extern "C"
 #define ESCOOTER_ERROR_REPORT                   0x01
 #define ESCOOTER_BRAKE_PRESS                    0x03
 #define ESCOOTER_BRAKE_RELEASE                  0x04
-#define ESCOOTER_TOGGLE_TAIL_LIGHT              0x05
+//#define ESCOOTER_TOGGLE_TAIL_LIGHT              0x05
 #define ESCOOTER_TAIL_LIGHT_OFF                 0x06
 #define ESCOOTER_POWER_OFF                      0x07
 #define ESCOOTER_TAIL_LIGHT_ON                  0x08
 //#define ESCOOTER_TAIL_LIGHT_OFF_AUTO            0x09
-#define ESCOOTER_TIMEOUT_CHECKING               0x0A
-#define ESCOOTER_MOTOR_DRIVE_TEMP               0x0B
-#define ESCOOTER_MOTOR_TEMP                     0x0C
+#define ESCOOTER_TIMEOUT_CHECKING               0x09    //0x0A
+#define ESCOOTER_MOTOR_DRIVE_TEMP               0x0A    //0x0B
+#define ESCOOTER_MOTOR_TEMP                     0x0B    //0x0C
+#define ESCOOTER_CURRENT_CHECKING               0x0C
 
 #define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE         48000  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
 #define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE         28000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack

@@ -1463,5 +1463,3 @@ static bStatus_t Controller_WriteAttrCB( uint16 connHandle, gattAttribute_t *pAt
   }
   return status;
 }
-
-

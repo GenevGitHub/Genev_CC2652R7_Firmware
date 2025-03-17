@@ -143,7 +143,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
       if (*ptr_gpt_initComplete_flag)
       {
           /**************************   N = 1  ********************
-           * EXECUTED EVERY LOOP
+           * EXECUTED EVERY LOOP = 0.02 ms
            * N = 1 executes codes at the fundamental time interval unit for general purpose timer - GPT_TIME
            * N = 1 is Use for reading motor rpm, brake and throttle, controlling MCU and Motor */
           /************** Read rpm every GPT_TIME *************************/
@@ -178,7 +178,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           }
 
           /*********************************************************************************
-           * DATA_ANALYTICS_INTERVAL
+           * DATA_ANALYTICS_INTERVAL = 300 ms
            *
            * Executes after every N_data_analytics intervals
            *
@@ -211,7 +211,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           }
 
           /***************************************************************
-           * EXECUTION_INTERVAL_2
+           * EXECUTION_INTERVAL_2 = 140 ms
            *
            * if GPT_TIME = 0.02 seconds, EXECUTION_INTERVAL_2 = 0.140 seconds, then N_2 = 7
            * The following loop is refreshed/executed every N_2 loops
@@ -255,7 +255,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           }
 
           /***************************************************************
-           * EXECUTION_INTERVAL_3
+           * EXECUTION_INTERVAL_3 = 500 ms
            *
            * if GPT_TIME = 0.020 seconds, EXECUTION_INTERVAL_3 = 500 milliseconds, then N_3 = 25
            * The following loop is refreshed/executed every N_3 loops

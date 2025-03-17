@@ -43,18 +43,18 @@ extern "C"
 //  Characteristic defines -> display battery status from 1 to 5
 #define BATTERY_BATTERY_STATUS                  4
 //  Characteristic defines <- should display battery current in mA
-//#define BATTERY_BATTERY_CURRENT                 5
+#define BATTERY_BATTERY_CURRENT                 5
 
 #define BATTERY_BATTERY_LEVEL_UUID              BATT_LEVEL_UUID     // battery level in percentage
 #define BATTERY_BATTERY_VOLTAGE_UUID            VOLTAGE_UUID
 #define BATTERY_BATTERY_TEMPERATURE_UUID        TEMPERATURE_UUID
 #define BATTERY_BATTERY_ERROR_CODE_UUID         ALERT_STATUS_UUID  // 0x5804    // To be assigned/created UUID code
 #define BATTERY_BATTERY_STATUS_UUID             BATTERY_LEVEL_STATUS_UUID  // battery level status
-//#define BATTERY_BATTERY_CURRENT_UUID            0x5806              //ELECT_CURRENT_UUID
+#define BATTERY_BATTERY_CURRENT_UUID            0x5806              //ELECT_CURRENT_UUID
 
 #define BATTERY_BATTERY_LEVEL_LEN               1
 #define BATTERY_BATTERY_VOLTAGE_LEN             2
-//#define BATTERY_BATTERY_CURRENT_LEN             2
+#define BATTERY_BATTERY_CURRENT_LEN             2
 #define BATTERY_BATTERY_TEMPERATURE_LEN         1
 #define BATTERY_BATTERY_ERROR_CODE_LEN          1
 #define BATTERY_BATTERY_STATUS_LEN              1
@@ -71,7 +71,7 @@ extern "C"
 typedef struct batteryCharVal{
     uint8*    ptr_batteryVoltage;
     uint8*    ptr_batteryLevel;
-//    uint8*    ptr_batteryCurrent;
+    uint8*    ptr_batteryCurrent;
     uint8*    ptr_batteryStatus;
     uint8*    ptr_batteryTempOffset50;
     uint8*    ptr_batterayErrorCode;

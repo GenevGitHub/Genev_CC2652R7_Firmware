@@ -127,9 +127,9 @@ void lights_init( uint8_t lights_i2cOpenStatus, uint8_t uart2ErrorStatus, uint8_
     /** set light mode on LED display **/
     led_display_setLightMode( light_mode );
 
-    /** command light and set light status and LED power on LED display **/
+    /** command lights and set light status and LED power on LED display **/
     /* led_display_init() must be before lights_init() */
-    lights_statusChg();     //    led_display_setLEDPower() & led_display_setLightStatus( light_status );
+    lights_statusChg();     //    activate light, sync light status with MCU , led_display_setLEDPower() & led_display_setLightStatus( light_status );
 
 }
 
@@ -239,13 +239,14 @@ void lights_statusChg(void){
 
     /*** execute headlight commands ***/
     UDHAL_PWM_setHLDutyAndPeriod(lights_PWMDuty);
-
     /*** execute taillight commands ***/
-    if (!lights_uart2ErrorStatus)// if no uart error
-    {
-//        motor_control_taillightControl(light_status);
-        motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
-    }
+    //if (brakeStatus == 0){
+        if (!lights_uart2ErrorStatus)// if no uart error
+        {
+    //        motor_control_taillightControl(light_status);
+            motor_control_taillightStatusChg();         // called only when light status has changed, otherwise, it cannot reach here
+        }
+    //}
 
     /* updates light status Characteristic Value -> Mobile App */
     /******  Dashboard services  *************************************/

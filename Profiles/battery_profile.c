@@ -39,10 +39,6 @@
 */
 
 // Battery Service UUID
-//static CONST uint8 BatteryUUID[ATT_UUID_SIZE] =
-//{
-//     TI_BASE_UUID_128(BATTERY_PROFILE_SERV_UUID)
-//};
 static CONST uint8 BatteryUUID[ATT_BT_UUID_SIZE] =
 {
      LO_UINT16(BATTERY_PROFILE_SERV_UUID), HI_UINT16(BATTERY_PROFILE_SERV_UUID)
@@ -73,11 +69,11 @@ static CONST uint8 Battery_Battery_StatusUUID[ATT_BT_UUID_SIZE] =
 {
      LO_UINT16(BATTERY_BATTERY_STATUS_UUID), HI_UINT16(BATTERY_BATTERY_STATUS_UUID)
 };
-//// Battery_Current UUID
-//static CONST uint8 Battery_Battery_CurrentUUID[ATT_BT_UUID_SIZE] =
-//{
-//     LO_UINT16(BATTERY_BATTERY_CURRENT_UUID), HI_UINT16(BATTERY_BATTERY_CURRENT_UUID)
-//};
+// Battery_Current UUID
+static CONST uint8 Battery_Battery_CurrentUUID[ATT_BT_UUID_SIZE] =
+{
+     LO_UINT16(BATTERY_BATTERY_CURRENT_UUID), HI_UINT16(BATTERY_BATTERY_CURRENT_UUID)
+};
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -98,7 +94,7 @@ static CONST gattAttrType_t BatteryDecl = { ATT_BT_UUID_SIZE, BatteryUUID };
 static uint8 Battery_Battery_LevelProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
 // Characteristic "BATTERY_VOLTAGE" Properties (for declaration)
 static uint8 Battery_Battery_VoltageProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
-// **** The current battery version does not feedback temperature information - For Future Use Only   *****
+// **** The present battery version does not feedback temperature information - For Future Use Only   *****
 // Characteristic "BATTERY_TEMPERATURE" Properties (for declaration)
 static uint8 Battery_Battery_TemperatureProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
 // **** The current battery version does not support error code information - For Future Use Only   *****
@@ -107,7 +103,7 @@ static uint8 Battery_Battery_Error_CodeProps = GATT_PROP_READ  | GATT_PROP_NOTIF
 // Characteristic "BATTERY_STATUS" Properties (for declaration)
 static uint8 Battery_Battery_StatusProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
 //// Characteristic "BATTERY_CURRENT" Properties (for declaration)
-//static uint8 Battery_Battery_CurrentProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
+static uint8 Battery_Battery_CurrentProps = GATT_PROP_READ  | GATT_PROP_NOTIFY;
 
 /**************************  Characteristic Value ******************************/
 // Characteristic "Battery_Level" Value variable
@@ -121,7 +117,7 @@ static uint8 Battery_Battery_Error_CodeVal[BATTERY_BATTERY_ERROR_CODE_LEN] = {0x
 // Characteristic "BATTERY_STATUS" Value variable
 static uint8 Battery_Battery_StatusVal[BATTERY_BATTERY_STATUS_LEN] = {5};   // = GLOWING_AQUA in dataAnalysis.h
 //// Characteristic "BATTERY_CURRENT" Value variable
-//static uint8 Battery_Battery_CurrentVal[BATTERY_BATTERY_CURRENT_LEN] = {0xA0, 0x0F};
+static uint8 Battery_Battery_CurrentVal[BATTERY_BATTERY_CURRENT_LEN] = {0xA0, 0x0F};
 
 /**************************  Characteristic Description ******************************/
 // Battery Level User Description
@@ -135,7 +131,7 @@ static uint8 Battery_Battery_ErrorUserDesp[17] = "Battery Alert";
 // Battery Status User Description
 static uint8 Battery_Battery_StatusUserDesp[17] = "Battery Status";
 //// Battery Current User Description
-//static uint8 Battery_Battery_CurrentUserDesp[17] = "Instant. Current";
+static uint8 Battery_Battery_CurrentUserDesp[17] = "Instant. Current";
 
 /********* Declare Struct of Battery Characteristic Values ****************/
 batteryCharVal_t BCVArray;
@@ -152,7 +148,7 @@ static gattCharCfg_t *Battery_Battery_Error_CodeConfig;
 // Characteristic "BATTERY_STATUS" CCCD
 static gattCharCfg_t *Battery_Battery_StatusConfig;
 //// Characteristic "BATTERY_CURRENTS" CCCD
-//static gattCharCfg_t *Battery_Battery_CurrentConfig;
+static gattCharCfg_t *Battery_Battery_CurrentConfig;
 
 /*********************************************************************
 * Profile Attributes - Table
@@ -314,34 +310,34 @@ static gattAttribute_t BatteryAttrTbl[] =
             Battery_Battery_ErrorUserDesp  //"Battery Alert"
         },
 
-//// ************ BATTERY_CURRENT Characteristic Declaration
-//        {
-//          { ATT_BT_UUID_SIZE, characterUUID },
-//            GATT_PERMIT_READ,
-//            0,
-//            &Battery_Battery_CurrentProps
-//        },
-//            // BATTERY_CURRENT Characteristic Value
-//            {
-//              { ATT_BT_UUID_SIZE, Battery_Battery_CurrentUUID },
-//                GATT_PERMIT_READ,
-//                0,
-//                Battery_Battery_CurrentVal
-//            },
-//                        // Battery_Current CCCD - Notify
-//                              {
-//                                { ATT_BT_UUID_SIZE, clientCharCfgUUID },
-//                                  GATT_PERMIT_READ | GATT_PERMIT_WRITE,
-//                                  0,
-//                                  (uint8 *)&Battery_Battery_CurrentConfig
-//                              },
-//            // BATTERY_Current user descriptor
-//            {
-//               {ATT_BT_UUID_SIZE, charUserDescUUID},
-//                GATT_PERMIT_READ,
-//                0,
-//                Battery_Battery_CurrentUserDesp  //"Battery Alert"
-//            }
+  // ************ BATTERY_CURRENT Characteristic Declaration
+        {
+          { ATT_BT_UUID_SIZE, characterUUID },
+            GATT_PERMIT_READ,
+            0,
+            &Battery_Battery_CurrentProps
+        },
+            // BATTERY_CURRENT Characteristic Value
+            {
+              { ATT_BT_UUID_SIZE, Battery_Battery_CurrentUUID },
+                GATT_PERMIT_READ,
+                0,
+                Battery_Battery_CurrentVal
+            },
+                        // Battery_Current CCCD - Notify
+                              {
+                                { ATT_BT_UUID_SIZE, clientCharCfgUUID },
+                                  GATT_PERMIT_READ | GATT_PERMIT_WRITE,
+                                  0,
+                                  (uint8 *)&Battery_Battery_CurrentConfig
+                              },
+            // BATTERY_Current user descriptor
+            {
+               {ATT_BT_UUID_SIZE, charUserDescUUID},
+                GATT_PERMIT_READ,
+                0,
+                Battery_Battery_CurrentUserDesp  //"Battery Alert"
+            }
 };
 
 /*********************************************************************
@@ -379,7 +375,7 @@ extern void Battery_profile_init(){
     BCVArray.ptr_batteryStatus = Battery_Battery_StatusVal;
     BCVArray.ptr_batteryTempOffset50 = Battery_Battery_TemperatureVal;
     BCVArray.ptr_batteryVoltage = Battery_Battery_VoltageVal;
-//    BCVArray.ptr_batteryCurrent = Battery_Battery_CurrentVal; // Not yet available
+    BCVArray.ptr_batteryCurrent = Battery_Battery_CurrentVal; // Not yet available
 }
 
 /*
@@ -446,15 +442,15 @@ bStatus_t Battery_AddService( void )
        GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Battery_Battery_StatusConfig );
 
 
-//       /****** Allocate Client Characteristic Configuration table for Battery Current ******/
-//       Battery_Battery_CurrentConfig = (gattCharCfg_t *)ICall_malloc( sizeof(gattCharCfg_t) *
-//                                                                    MAX_NUM_BLE_CONNS );
-//       if ( Battery_Battery_CurrentConfig == NULL )
-//       {
-//         return ( bleMemAllocError );
-//       }
-//        //   Initialize Client Characteristic Configuration attributes
-//       GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Battery_Battery_CurrentConfig );
+       /****** Allocate Client Characteristic Configuration table for Battery Current ******/
+       Battery_Battery_CurrentConfig = (gattCharCfg_t *)ICall_malloc( sizeof(gattCharCfg_t) *
+                                                                    MAX_NUM_BLE_CONNS );
+       if ( Battery_Battery_CurrentConfig == NULL )
+       {
+         return ( bleMemAllocError );
+       }
+        //   Initialize Client Characteristic Configuration attributes
+       GATTServApp_InitCharCfg( LINKDB_CONNHANDLE_INVALID, Battery_Battery_CurrentConfig );
 
 
 
@@ -572,20 +568,20 @@ bStatus_t Battery_SetParameter( uint8 param, uint8 len, void *value )
             ret = bleInvalidRange;
           }
           break;
-//    case BATTERY_BATTERY_CURRENT:
-//          if ( len == BATTERY_BATTERY_CURRENT_LEN )
-//          {
-//            memcpy(Battery_Battery_CurrentVal, value, len);  // here, value overwrites Battery_Battery_CurrentVal.
-//            // Try to send notification.
-//            GATTServApp_ProcessCharCfg( Battery_Battery_CurrentConfig, Battery_Battery_CurrentVal, FALSE,
-//                                        BatteryAttrTbl, GATT_NUM_ATTRS( BatteryAttrTbl ),
-//                                        INVALID_TASK_ID,  Battery_ReadAttrCB);
-//          }
-//          else
-//          {
-//            ret = bleInvalidRange;
-//          }
-//          break;
+    case BATTERY_BATTERY_CURRENT:
+          if ( len == BATTERY_BATTERY_CURRENT_LEN )
+          {
+            memcpy(Battery_Battery_CurrentVal, value, len);  // here, value overwrites Battery_Battery_CurrentVal.
+            // Try to send notification.
+            GATTServApp_ProcessCharCfg( Battery_Battery_CurrentConfig, Battery_Battery_CurrentVal, FALSE,
+                                        BatteryAttrTbl, GATT_NUM_ATTRS( BatteryAttrTbl ),
+                                        INVALID_TASK_ID,  Battery_ReadAttrCB);
+          }
+          else
+          {
+            ret = bleInvalidRange;
+          }
+          break;
 
     default:
           ret = INVALIDPARAMETER;
@@ -623,9 +619,9 @@ bStatus_t Battery_GetParameter( uint8 param, void *value )
   case BATTERY_BATTERY_STATUS:
           memcpy(value, Battery_Battery_StatusVal, BATTERY_BATTERY_STATUS_LEN);
         break;
-//  case BATTERY_BATTERY_CURRENT:
-//          memcpy(value, Battery_Battery_CurrentVal, BATTERY_BATTERY_CURRENT_LEN);
-//        break;
+  case BATTERY_BATTERY_CURRENT:
+          memcpy(value, Battery_Battery_CurrentVal, BATTERY_BATTERY_CURRENT_LEN);
+        break;
 
     default:
       ret = INVALIDPARAMETER;
@@ -718,19 +714,19 @@ static bStatus_t Battery_ReadAttrCB( uint16 connHandle, gattAttribute_t *pAttr,
         memcpy(pValue, pAttr->pValue + offset, *pLen);
       }
     }
-//    // See if request is regarding the Battery_Current Characteristic Value
-//    else if (! memcmp(pAttr->type.uuid, Battery_Battery_CurrentUUID, pAttr->type.len) )
-//    {
-//      if ( offset > BATTERY_BATTERY_CURRENT_LEN )  // Prevent malicious ATT ReadBlob offsets.
-//      {
-//        status = ATT_ERR_INVALID_OFFSET;
-//      }
-//      else
-//      {
-//        *pLen = MIN(maxLen, BATTERY_BATTERY_CURRENT_LEN - offset);  // Transmit as much as possible
-//        memcpy(pValue, pAttr->pValue + offset, *pLen);
-//      }
-//    }
+    // See if request is regarding the Battery_Current Characteristic Value
+    else if (! memcmp(pAttr->type.uuid, Battery_Battery_CurrentUUID, pAttr->type.len) )
+    {
+      if ( offset > BATTERY_BATTERY_CURRENT_LEN )  // Prevent malicious ATT ReadBlob offsets.
+      {
+        status = ATT_ERR_INVALID_OFFSET;
+      }
+      else
+      {
+        *pLen = MIN(maxLen, BATTERY_BATTERY_CURRENT_LEN - offset);  // Transmit as much as possible
+        memcpy(pValue, pAttr->pValue + offset, *pLen);
+      }
+    }
     else
     {
       // If we get here, that means you've forgotten to add an if clause for a

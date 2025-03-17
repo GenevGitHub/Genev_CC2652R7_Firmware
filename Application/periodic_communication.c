@@ -108,14 +108,19 @@ void periodic_communication_MCUSampling()
 #ifdef MOTOR_CONNECT
     if (!(ptr_systemFatalError->UARTfailure))    // added if statement 20241110
     {
+        /* behaviour ID STM32MCP_BUS_VOLTAGE_REG_ID = get DC-bus voltage */
+        /*Checks DC Bus Voltage*/
         STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_BUS_VOLTAGE_REG_ID);
-        /* STM32MCP_TORQUE_MEASURED_REG_ID = current */
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_TORQUE_MEASURED_REG_ID);       // Need to create a getRegisterFrame for battery current
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_HEATSINK_TEMPERATURE_REG_ID);
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_MOTOR_TEMPERATURE_REG_ID);
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_BUS_CURRENT_REG_ID);
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_VOLTAGE_REG_ID);
-        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_CURRENT_REG_ID);
+
+        /* behaviour ID ESCOOTER_CURRENT_CHECKING = get DC-bus current */
+        /*Checks current */
+        STM32MCP_controlEscooterBehavior(ESCOOTER_CURRENT_CHECKING);
+
+//        STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_HEATSINK_TEMPERATURE_REG_ID);
+//        STM32MCP_controlEscooterBehavior(ESCOOTER_MOTOR_TEMP);
+
+        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_VOLTAGE_REG_ID);        // Is phase voltage obtainable?
+        //STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_PHASE_CURRENT_REG_ID);        // Is phase current obtainable?
     }
 #endif // MOTOR_CONNECT
 
@@ -136,7 +141,7 @@ void periodic_communication_MCUSamplingRPM()
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy RPM
     uint16_t pc_rpm;   // but payload length is 0x05
-    int32_t rawRPM = 300 * sin(PI_CONSTANT * 0.0025 * xrpm ) + 270;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    int32_t rawRPM = 240 * sin(PI_CONSTANT * 0.001 * xrpm ) + 250;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
     uint8_t pc_rpmStatus;
 
     if(rawRPM >= 0)

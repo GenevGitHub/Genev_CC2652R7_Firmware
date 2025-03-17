@@ -44,7 +44,7 @@ extern "C"
 #define BATTERY_CEILING_VOLTAGE         55510
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         48100
-#define BATTERY_MAX_VOLTAGE             54600
+#define BATTERY_MAX_VOLTAGE             54210
 #define BATTERY_MIN_VOLTAGE             39000           // the battery voltage assumed at 0% charged
 #define BATTERY_CRITICALLY_LOW          36400
 #define BATTERY_MAX_CAPACITY            461760          // mW-hr
@@ -61,7 +61,7 @@ extern "C"
 #define BATTERY_CEILING_VOLTAGE         51300
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         44400
-#define BATTERY_MAX_VOLTAGE             50400
+#define BATTERY_MAX_VOLTAGE             50040
 #define BATTERY_MIN_VOLTAGE             36000           // the battery voltage assumed at 0% charged
 #define BATTERY_CRITICALLY_LOW          33600
 #define BATTERY_MAX_CAPACITY            426240          // mW-hr
@@ -79,7 +79,7 @@ extern "C"
 #define BATTERY_CEILING_VOLTAGE         47000
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         40700
-#define BATTERY_MAX_VOLTAGE             46200
+#define BATTERY_MAX_VOLTAGE             45870
 #define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
 #define BATTERY_CRITICALLY_LOW          30000
 #define BATTERY_MAX_CAPACITY            586080          // mW-hr
@@ -89,15 +89,15 @@ extern "C"
 #define LEVEL12                         36696           // equivalent to 28%
 #define LEVEL01                         33000           // equivalent to  0%
 #define LEVEL00                         30000
-#endif // BATTERY_S11P2
+#endif // BATTERY_S11P3
 
 
 /* Battery specification parameters     40.7V */
 #ifdef BATTERY_40700mV_S11P2
 #define BATTERY_CEILING_VOLTAGE         47000
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
-#define BATTERY_NOMINAL_VOLTAGE         40700
-#define BATTERY_MAX_VOLTAGE             46200
+#define BATTERY_NOMINAL_VOLTAGE         40700           // 11 x 3.7V
+#define BATTERY_MAX_VOLTAGE             45870           // 11 x 4.17V
 #define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
 #define BATTERY_CRITICALLY_LOW          30000
 #define BATTERY_MAX_CAPACITY            390720          // mW-hr
@@ -114,7 +114,7 @@ extern "C"
 #define BATTERY_CEILING_VOLTAGE         42700
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         37000           // 10 x 3.7V
-#define BATTERY_MAX_VOLTAGE             42000
+#define BATTERY_MAX_VOLTAGE             41700           // 10 x 4.17V
 #define BATTERY_MIN_VOLTAGE             30000           // the battery voltage assumed at 0% charged
 #define BATTERY_CRITICALLY_LOW          26000
 #define BATTERY_MAX_CAPACITY            355200          // mW-hr
@@ -126,6 +126,7 @@ extern "C"
 #define LEVEL00                         27000
 #endif // BATTERY_S10P2
 
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
 #define VOLTAGE_DROP_COEFFICIENT        0.269           // for Cest Power 37V 9.6Ah Battery pack Voltage drop empirical coefficient
 
 #define LEVEL45PERCENT                  80              // 80%
