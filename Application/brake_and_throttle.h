@@ -66,16 +66,14 @@ extern "C"
  ********************************************/
 
 /* Normal Mode Params   */
+#define MIN_KICK_START_IQ_PERCENT                                 30    //    throttle% != IQ%. Note: Throttle% and IQ is not linear. See table below
+#define MIN_BRAKE_START_IQ_PERCENT                                25
 #define NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD                  30    //55    rpm per second
 #define NORMAL_MODE_LEISURE_ACCELERATION_THRESHOLD                42    //60    rpm per second
 #define NORMAL_MODE_SPORTS_ACCELERATION_THRESHOLD                 54    //65    rpm per second
-#define MAX_ETA                                                   0.5
-#define NN_IQ_INCREMENTS_x10                                      40  // -> IQ_increment = speedModeIQmax / NN_IQ_INCREMENTS
-#define MIN_STARTING_IQ                                           60    // percentage
+#define NN_IQ_INCREMENTS                                          200  // -> IQ_increment = speedModeIQmax / NN_IQ_INCREMENTS
+#define MAX_ACCELERATION_FACTOR                                   4
 
-#define AMBLE_MODE_INT                                            5
-#define LEISURE_MODE_INT                                          9
-#define SPORTS_MODE_INT                                           12
 //Speed modes
 #define BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE                       0x00
 #define BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE                     0x01
@@ -89,9 +87,9 @@ extern "C"
 
 // Normal Law TORQUEIQ reduction ratio
 // Note: IQ 15750 is approximately 14000 milli-Amp.  @ 9600mAh -> 14000mA = 1.458C
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       73        //73%   IQmax = 14600 -> 12978 mA -> 1.35C
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     75        //75%   IQmax = 15000 -> 13333 mA -> 1.39C
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      79        //79%   IQmax = 15800 -> 14044 mA -> 1.46C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       68        //68%   IQmax = 13600 -> 12000 mA -> 1.25C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     73        //75%   IQmax = 14600 -> 13000 mA -> 1.35C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      79        //79%   IQmax = 15800 -> 14000 mA -> 1.46C
 
 //Speed mode ramp rate (acceleration) in milliseconds
 #define BRAKE_AND_THROTTLE_RAMPRATE_AMBLE                         3000      // ramp rates are not used

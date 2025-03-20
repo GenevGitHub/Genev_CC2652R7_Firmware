@@ -37,7 +37,7 @@
  *          Normal law algorithm modulates the speed to not exceed the defined limit
  *          Direct law algorithm does not modulate the speed in any way
  */
-uint8_t     ControlLaw = BRAKE_AND_THROTTLE_DIRECTLAW;
+uint8_t     ControlLaw = BRAKE_AND_THROTTLE_NORMALLAW;
 /*  Options:
  *  (1) BRAKE_AND_THROTTLE_NORMALLAW
  *  (2) BRAKE_AND_THROTTLE_DIRECTLAW
@@ -53,13 +53,23 @@ uint16_t    adc2Result;             // adc2Result is a holder of the throttle AD
 uint16_t    throttlePercent = 0;        // Actual throttle applied in percentage
 uint16_t    throttlePercent0 = 0;
 uint16_t    throttlePercentApplied = 0; // throttle percentage applied to the motor
+uint16_t    throttlePercentApplied_x100 = 0;
 uint16_t    IQ_input = 0;               // Iq value input by rider
+uint32_t    IQ_input_x10 = 0;
 uint16_t    IQ_applied = 0;             // Iq value command sent to STM32 / motor Controller
 uint16_t    brakePercent = 0;           // brake applied in percentage
 uint8_t     brakeStatus = 0;
 uint16_t    throttleRPMdemand = 0;
 uint16_t    throttleRPMdemand0 = 0;
-uint8_t     increaseThrottleFlag = 0;
+uint16_t    startIQPercent = 0;
+float       deltaIQ_x10 = 0;
+
+static uint16_t throttlePercentIncrement_x100 = 0; // declare here for debugging only
+uint8_t motor_state = THROTTLE_CONTROL_STATE;    // motor_state is a flags that indicates whether RPM was below min RPM or brake was engaged
+uint8_t motor_state_counter = 0;
+float acceleration_factor = 1;
+uint8_t startThrottlePercent = 0;
+static uint8_t returnFlag = 0; // for debugging only
 
 uint8_t     dashboardErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
 
@@ -71,9 +81,9 @@ uint8_t     dashboardErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
  *
  *  IQ_input is set to 0
  */
-uint8_t brakeAndThrottle_errorMsg = BRAKE_AND_THROTTLE_NORMAL;
-uint8_t throttle_errorStatus = 0;   // 0 indicates normal (no error)
-uint8_t brake_errorStatus = 0;      // 0 indicates normal (no error)
+       uint8_t  brakeAndThrottle_errorMsg = BRAKE_AND_THROTTLE_NORMAL;
+       uint8_t  throttle_errorStatus = 0;   // 0 indicates normal (no error)
+       uint8_t  brake_errorStatus = 0;      // 0 indicates normal (no error)
 
 /****** Safety Protections  **************************************/
 // Safety feature 1:  Speed mode cannot be changed while throttle is pressed
@@ -90,40 +100,33 @@ uint8_t brake_errorStatus = 0;      // 0 indicates normal (no error)
 static profileCharVal_t *ptr_bat_profileCharVal;
 static uint8_t  *ptr_charVal;
 static uint8_t  *ptr_bat_errorPriority;
-
 static uint8_t  *ptr_bat_auxiliaryLightStatus;
+
 static uint8_t  brakeAndThrottleIndex = 0;
-uint8_t         ThrottleIndex = 0;
-uint8_t         RPM_index = 0;
-uint16_t        brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
-uint16_t        throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
-//uint16_t        RPM_array[BRAKE_AND_THROTTLE_SAMPLES];
+static uint8_t  ThrottleIndex = 0;
+static uint8_t  RPM_index = 0;
+
+       uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
+       uint16_t throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
+       uint16_t RPMarray[RPM_SAMPLES] = {0};    // for computing acceleration
 
 /** Speed limiter control variables **/
-uint16_t        IQ_increment_x10;    // max IQ increment
-float           alpha = 0;    // -infinity <= alpha < 1
-float           beta = 0;
-float           eta = 0;
-float           gamma = 1;
-float           exponent1 = 1;
-float           exponent2 = 1;
-float           constant1 = 1;
-uint8_t         throttleRPMlessthanRPM = 0;
+static uint16_t IQ_increment_x10;    // max IQ increment
+float           alpha = 0;    // 0 <= alpha < 1
+float           beta = 0;     //  -ve to +ve
 
 /**  Speed mode parameters  **/
 uint16_t        speedModeIQmax;
 static uint8_t  reductionRatio;
 static uint16_t rampRate;
-uint16_t        allowableRPM;
-uint16_t        IQ_maxPout = 0xFFFF;
-uint16_t        RPMarray[RPM_SAMPLES] = {0};    // for computing acceleration
-uint8_t         speedLimitInterval = 1;
-uint16_t        throttlePercentArray[THROTTLE_INDEX_SAMPLES] = {0};
-uint16_t        throttleRPMdemandArray[THROTTLE_INDEX_SAMPLES] = {0};
-uint8_t         N_rpm = 1;
-uint16_t        RPM_prev = 0;
-float           acceleration = 0;
-float           accelerationThreshold = 0;
+       uint16_t allowableRPM;
+       uint16_t IQ_maxPout = 0xFFFF;
+       uint16_t throttlePercentArray[THROTTLE_INDEX_SAMPLES] = {0};
+       uint16_t throttleRPMdemandArray[THROTTLE_INDEX_SAMPLES] = {0};
+static uint8_t  N_rpm = 1;
+static uint16_t RPM_prev = 0;
+       float    acceleration = 0;
+       float    accelerationThreshold = 0;
 
 /**  Data structs  **/
 static MCUD_t   *ptr_bat_MCUDArray;
@@ -156,9 +159,8 @@ extern void brake_and_throttle_STM32MCDArrayRegister(STM32MCPD_t *ptrSTM32MCPDAr
  */
 static void brake_and_throttle_directLawAlgorithm();
 static void brake_and_throttle_normalLawAlgorithm();
-static void throttleRPMControlAlgorithm();
+
 static void brake_and_throttle_OutputPowerLimitAlgorithm();
-static void calculate_IQ_input_x10();
 
 /*********************************************************************
  * @fn      brake_and_throttle_init
@@ -188,7 +190,6 @@ void brake_and_throttle_init()
     for (uint8_t ii = 0; ii < BRAKE_AND_THROTTLE_SAMPLES; ii++) {
         brakeADCSamples[ii] = BRAKE_ADC_CALIBRATE_L;
         throttleADCSamples[ii] = THROTTLE_ADC_CALIBRATE_L;
-//        RPM_array[ii] = 0;
     }
 
     for (uint8_t ll = 0; ll < RPM_SAMPLES; ll++) {
@@ -207,15 +208,15 @@ void brake_and_throttle_init()
  *
  * @param
  *********************************************************************/
-uint8_t     brake_errorFlag = 0;
-uint16_t    RPM_temp;
+static uint8_t     brake_errorFlag = 0;
+uint16_t           RPM_temp;
 static uint8_t     brakeAndThrottleIndex_minus_1;
 static uint8_t     brakeAndThrottleIndex_minus_2;
 static uint8_t     throttle_error_count = 0;
 static uint8_t     brake_error_count = 0;
 static uint16_t    throttleADCsample = 0;  //throttleADCsample
 static uint16_t    brakeADCsample = 0;     //brakeADCsample
-static float voltage_ratio = 1;
+static float       voltage_ratio = 1;
 
 /***    This is the main function of brake_and_throttle.c
  *      This function
@@ -448,14 +449,12 @@ uint8_t brake_and_throttle_ADC_conversion()
         {
             brake_and_throttle_directLawAlgorithm();
             brake_and_throttle_OutputPowerLimitAlgorithm();
-
             break;
         }
         case (BRAKE_AND_THROTTLE_NORMALLAW):
         {
             brake_and_throttle_normalLawAlgorithm();
             brake_and_throttle_OutputPowerLimitAlgorithm();
-
             break;
         }
         default:
@@ -464,12 +463,13 @@ uint8_t brake_and_throttle_ADC_conversion()
     }
     else {  /** if rpm is negative or if error is fatal or critical errors  **/
         // Provides a soft landing for IQ_input to zero
-        if ((float)IQ_input - speedModeIQmax * voltage_ratio / 100 < 0){
-            IQ_input = 0;
+        if (IQ_input_x10 - (float) speedModeIQmax * voltage_ratio * 10 / 50 < 0){
+            IQ_input_x10 = 0;
         }
         else {
-            IQ_input = ((float)IQ_input - speedModeIQmax * voltage_ratio / 100); // provide a soft landing towards 0 when IQ_input is not already zero
+            IQ_input_x10 -= (float) speedModeIQmax * voltage_ratio * 10 / 50; // provide a soft landing towards 0 when IQ_input is not already zero
         }
+        IQ_input = ((float) IQ_input_x10 / 10);   // synchronize IQ_input
     }
 
     IQ_applied = IQ_input;
@@ -508,14 +508,6 @@ uint8_t brake_and_throttle_ADC_conversion()
  *
  * @return  Nil
  *********************************************************************/
-uint16_t throttlePercentApplied_x100 = 0;
-uint8_t motor_state = THROTTLE_CONTROL_STATE;    // motor_state is a flags that indicates whether RPM was below min RPM or brake was engaged
-uint8_t motor_state_counter = 0;
-float acceleration_factor = 1;
-uint8_t startThrottlePercent = 0;
-//uint16_t throttlePercentIncrement_x100 = 0; // declare here for debugging only
-//uint8_t returnFlag = 0; // for debugging only
-
 static void brake_and_throttle_directLawAlgorithm()
 {
     /** To get here,
@@ -523,16 +515,17 @@ static void brake_and_throttle_directLawAlgorithm()
      * (2) No fatal errors
      ***/
     if ((brakeStatus) || (RPM_temp < REG_MINP_RPM)) {/* if brake is applied or rpm is less than the min power rpm */
-        // Never set throttlePercentApplied (IQ) to zero instantly.
+        // Set IQ = 0, but never set throttlePercentApplied (IQ) to zero instantly.
         // Always provide a soft landing to throttlePercentApplied (IQ) from non-zero value to zero.
         // The following routine provides a soft landing by decreasing throttlePercentApplied at increments.
-        if(throttlePercentApplied < THROTTLE_INCREMENT_LIMIT){
-            throttlePercentApplied_x100 = 0;
+        if (throttlePercentApplied_x100) {  // if throttle Applied is greater than zero
+            if(throttlePercentApplied_x100 < THROTTLE_INCREMENT_LIMIT * 100){
+                throttlePercentApplied_x100 = 0;
+            }
+            else {  // providing a soft landing to throttlePercentApplied from non-zero value to zero
+                throttlePercentApplied_x100 -= THROTTLE_INCREMENT_LIMIT * 100;
+            }
         }
-        else {  // providing a soft landing to throttlePercentApplied from non-zero value to zero
-            throttlePercentApplied_x100 -= THROTTLE_INCREMENT_LIMIT * 100;
-        }
-
         throttlePercentApplied = ((float)throttlePercentApplied_x100 / 100);
 
         if (brakeStatus){// when brake is applied, motor controller enters the "brake start" state.
@@ -541,6 +534,7 @@ static void brake_and_throttle_directLawAlgorithm()
         if (RPM_temp < REG_MINP_RPM){// when rpm < min rpm, motor controller enters the "kick start" state, i.e. motor_state = 0
             motor_state = KICKSTART_STATE;
         }
+        motor_state_counter = 0;
     }
     else {
         if ((throttlePercent > 3) && (throttlePercent > throttlePercentApplied)) {
@@ -564,9 +558,8 @@ static void brake_and_throttle_directLawAlgorithm()
                 else {
                     if (acceleration > accelerationThreshold){ // if acceleration is sufficient, no need to increment IQ
                         motor_state_counter++;
-                        if (motor_state_counter >= 5){  // when acceleration is sufficient for 4 consecutive times -> exit kick start and brake start states
+                        if (motor_state_counter >= 5){  // when acceleration is sufficient for 5 consecutive times -> exit kick start and brake start states
                             motor_state = THROTTLE_CONTROL_STATE;            // Exit kick start state or brake start state
-                            motor_state_counter = 0;
                         }
                     }
                     else {  // if acceleration is not sufficient, increment IQ
@@ -574,14 +567,14 @@ static void brake_and_throttle_directLawAlgorithm()
                             if (throttlePercentApplied_x100 + 170 > 9900) {// 150 = 1.5% x 100
                                 throttlePercentApplied_x100 = 9900; // must never exceed 99%
                                 motor_state = THROTTLE_CONTROL_STATE;        // If we reached this point, exit kick start and brake start states
-                                motor_state_counter = 0;    // reset motor_state_counter
                             }
                             else {
                                 throttlePercentApplied_x100 += 170;     // 150 = 1.5% x 100 -> increment by 15% every loop
                             }
                         }
                         throttlePercentApplied = ((float)throttlePercentApplied_x100 / 100);
-                        motor_state_counter = 1;// this ensures kick start or brake start states is only exited when sufficient acceleration occurs for 4 consecutive times
+                        // set motor_state_counter = 1, this ensures kick start or brake start states will only exit when sufficient acceleration occurred 5 consecutive times
+                        motor_state_counter = 1;
                     }
                 }
             }
@@ -675,10 +668,10 @@ static void brake_and_throttle_directLawAlgorithm()
 //        returnFlag = 1; // for debugging only
         return; // Do not execute IQ_input and exit function
     }
-
     // IQ_input is a nonlinear function of throttlePercentApplied - enabling higher control precision at low speeds
-    IQ_input = (float) speedModeIQmax * voltage_ratio * (1 - pow(cos(PI_CONSTANT * (float) throttlePercentApplied / 200), DIRECT_MODE_IQ_EXPONENT));
-//    returnFlag = 0; // for debugging only
+    IQ_input_x10 = (float) speedModeIQmax * 10 * voltage_ratio * (1 - pow(cos(PI_CONSTANT * (float) throttlePercentApplied / 200), DIRECT_MODE_IQ_EXPONENT));
+    IQ_input = ((float) IQ_input_x10 / 10);
+    //    returnFlag = 0; // for debugging only
 }
 
 /*********************************************************************
@@ -690,7 +683,9 @@ static void brake_and_throttle_directLawAlgorithm()
  *
  * @return  Nil
  *********************************************************************/
-uint8_t     cycle1 = 0;
+float debug_expression_1 = 0;   // for debugging
+float debug_expression_3 = 0;   // for debugging
+float debug_expression_2 = 0;   // for debugging
 
 static void brake_and_throttle_normalLawAlgorithm()
 {
@@ -698,273 +693,131 @@ static void brake_and_throttle_normalLawAlgorithm()
      * (1) RPM status is 1, i.e., RPM is positive
      * (2) No fatal errors
      ***/
-    if ((brakeStatus) || (RPM_temp < REG_MINP_RPM)) /* if brake is activated or rpm is less than the min power rpm */
-    {
-        IQ_input = 0;
-
-        if (RPM_temp < REG_MINP_RPM)    // whenever rpm drops below minimum rpm, reset motor condition to 0
-        {
-            if (motor_state)
-            {
-                motor_state = 0;
-                RPM_index = 0;
-//                for (uint8_t ll = 0; ll < RPM_SAMPLES; ll++){   // re-initialize RPMarray
-//                    RPMarray[ll] = REG_MINP_RPM;
-//                }
+    if ((brakeStatus) || (RPM_temp < REG_MINP_RPM)) {/* if brake is applied or rpm is less than the min power rpm */
+        // Never set throttleRPMApplied (IQ) to zero instantly.
+        // Always provide a soft landing to throttleRPMApplied (IQ) from non-zero value to zero.
+        // The following routine provides a soft landing by decreasing throttleRPMApplied at increments.
+        if(IQ_input_x10) {  // if IQ_input_x10 is greater than 0
+            if(IQ_input_x10 < (float) speedModeIQmax * voltage_ratio * 2 * 10 / 100){
+                IQ_input_x10 = 0;
+            }
+            else {  // providing a soft landing to throttlePercentApplied from non-zero value to zero
+                IQ_input_x10 -= (float) speedModeIQmax * voltage_ratio * 2 * 10 / 100;  // decrement 2% per computational cycle
             }
         }
+        IQ_input = ((float) IQ_input_x10 / 10);
+
+        if (brakeStatus) {// when brake is applied, motor controller enters the "brake start" state.
+            motor_state = BRAKESTART_STATE;
+        }
+        if (RPM_temp < REG_MINP_RPM) {// when rpm < min rpm, motor controller enters the "kick start" state, i.e. motor_state = 0
+            beta = 0;
+            alpha = 0;
+            acceleration_factor = 1;
+            motor_state = KICKSTART_STATE;
+        }
+        motor_state_counter = 0;
     }
     else {
-        throttleRPMControlAlgorithm();
-    }
-}
+        if ((throttleRPMdemand > REG_MINP_RPM) && (throttleRPMdemand > RPM_temp)) {
 
-/*********************************************************************
- * @fun    throttleRPMControlAlgorithm
- *
- * @brief   Speed Control Algorithm
- *
- * @param   Nil
- *
- * @return  Nil
- *********************************************************************/
-float deltaIQ_x10 = 0;
-uint32_t IQ_input_x10 = 0;
-uint8_t increasingIQ = 0;
-uint8_t reducingIQ = 0;
-
-static void throttleRPMControlAlgorithm()
-{
-    /** To get here,
-     * (1) RPM status is 1, i.e., RPM is positive
-     * (2) No fatal errors
-     * (3) RPM_temp > REG_MINP_RPM
-     * (4) brake status = 0
-     ***/
-//    RPM_prev = RPMarray[RPM_index];
-//    RPMarray[RPM_index] = RPM_temp;
-//    acceleration = (float)(RPM_temp - RPM_prev) * 1000 / (N_rpm * GPT_TIME);
-
-    /*******************************   1. Speed limit algorithm  **************************************/
-    if(throttleRPMdemand < REG_MINP_RPM)   // if throttle demand rpm is less than rpm minimum, IQ = 0
-    {
-        alpha = 0;
-        eta = MAX_ETA;
-        IQ_input = 0;
-        IQ_input_x10 = 0;
-        /**  Note: throttleRPMdemand can be <= min RPM, but rpm might not be <= min RPM  **/
-    }
-    else { // if (throttleRPMdemand > REG_MINP_RPM) -> compute IQ input
-        if(!IQ_input) // Motor first kick start, motor will not start if IQ is too small -> set starting IQ
-        {
-            if (throttleRPMdemand > RPM_temp)
-            {
-                if (!motor_state){    // applies only when kick starting
-
-                    IQ_input_x10 = speedModeIQmax / 10 * MIN_STARTING_IQ * voltage_ratio * pow(((float)(RPM_temp - REG_MINP_RPM) * (-1 / (allowableRPM - REG_MINP_RPM)) + 1), exponent1);   // motor starting IQ
-                    alpha = 0;
-                    eta = MAX_ETA;
-                    //activate kick start mode and counter
-                    cycle1 = 1;
-                    N_rpm = 1;
-                    motor_state = 1;
+            /*** Kick start state and Brake start state ***/
+            if ((motor_state == KICKSTART_STATE) || (motor_state == BRAKESTART_STATE)) {  //this statement is TRUE if motor is in a kick start or brake start states
+                if (motor_state == KICKSTART_STATE){
+                    startIQPercent = MIN_KICK_START_IQ_PERCENT;
                 }
-                else {
-                //  calculate IQ_input_x10 for when IQ = 0 but rpm is above min rpm (i.e. rolling / coasting);
-                    calculate_IQ_input_x10();
+                if (motor_state == BRAKESTART_STATE){
+                    startIQPercent = MIN_BRAKE_START_IQ_PERCENT;    // it's like providing a small burst each time throttle control resumes
                 }
-            }
-            else {
-                IQ_input_x10 = 0;
-                alpha = 0;
-            }
-        }
-        else {   // if IQinput not previously equal to 0
-        //  calculate IQ_input_x10 for when IQ != 0 and rpm is above min rpm;
-            calculate_IQ_input_x10();
-        }
-    }
 
-    if (cycle1 == 1){ // if kick start
-        N_rpm++;
-        if (N_rpm >= RPM_SAMPLES){
-            N_rpm = RPM_SAMPLES;
-            cycle1 = 0;
-            IQ_input_x10 = IQ_input_x10 * 0.42;    // reduce IQ_input_x10 by factor after kick start
-        }
-    }
-
-    IQ_input = (IQ_input_x10 / 10);
-}
-
-///*********************************************************************
-// * @fun    calculate_IQ_input_x10
-// *
-// * @brief   calculate the value of IQ_input_x10
-// *
-// * @param   Nil
-// *
-// * @return  IQ_input_x10
-// *********************************************************************/
-static void calculate_IQ_input_x10()
-{
-    uint16_t rpm_temp;
-    float alpha_temp = 0;
-
-    /*****      Compute and determine alpha at a given RPM ********
-    ******      Allowable acceleration limit varies with RPM
-    ***************************************************************/
-    if (RPM_temp >= allowableRPM)
-    {
-        rpm_temp = allowableRPM;  // ensure rpm_temp (note all small caps) is never greater than allowable RPM
-    }
-    else {
-        rpm_temp = RPM_temp;
-    }
-    // if acceleration is below a certain rate, begin adding a deltaIQ
-    if(acceleration < accelerationThreshold * pow((float)(allowableRPM - rpm_temp)/(allowableRPM - REG_MINP_RPM), 0.4))
-    {
-        if((RPM_temp >= REG_MINP_RPM) && (RPM_temp <= throttleRPMdemand))
-        {
-            alpha_temp = fabs(cos(0.5 * PI_CONSTANT * (float)(RPM_temp - REG_MINP_RPM)/(throttleRPMdemand - REG_MINP_RPM)));
-            alpha = pow(alpha_temp, 1.5);
-        }
-        else if ((RPM_temp > throttleRPMdemand) && (RPM_temp <= REG_MINP_RPM + (throttleRPMdemand - REG_MINP_RPM) * 2)) {
-            alpha_temp = fabs(cos(0.5 * PI_CONSTANT * (float)(RPM_temp - REG_MINP_RPM)/(throttleRPMdemand - REG_MINP_RPM)));
-            alpha = alpha_temp;//pow(alpha_temp, 1);// since exponent = 1, do not waste computational resources by executing pow()
-        }
-        else {  //i.e. (RPM_temp >= REG_MINP_RPM + (throttleRPMdemand - REG_MINP_RPM) * 2)
-            alpha = 1;
-        }
-        //When throttleRPMdemand > RPM_temp and deceleration is too fast, alpha is enlarged by a factor to greater increase IQ
-        if(acceleration < -30) {   // -80rpm/sec = -3km/hr.
-            alpha = alpha * 1.20;
-        }
-        if((acceleration >= -30) && (acceleration >= 5)) {   // -80rpm/sec = -3km/hr.
-            alpha = alpha * 1.10;
-        }
-    }
-    else { // if acceleration is too fast, IQ should be reduced
-        alpha_temp = fabs(cos(0.5 * PI_CONSTANT * (float)(RPM_temp - REG_MINP_RPM)/(throttleRPMdemand - REG_MINP_RPM)));
-        alpha = alpha_temp;//pow(alpha_temp, 1);// since exponent = 1, do not waste computational resources by executing pow()
-    }
-
-    /************* Compute and determine eta at a given RPM ***************/
-    eta = fabs((float)(throttleRPMdemand - RPM_temp)/(allowableRPM - REG_MINP_RPM));
-    eta = pow(eta, 0.7);
-    if (RPM_temp < throttleRPMdemand){
-        if (eta > MAX_ETA)
-        eta = MAX_ETA;
-    }
-
-    /************* Compute delta IQ **************
-     *  - alpha and eta are weight factors used for handling the difference between throttle RPM
-     *    demand and actual rpm.
-     *  - gamma is a weight factor used for handling the difference between actual rpm and
-     *    allowableRPM
-     *  - voltage_ratio is a normalizing factor used for normalising deltaIQ due to variation in
-     *    battery voltage
-     **/
-    deltaIQ_x10 = IQ_increment_x10 * eta * alpha * voltage_ratio;
-
-    if (RPM_temp < allowableRPM)    // when rpm is less than allowable RPM
-    {
-        if (throttleRPMdemand > RPM_temp)  // Given 0 <= throttleRPMdemand <= allowableRPM, when demand RPM is greater than rpm -> Increase IQ
-        {
-            gamma = (float)(RPM_temp - REG_MINP_RPM) * (0.6 - 1.2) / (allowableRPM - REG_MINP_RPM) + 1.2;
-            gamma = pow(gamma, exponent2);
-
-            if (RPM_temp >= 0.95 * allowableRPM){   // if rpm is approaching allowable rpm -> slow down increment for more precise IQ-rpm response
-                if((IQ_input_x10 + deltaIQ_x10 * gamma * 1) > 10 * speedModeIQmax * voltage_ratio){ // maximum IQ is exceeded -> IQ cannot be greater than max IQ
-                    IQ_input_x10 = speedModeIQmax * 10 * voltage_ratio;
+                if (!motor_state_counter) { // if motor_state_counter == 0
+                    if (IQ_input_x10 < (float) speedModeIQmax * voltage_ratio * startIQPercent * 10 / 100) {
+                        // If starting IQ is too small, motor will not start.
+                        IQ_input_x10 = (float) speedModeIQmax * voltage_ratio * startIQPercent * 10 / 100;     // minimum starting throttle Percent is x%
+                    }
+                    IQ_input =  ((float) IQ_input_x10 / 10);
+                    motor_state_counter = 1;
                 }
-                else {
-                     IQ_input_x10 += deltaIQ_x10 * gamma * 1;
-                }
-                increasingIQ = 0;
-                throttleRPMlessthanRPM = 0;
-            }
-            else {
-                /**  this increasingIQ % N command allows IQ to be set/changed at every N loop instead of every loop
-                 **  the purpose is to slow down the change in IQ, which enable steadier rpm for enhancing rpm control **/
-                if(increasingIQ % speedLimitInterval == 0){
-                    if ((RPM_temp > 0.7*allowableRPM) && (RPM_temp <= 0.95*allowableRPM)){
-                        if((IQ_input_x10 + deltaIQ_x10 * gamma * 1) > 10 * speedModeIQmax * voltage_ratio){ // maximum IQ is exceeded -> IQ cannot be greater than max IQ
-                            IQ_input_x10 = speedModeIQmax * 10 * voltage_ratio;
+                else {  // if motor_state_counter != 0
+                    if (acceleration > accelerationThreshold){ // if acceleration is sufficient, no need to increment IQ
+                        motor_state_counter++;
+                        if (motor_state_counter >= 5){  // when acceleration is sufficient for 5 consecutive times -> exit kick start and brake start states
+                            motor_state = THROTTLE_CONTROL_STATE;            // Exit kick start state or brake start state
+                        }
+                    }
+                    else {  // if acceleration is not sufficient, increment IQ
+                        if (IQ_input_x10 + (float) speedModeIQmax * voltage_ratio * 5 * 10 / 100 > (float) speedModeIQmax * voltage_ratio * 10) { // IQ increment of 5%
+                            IQ_input_x10 = (float) speedModeIQmax * voltage_ratio * 10; // must never exceed (speedModeIQmax * voltage_ratio)
+                            motor_state = THROTTLE_CONTROL_STATE;        // If we reached this point, exit kick start and brake start states
                         }
                         else {
-                            IQ_input_x10 += deltaIQ_x10 * gamma * 1;
+                            IQ_input_x10 += (float) speedModeIQmax * voltage_ratio * 5 * 10 / 100;     //  increment by 5% every loop
                         }
+                        IQ_input = ((float) IQ_input_x10 / 10);
+                        // set motor_state_counter = 1, this ensures kick start or brake start states will only exit when sufficient acceleration occurred 5 consecutive times
+                        motor_state_counter = 1;
                     }
-                    else {
-                        if((IQ_input_x10 + deltaIQ_x10 * gamma) > 10 * speedModeIQmax * voltage_ratio){ // maximum IQ is exceeded -> IQ cannot be greater than max IQ
-                            IQ_input_x10 = speedModeIQmax * 10 * voltage_ratio;
-                        }
-                        else {
-                            IQ_input_x10 += deltaIQ_x10 * gamma;
-                        }
-                    }
-
                 }
-                increasingIQ++;
+            } //    End Kick start state and Brake start state
+            /*** throttle control state ***/
+            else {  // this statement is TURE when NOT in kick start mode or brake start mode, i.e. motor_state = THROTTLE_CONTROL_STATE
 
-                if (RPM_temp >= 0.93 * allowableRPM){
-                    throttleRPMlessthanRPM = 0;
+                /****   Acceleration factor limits the acceleration of the motor, it moderates IQ increment depending on acceleration  ***/
+                // if acceleration equals to the defined threshold acceleration, increment should = 0
+                // if acceleration is less than the threshold accel, increment should be positive if throttle demand is greater
+                // if acceleration is greater than the threshold accel., increment should be negative to reduce acceleration.
+
+                if (acceleration <= (float) 1 * accelerationThreshold / (MAX_ACCELERATION_FACTOR + 1)) {
+                    acceleration_factor = MAX_ACCELERATION_FACTOR; //
+                }
+                else if (acceleration > accelerationThreshold) {  // when acceleration is too great, acceleration_factor is -ve -> hence decrease IQ to slow down acceleration
+                    acceleration_factor = (1 - acceleration / accelerationThreshold) * 2.2;
                 }
                 else {
-                    if (throttleRPMlessthanRPM){
-                        if (throttleRPMdemand > 1.03 * throttleRPMdemand0){
-                            increaseThrottleFlag++;
-                        }
-                        if (increaseThrottleFlag >= 5){
-                            IQ_input_x10 = IQ_input_x10 * ((float)(RPM_temp - REG_MINP_RPM) * (constant1 - 1.17)/(0.93 * allowableRPM - REG_MINP_RPM) + 1.17);
+                    acceleration_factor = accelerationThreshold / acceleration - 1; // when acceleration <= accelerationThreshold, acceleration_factor is +ve
+                }
+                /****  beta = throttleRPMdemand factor.  It approaches zero as rpm approaches the demand rpm.   ****/
+                // beta can be positive or negative for controlling whether IQ should be incremented or decremented.
+                // when rpm is less than the rpm demand -> beta is always +ve.
+                beta = (float) (throttleRPMdemand - RPM_temp) / (allowableRPM - REG_MINP_RPM);
 
-                            if(IQ_input_x10 > 10 * speedModeIQmax * voltage_ratio){ // maximum IQ is exceeded -> IQ cannot be greater than max IQ
-                                IQ_input_x10 = speedModeIQmax * 10 * voltage_ratio;
-                            }
-                            throttleRPMlessthanRPM = 0;
-                            increaseThrottleFlag = 0;
-                        }
-                    }
+                /**   alpha is a max speed / speed Limit factor.  It approaches zero when rpm approach speed limit  **/
+                // alpha can be positive or negative values
+                // Note:  @ (throttleRPMdemand > rpm_temp), rpm is always equal or smaller than allowableRPM, hence
+                // when (throttleRPMdemand > RPM_temp), alpha is always positive and greater than zero.
+                alpha = (float) (allowableRPM - RPM_temp) / (allowableRPM - REG_MINP_RPM);
+
+                deltaIQ_x10 = (float) alpha * beta * acceleration_factor * IQ_increment_x10 * voltage_ratio;
+
+                if (IQ_input_x10 + deltaIQ_x10 > (float) speedModeIQmax * voltage_ratio * 10){ // 99% x 100
+                    IQ_input_x10 = (float) speedModeIQmax * voltage_ratio * 10; //
+                }
+                else {
+                    IQ_input_x10 += deltaIQ_x10;
+                }
+                IQ_input = ((float) IQ_input_x10 / 10);
+            }
+        }
+        else {// (throttleRPMdemand <= REG_MINP_RPM) && (throttleRPMdemand <= RPM_temp)
+            acceleration_factor = 1;
+            // when (throttleRPMdemand < RPM_temp)
+            // when rpm exceeds rpm demand -> beta is negative, hence decelerate by decrementing IQ
+            beta = (float) (throttleRPMdemand - RPM_temp) / (allowableRPM - REG_MINP_RPM);
+
+            // when (throttleRPMdemand < RPM_temp)
+            alpha = (float) (RPM_temp - throttleRPMdemand) / (allowableRPM - REG_MINP_RPM);
+
+            deltaIQ_x10 = (float) beta * alpha * IQ_increment_x10 * voltage_ratio;
+
+            if(IQ_input_x10){   // if IQ_input_x10 is greater than zero
+                if ( IQ_input_x10 + deltaIQ_x10 < 0) {
+                    IQ_input_x10 = 0;
+                }
+                else {
+                    IQ_input_x10 += deltaIQ_x10;
                 }
             }
-            reducingIQ = 0;
-        }
-        else {  //if throttleRPMdemand is less than or equal to RPM_temp, decrease IQ
-            reducingIQ++;
-            increasingIQ = 0;
-            if (reducingIQ >= 10){
-                throttleRPMlessthanRPM = 1;
-            }
-
-            if((IQ_input_x10 - deltaIQ_x10) < 0){       // IQ cannot be less than 0
-                IQ_input_x10 = 0;
-            }
-            else {
-                IQ_input_x10 -= deltaIQ_x10 * 0.27;
-            }
-        }
-    }
-    else {  // when RPM_temp >= allowableRPM -> decrease IQ
-        if (RPM_temp <= 1.1 * allowableRPM)
-        {
-            gamma = (float)(RPM_temp - allowableRPM) * (0.7) / (0.1 * allowableRPM);
-
-            if((IQ_input_x10 - fabs(deltaIQ_x10) * gamma) < 0){       // IQ cannot be less than 0
-                IQ_input_x10 = 0;
-            }
-            else {
-                IQ_input_x10 -= fabs(deltaIQ_x10) * gamma;
-            }
-        }
-        else {
-            if((IQ_input_x10 - deltaIQ_x10 * gamma) < 0){       // IQ cannot be less than 0
-                IQ_input_x10 = 0;
-            }
-            else {
-                gamma = 0.7;
-                IQ_input_x10 -= deltaIQ_x10 * gamma;
-            }
+            IQ_input = ((float) IQ_input_x10 / 10);
         }
     }
 }
@@ -1002,6 +855,7 @@ static void brake_and_throttle_OutputPowerLimitAlgorithm()
         else {
             IQ_input = IQ_maxPout;
         }
+        IQ_input_x10 = IQ_input * 10;
     }
 }
 
@@ -1032,10 +886,6 @@ extern void brake_and_throttle_getSpeedModeParams()
                 allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
                 accelerationThreshold = NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD;
             }
-            speedLimitInterval = AMBLE_MODE_INT;// Amble mode
-            exponent1 = 1.3;
-            exponent2 = 0.8;
-            constant1 = 1;
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
             break;
         }
@@ -1053,10 +903,6 @@ extern void brake_and_throttle_getSpeedModeParams()
                 allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
                 accelerationThreshold = NORMAL_MODE_LEISURE_ACCELERATION_THRESHOLD;
             }
-            speedLimitInterval = LEISURE_MODE_INT;// Leisure mode
-            exponent1 = 0.8;
-            exponent2 = 1;
-            constant1 = 1.06;
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
             break;
         }
@@ -1074,10 +920,6 @@ extern void brake_and_throttle_getSpeedModeParams()
                 allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
                 accelerationThreshold = NORMAL_MODE_SPORTS_ACCELERATION_THRESHOLD;
             }
-            speedLimitInterval = SPORTS_MODE_INT;// Sports mode
-            exponent1 = 1;
-            exponent2 = 0.7;
-            constant1 = 1.07;
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_SPORTS;
             break;
         }
@@ -1085,7 +927,7 @@ extern void brake_and_throttle_getSpeedModeParams()
         break;
     }
     speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
-    IQ_increment_x10 = ((float)speedModeIQmax * allowableRPM / NN_IQ_INCREMENTS_x10 /BRAKE_AND_THROTTLE_MAXSPEED_SPORTS);
+    IQ_increment_x10 = ((float)speedModeIQmax * allowableRPM * 10 / NN_IQ_INCREMENTS / BRAKE_AND_THROTTLE_MAXSPEED_SPORTS);
 
     /* Send updated speed mode parameters to motor control unit */
     /*  these following codes are necessary for control law change  */
@@ -1154,10 +996,6 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_LEISURE;
                     accelerationThreshold = NORMAL_MODE_LEISURE_ACCELERATION_THRESHOLD;
                 }
-                speedLimitInterval = LEISURE_MODE_INT;  // Leisure mode
-                exponent1 = 0.8;
-                exponent2 = 1;
-                constant1 = 1.06;
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_LEISURE;
 
                 // turn off auxiliary light
@@ -1178,10 +1016,6 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_SPORTS;
                     accelerationThreshold = NORMAL_MODE_SPORTS_ACCELERATION_THRESHOLD;
                 }
-                speedLimitInterval = SPORTS_MODE_INT;   // sports mode
-                exponent1 = 1;
-                exponent2 = 0.7;
-                constant1 = 1.07;
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_SPORTS;
             }
             else if(speedMode == BRAKE_AND_THROTTLE_SPEED_MODE_SPORTS) // if Sports mode -> change back to Amble mode
@@ -1199,12 +1033,7 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                     allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
                     accelerationThreshold = NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD;
                 }
-                speedLimitInterval = AMBLE_MODE_INT;    // Amble mode
-                exponent1 = 1.3;
-                exponent2 = 0.8;
-                constant1 = 1;
                 rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-
                 // turn on auxiliary light
                 *ptr_bat_auxiliaryLightStatus = 1;
             }
@@ -1227,19 +1056,14 @@ uint8_t brake_and_throttle_toggleSpeedMode()
                 allowableRPM = BRAKE_AND_THROTTLE_MAXSPEED_AMBLE;
                 accelerationThreshold = NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD;
             }
-            speedLimitInterval = AMBLE_MODE_INT;    // Amble mode
-            exponent1 = 1.3;
-            exponent2 = 0.8;
-            constant1 = 1;
             rampRate = BRAKE_AND_THROTTLE_RAMPRATE_AMBLE;
-
             // turn on auxiliary light
             *ptr_bat_auxiliaryLightStatus = 1;
         }
     }
 
     speedModeIQmax = reductionRatio * STM32MCP_TORQUEIQ_MAX / 100;
-    IQ_increment_x10 = ((float)speedModeIQmax * allowableRPM / NN_IQ_INCREMENTS_x10 /BRAKE_AND_THROTTLE_MAXSPEED_SPORTS);
+    IQ_increment_x10 = ((float)speedModeIQmax * allowableRPM * 10 / NN_IQ_INCREMENTS /BRAKE_AND_THROTTLE_MAXSPEED_SPORTS);
 
     /* Send updated speed mode parameters to motor control unit */
     ptr_bat_STM32MCPDArray->speed_mode = speedMode;
