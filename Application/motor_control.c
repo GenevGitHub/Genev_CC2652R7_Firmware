@@ -34,7 +34,7 @@
  */
 //static simplePeripheral_bleCBs_t *motorcontrol_bleCBs;
 /** MCUDArray contains mcu retrieved data for data_analysis **/
-MCUD_t MCUDArray = {LEVEL45,
+MCUD_t MCUDArray = {BATTERY_MAX_VOLTAGE,
                     0,  //3000,
                     0,  //32000,
                     0,  //3000,
@@ -132,26 +132,10 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
     {
     case STM32MCP_BUS_VOLTAGE_REG_ID:
         {
-            uint16_t voltage_mV = *((uint16_t*) rxPayload) * 1000; // rxPayload in V, voltage in mV
-            payloadVoltage = *((uint16_t*) rxPayload);
+            //payloadVoltage = *((uint16_t*) rxPayload);// rxPayload in V.  voltage must be in mV -> please correct
             // **** store voltage_mV in MCUArray.bat_voltage_mV
-            MCUDArray.bat_voltage_mV = voltage_mV;
-            voltage_ack++;
-            break;
-        }
-    case STM32MCP_HEATSINK_TEMPERATURE_REG_ID:
-        {
-            int heatSinkTemperature_Celcius = (*((int*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
-            /*****  store heatSinkTempOffset50_Celcius in MCUArray.heatSinkTempOffset50_Celcius   */
-            if (heatSinkTemperature_Celcius + TEMPERATUREOFFSET < 0){           // Floor of uint8_t
-                MCUDArray.heatSinkTempOffset50_Celcius = 0;
-            }
-            else if (heatSinkTemperature_Celcius + TEMPERATUREOFFSET > 255){    // ceiling of uint8_t
-                MCUDArray.heatSinkTempOffset50_Celcius = 255;
-            }
-            else {
-                MCUDArray.heatSinkTempOffset50_Celcius = (uint8_t) (heatSinkTemperature_Celcius + TEMPERATUREOFFSET);  // +50
-            }
+            //MCUDArray.bat_voltage_mV = payloadVoltage;
+            //voltage_ack++;
             break;
         }
     case STM32MCP_SPEED_MEASURED_REG_ID:    // RPM
@@ -174,11 +158,6 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
             speed_ack++;
             break;
         }
-// ********************    Need to create new REG_IDs
-    case STM32MCP_MOTOR_TEMPERATURE_REG_ID:
-        {
-
-        }
     case STM32MCP_CONTROLLER_ERRORCODE_REG_ID:
         {
             controller_error_code = (*((uint8_t*) rxPayload) & 0xFF);     //
@@ -187,18 +166,10 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
         }
     case STM32MCP_CONTROLLER_PHASEVOLTAGE_REG_ID:
         {
-//            uint16_t voltage_mV = *((uint16_t*) rxPayload) * 1000; // rxPayload in V, voltage in mV
-            /**** store voltage_mV in MCUArray.phase_voltage_mV ***/
-//            MCUDArray.phase_voltage_mV = voltage_mV;
-            //
             break;
         }
     case STM32MCP_CONTROLLER_PHASECURRENT_REG_ID:
         {
-//            uint16_t current_mA = *((uint8_t*) rxPayload) * 1000;
-            /**** store current_mA in MCUArray.phase_current_mV   ***/
-//            MCUDArray.phase_current_mA = 3000;//current_mA;
-            //
             break;
         }
     default:
@@ -217,7 +188,10 @@ static void motorcontrol_processGetRegisterFrameMsg(uint8_t *txPayload, uint8_t 
  * @return  None.
  */
 uint8_t why_fail = 0xFF;
-static void motorcontrol_processGetMotorErrorFrameMsg(uint8_t *txPayload, uint8_t txPayloadLength, uint8_t *rxPayload, uint8_t rxPayloadLength)
+//uint16_t battCurrentmA;
+//uint16_t battVoltagemV;
+
+static void motorcontrol_processGetBehaviorFrameMsg(uint8_t *txPayload, uint8_t txPayloadLength, uint8_t *rxPayload, uint8_t rxPayloadLength)
 {
     uint8_t regID = txPayload[0];
     if(regID == ESCOOTER_ERROR_REPORT)
@@ -231,36 +205,43 @@ static void motorcontrol_processGetMotorErrorFrameMsg(uint8_t *txPayload, uint8_
            case HALL_SENSOR_ERROR_CODE:
                why_fail = HALL_SENSOR_ERROR_CODE;
                led_display_ErrorPriority(HALL_SENSOR_ERROR_PRIORITY);
+               setErrorPriority(HALL_SENSOR_ERROR_PRIORITY, HALL_SENSOR_ERROR_CODE);
                break;
 
            case PHASE_I_ERROR_CODE:
                why_fail = PHASE_I_ERROR_CODE;
                led_display_ErrorPriority(PHASE_I_ERROR_PRIORITY);
+               setErrorPriority(PHASE_I_ERROR_PRIORITY, PHASE_I_ERROR_CODE);
                break;
 
            case MOSFET_ERROR_CODE:
                why_fail = MOSFET_ERROR_CODE;
                led_display_ErrorPriority(MOSFET_ERROR_PRIORITY);
+               setErrorPriority(MOSFET_ERROR_PRIORITY, MOSFET_ERROR_CODE);
                break;
 
            case GATE_DRIVER_ERROR_CODE:
                why_fail = GATE_DRIVER_ERROR_CODE;
                led_display_ErrorPriority(GATE_DRIVER_ERROR_PRIORITY);
+               setErrorPriority(GATE_DRIVER_ERROR_PRIORITY, GATE_DRIVER_ERROR_CODE);
                break;
 
            case BMS_COMM_ERROR_CODE:
                why_fail = BMS_COMM_ERROR_CODE;
                led_display_ErrorPriority(BMS_COMM_ERROR_PRIORITY);
+               setErrorPriority(BMS_COMM_ERROR_PRIORITY, BMS_COMM_ERROR_CODE);
                break;
 
            case MOTOR_TEMP_ERROR_CODE:
                why_fail = MOTOR_TEMP_ERROR_CODE;
                led_display_ErrorPriority(MOTOR_TEMP_ERROR_PRIORITY);
+               setErrorPriority(MOTOR_TEMP_ERROR_PRIORITY, MOTOR_TEMP_ERROR_CODE);
                break;
 
            case BATTERY_TEMP_ERROR_CODE:
                why_fail = BATTERY_TEMP_ERROR_CODE;
                led_display_ErrorPriority(BATTERY_TEMP_ERROR_PRIORITY);
+               setErrorPriority(BATTERY_TEMP_ERROR_PRIORITY, BATTERY_TEMP_ERROR_CODE);
                break;
         }
     }
@@ -284,6 +265,27 @@ static void motorcontrol_processGetMotorErrorFrameMsg(uint8_t *txPayload, uint8_
         else {
             MCUDArray.motorTempOffset50_Celcius = (uint8_t) (motorTemperature_Celcius + TEMPERATUREOFFSET);    // +50
         }
+    }
+    else if(regID == ESCOOTER_MOTOR_DRIVE_TEMP)
+    {
+        int motorDriverTemperature_Celsius = (*((int*) rxPayload) & 0xFF);     // temperature can be a negative value, unless it is offset by a value
+        if(motorDriverTemperature_Celsius + TEMPERATUREOFFSET < 0 ){    // floor of uint8_t
+            MCUDArray.heatSinkTempOffset50_Celcius = 0;
+        }
+        else if(motorDriverTemperature_Celsius + TEMPERATUREOFFSET > 255){ // ceiling of uint8_t
+            MCUDArray.heatSinkTempOffset50_Celcius = 255;
+        }
+        else{
+            MCUDArray.heatSinkTempOffset50_Celcius = (uint8_t) (motorDriverTemperature_Celsius + TEMPERATUREOFFSET);    // +50
+        }
+    }
+    else if(regID == ESCOOTER_VOLTAGE_CHECKING)
+    {
+        uint16_t battVoltagemV;
+        int32_t rawVoltage_mV = *((int32_t*) rxPayload); // rxPayload in V.  voltage must be in mV -> please correct
+        battVoltagemV = (uint16_t)rawVoltage_mV;
+        // **** store battVoltagemV in MCUArray.bat_voltage_mV
+        MCUDArray.bat_voltage_mV = battVoltagemV;
     }
 }
 
@@ -340,7 +342,7 @@ static void motorcontrol_rxMsgCb(uint8_t *rxMsg, STM32MCP_txMsgNode_t *STM32MCP_
 
     case DEFINE_ESCOOTER_BEHAVIOR_ID:
         msg_rx++;
-        motorcontrol_processGetMotorErrorFrameMsg(txPayload, txPayloadLength, rxPayload, rxPayloadLength);
+        motorcontrol_processGetBehaviorFrameMsg(txPayload, txPayloadLength, rxPayload, rxPayloadLength);
         break;
 
 //    case STM32MCP_SET_SYSTEM_CONTROL_CONFIG_FRAME_ID:

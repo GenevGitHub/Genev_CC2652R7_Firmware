@@ -280,6 +280,7 @@ extern "C"
 #define ESCOOTER_MOTOR_DRIVE_TEMP               0x0A    //0x0B
 #define ESCOOTER_MOTOR_TEMP                     0x0B    //0x0C
 #define ESCOOTER_CURRENT_CHECKING               0x0C
+#define ESCOOTER_VOLTAGE_CHECKING               0x0D
 
 #define STM32MCP_SYSTEM_MAXIMUM_VOLTAGE         48000  // for 37000 mV battery, max V is 42000 mV - we will assume 42000 mV for all calculations
 #define STM32MCP_SYSTEM_MIMIMUM_VOLTAGE         28000  // for 37000 mV battery, min usable V is 29000 mV - below this will damage the battery pack

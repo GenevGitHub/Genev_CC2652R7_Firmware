@@ -1514,7 +1514,6 @@ void led_display_setBatteryStatus(uint8_t batteryStatus)
 {
     /* I2C command to set Battery Status */
     ledBatteryStatus = batteryStatus;
-
 }
 
 /*********************************************************************
@@ -1774,7 +1773,6 @@ uint8_t led_display_ErrorPriority(uint8_t error_priority)
         led_error_priority = error_priority;
 
     }
-
     return (led_error_priority);
 }
 

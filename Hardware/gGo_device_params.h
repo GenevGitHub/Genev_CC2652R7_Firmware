@@ -33,9 +33,9 @@ extern "C"
  * CONSTANTS
  */
 // Device Information
-#define DEVICE_MODEL_NUMBER               "Genev gGo ES01"
+#define DEVICE_MODEL_NUMBER               "Genev gGo ES01O"
 #define DEVICE_SERIAL_NUMBER              "MSN T00001"     // MSN is unique for each production eScooter. Input the MSN here before uploading firmware.
-#define FIRMWARE_REVISION                 "ES01.0.V01.R00"
+#define FIRMWARE_REVISION                 "ES01O.R1.V01.R00"
 #define MANUFACTURER_NAME                 "Genev"
 
 /*********************************************************************************************
@@ -43,7 +43,7 @@ extern "C"
  *********************************************************************************************/
 //#define  REGION0                                     // Unregulated
 #define REGION1                             1       // HK, Singapore
-//#define  REGION2                                     // EU
+//#define  REGION2                                     // EU, Brisbane Australia, New Zealand
 //#define  REGION3                                     // Japan
 //#define  REGION4                                     // Melbourne Australia
 //#define  REGION5                                     // Canada, USA
@@ -72,7 +72,7 @@ extern "C"
 #define WHEELRADIUS_CM                      10.16           // wheel radius in centimeter
 #define COEFF01                             0.2156          // kg/km
 #define COEFF02                             0.000386        // kg/W-hr
-#define BCF                                 0.9             // Battery Capacity Safety Factor
+#define BCF                                 0.7             // Battery Capacity Safety Factor - e.g. 60% - 70%
 #define CRIT_HEATSINKTEMPOFFSET50C          160             // Critical Heatsink Temperature + 50 degrees C
 #define CRIT_MOTORTEMPOFFSET50C             200             // Critical Motor Temperature + 50 degrees C
 /*********************************************************************************************
@@ -154,7 +154,7 @@ extern "C"
 #define SYS_NORMAL_CODE                                 0xFF
 
 #define BATTERY_VOLTAGE_ERROR_CODE                      0x1A    // check that the e-scooter has not been connected with an incorrect battery rating. Restart (Power off, wait for 10 seconds and power on again)
-#define BATTERY_TEMP_ERROR_CODE                         0x1A    // no battery temperature sensor at present.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
+#define BATTERY_TEMP_ERROR_CODE                         0x1F    // no battery temperature sensor at present.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
 #define BMS_COMM_ERROR_CODE                             0x1C    // Replace battery with a new genev battery. Restart, contact customer service if problem persists.
 #define BATTERY_VOLTAGE_CRIT_LOW_CODE                   0x1E    // recharge battery immediately. If battery depletes rapidly, replace with a new genev battery.
 #define GATE_DRIVER_ERROR_CODE                          0x2C    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
@@ -172,94 +172,94 @@ extern "C"
 /*********************************************************************************************
  *  Regional / Regulation Settings
  *********************************************************************************************/
-#ifdef REGION0  // unlimited
+#ifdef REGION0  // unlimited, USA, Canada
 #define REG_MAXPOUT                                          300 //Watt
-#define REG_MAXP_SPEED                                       30  // "30" km/hr
-#define REG_MAXP_RPM                                         795 // 30 Km/hr
+#define REG_MAXP_SPEED                                       28  // "28" km/hr
+#define REG_MAXP_RPM                                         750 // 28 Km/hr
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         1
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    318       // 12 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  557       // 21 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  535       // 20 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 30 Km/hr
 
 #endif // REGION0
 
-#ifdef REGION1
+#ifdef REGION1  // Hong Kong
 #define REG_MAXPOUT                                          300 //Watt
-#define REG_MAXP_SPEED                                       25  // km/hr
-#define REG_MAXP_RPM                                         660 // rpm
+#define REG_MAXP_SPEED                                       24  // km/hr
+#define REG_MAXP_RPM                                         640 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 10 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  475       // 18 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 25 Km/hr.
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       // 10.5 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455       // 17 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 // We can set sports mode max speed to different value lower than the regulation maximum speed.
 // The set value shall be less than or equal to regulation max speed.
 
 #endif // REGION1
 
-#ifdef REGION2
+#ifdef REGION2  // EU
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_SPEED                                       25  // km/hr
-#define REG_MAXP_RPM                                         660 // rpm
+#define REG_MAXP_SPEED                                       24  // km/hr
+#define REG_MAXP_RPM                                         640 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       //  10 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  475       //  18 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       //  10.5 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455       //  17 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       //  25 Km/hr
 
 #endif // REGION2
 
-#ifdef REGION3
+#ifdef REGION3  // Japan
 #define REG_MAXPOUT                                          250 //Watt
 #define REG_MAXP_SPEED                                       24  // km/hr
-#define REG_MAXP_RPM                                         635 // rpm
+#define REG_MAXP_RPM                                         640 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       //  = 10 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  450       //  = 17 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       //  = 10.5 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455       //  = 17 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       //  = 24 Km/hr
 
 #endif // REGION3
 
-#ifdef REGION4
+#ifdef REGION4  // Melbourne
 #define REG_MAXPOUT                                          250 //Watt
 #define REG_MAXP_SPEED                                       20  // km/hr
-#define REG_MAXP_RPM                                         530 // rpm
+#define REG_MAXP_RPM                                         535 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 265 RPM = 10 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  395       // 395 RPM = 15 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       // 265 RPM = 10 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400       // 398 RPM = 15 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 530 RPM = 20 Km/hr
 
 #endif // REGION4
 
 #ifdef REGION5 // Canada, USA
 #define REG_MAXPOUT                                          300 //Watt
-#define REG_MAXP_SPEED                                       28  // km/hr
-#define REG_MAXP_RPM                                         742 // rpm
+#define REG_MAXP_SPEED                                       24  // km/hr
+#define REG_MAXP_RPM                                         640 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 265 RPM = 10 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  530       // 488 RPM = 20 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 28 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       // 265 RPM = 10 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455       // 475 RPM = 18 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 25 Km/hr
 
 #endif // REGION5
 
 #ifdef REGION6 // Germany
 #define REG_MAXPOUT                                          300 // Watt
 #define REG_MAXP_SPEED                                       20  // km/hr
-#define REG_MAXP_RPM                                         530 // rpm
+#define REG_MAXP_RPM                                         535 // rpm
 #define REG_MINP_SPEED                                       3
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    265       // 265 RPM = 10 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278       // 265 RPM = 10 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400       // 488 RPM = 15 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM       // 530 RPM = 20 Km/hr
 

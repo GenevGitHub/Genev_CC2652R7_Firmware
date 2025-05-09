@@ -106,14 +106,66 @@ void BootCountOVFxn()
 {
     bootReady++;
 }
+uint16_t shutdownCounter = 0;
 
 void Boot_Init()
 {
     PowerCC26X2_ResetReason resetReason = PowerCC26X2_getResetReason();
+    PowerCC26X2_releaseLatches();    //@pre PowerCC26X2_getResetReason()
 
-    if(resetReason == PowerCC26X2_RESET_SHUTDOWN_IO)
+    switch (resetReason)
     {
-        PowerCC26X2_releaseLatches();
+    case (PowerCC26X2_RESET_SHUTDOWN_IO):
+    {
+        howToBoot = 0x00;
+        BootCountDownCreate();
+        BootCountDownInit();
+        GPIO_setConfig(CONFIG_GPIO_MPB_CONST, GPIO_CFG_IN_PU);  // Pull-up when not pressed.  Pull-down when pressed.
+        uint8_t press = GPIO_read(CONFIG_GPIO_MPB_CONST);
+        BootServiceRoutine(press);
+        BootCountEliminate();
+        GPIO_resetConfig(CONFIG_GPIO_MPB_CONST);
+        break;
+    }
+    case (PowerCC26X2_RESET_TCK_NOISE):
+    {
+        howToBoot = 0x01;
+        break;
+    }
+    case (PowerCC26X2_RESET_SYSTEM):
+    {
+        howToBoot = 0x02;
+        break;
+    }
+    case (PowerCC26X2_RESET_WARM_RESET):
+    {
+        howToBoot = 0x03;
+        break;
+    }
+    case (PowerCC26X2_RESET_CLK):
+    {
+        howToBoot = 0x04;
+        break;
+    }
+    case (PowerCC26X2_RESET_VDDR):
+    {
+        howToBoot = 0x05;
+        break;
+    }
+    case (PowerCC26X2_RESET_VDDS):
+    {
+        howToBoot = 0x06;
+        break;
+    }
+    case (PowerCC26X2_RESET_PIN):
+    {
+        howToBoot = 0x07;
+        break;
+    }
+    case (PowerCC26X2_RESET_POR):
+    {
+        howToBoot = 0x08;
+#ifdef  MOTOR_CONNECT
         BootCountDownCreate();
         BootCountDownInit();
         GPIO_setConfig(CONFIG_GPIO_MPB_CONST, GPIO_CFG_IN_PU);
@@ -121,40 +173,15 @@ void Boot_Init()
         BootServiceRoutine(press);
         BootCountEliminate();
         GPIO_resetConfig(CONFIG_GPIO_MPB_CONST);
-        howToBoot = 0x00;
+#endif // MOTOR_CONNECT
+        break;
     }
-    else if (resetReason == PowerCC26X2_RESET_TCK_NOISE)
-    {
-        howToBoot = 0x01;
+    default:
+        howToBoot = 0x09;
+        /*  We should not get here because there should not be any other possible cases  */
+        break;
     }
-    else if(resetReason == PowerCC26X2_RESET_SYSTEM)
-    {
-        howToBoot = 0x02;
-    }
-    else if(resetReason == PowerCC26X2_RESET_WARM_RESET) /*Fast Boot*/
-    {
-        howToBoot = 0x03;
-    }
-    else if(resetReason == PowerCC26X2_RESET_CLK)
-    {
-        howToBoot = 0x04;
-    }
-    else if(resetReason == PowerCC26X2_RESET_VDDR)
-    {
-        howToBoot = 0x05;
-    }
-    else if(resetReason == PowerCC26X2_RESET_VDDS)
-    {
-        howToBoot = 0x06;
-    }
-    else if(resetReason == PowerCC26X2_RESET_PIN)
-    {
-        howToBoot = 0x07;
-    }
-    else if(resetReason == PowerCC26X2_RESET_POR)
-    {
-        howToBoot = 0x08;
-    }
+
 }
 
 uint8_t HowToBoot()
@@ -165,7 +192,7 @@ uint8_t HowToBoot()
 void BootServiceRoutine(uint8_t isWakeUp)
 {
    uint8_t BOOT_FINISHED = 0x00;
-   if(isWakeUp == 0)
+   if(isWakeUp == 0)    // when button is pressed...
    {
          /*If user is still pressing the button, the Count Down timer starts immediately */
          uint8_t stillPress = GPIO_read(CONFIG_GPIO_MPB_CONST);
@@ -181,13 +208,14 @@ void BootServiceRoutine(uint8_t isWakeUp)
               * status = 0x00 --> press the button
               */
              uint8_t status = GPIO_read(CONFIG_GPIO_MPB_CONST);
-             /*Oh my god! You have released the button! Let me go to sleep again!*/
+             /*if Button is released prematurely --> go back to Shut down mode*/
              if(status == 0x01)
              {
                  /*Count-Down Timer Stops*/
                  BootCountStop();
                  /*Enters Shut Down Mode again*/
                  SystemShutDownRoutine();
+                 /* POWER_ON = 0  */
              }
              /*If the user is still pressing the button until TIME'S UP, the count down timer stops! Boot Routine is finished!  */
              /*For each 500 ms timer overflow, bootCount increases by 1.
@@ -200,15 +228,17 @@ void BootServiceRoutine(uint8_t isWakeUp)
                  BootCountStop();
                  /*Congratulations! BOOT Process is Done ! Get out of the loop! Enjoy driving!  */
                  BOOT_FINISHED = 0x01;
+                 /*  POWER_ON = 1  */
              }
          }
    }
-   else if(isWakeUp == 1)
+   else if(isWakeUp == 1)   // when button not pressed -> system shut down
    {
        while(BOOT_FINISHED == 0x00)
        {
            /*Enters Shut Down Mode again*/
            SystemShutDownRoutine();
+           /* POWER_ON = 0  */
        }
    }
 }
@@ -223,11 +253,12 @@ void SystemShutDownRoutine()
     GPIO_resetConfig(CONFIG_GPIO_MPB_CONST);
     /* How to wake me up??  */
     GPIO_setConfig(CONFIG_GPIO_MPB_CONST,GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_PULL_UP_INTERNAL | GPIO_CFG_SHUTDOWN_WAKE_LOW);
-    /* Let me sleep! Bye!  */
+    /* Power shutdown Sleep  */
     Power_shutdown(0, 0);
-    while(1)
+    /*  Once power shutdown, anything else that follows are not executed, such as this While loop below.  */
+    while(1)    /*  This While will not be Ran  */
     {
-
+        shutdownCounter++;
     }
 }
 

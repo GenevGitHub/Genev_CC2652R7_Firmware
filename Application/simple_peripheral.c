@@ -629,7 +629,7 @@ static void SimplePeripheral_init(void)
   Controller_RegisterAppCBs( &ControllerCBs );      // there is no characteristic that require callback
 
   // Start Bond Manager and register callback
-//  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);     // what is this used for?
+//  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);
 
   // Register with GAP for HCI/Host messages. This is needed to receive HCI
   // events. For more information, see the HCI section in the User's Guide:
@@ -689,16 +689,16 @@ static void SimplePeripheral_init(void)
  *
  * @param   a0, a1 - not used.
  */
-static uint8_t             sp_initComplete_flag = GPT_INACTIVE;
+static uint8_t      sp_initComplete_flag = GPT_INACTIVE;
 static bool         *ptr_sp_POWER_ON;       // register for POWER_ON status
 static sysFatalError_t *ptr_sysFatalError;
 static uint8_t      *ptr_snvWriteFlag;
-static uint8_t             snv_writeComplete_flag = 0;
-uint8_t            snv_reset = 0;   // if snv_reset = 0, it means the non-volatile storage was NOT reset by the Firmware.
-uint8_t             sp_counter = 0;
+static uint8_t      snv_writeComplete_flag = 0;
+uint8_t             snv_reset = 0;   // if snv_reset = 0, it means the non-volatile storage was NOT reset by the Firmware.
+uint8_t            sp_counter = 0;
 static uint8_t     sp_i2cOpenStatus;
-static bStatus_t   check_enableStatus;
-static uint8_t     *ptr_sp_dashboardErrorCodePriority;
+static bStatus_t    check_enableStatus;
+static uint8_t      *ptr_sp_dashboardErrorCodePriority;
 
 static uint8_t      speedmode_lock_status = 0;  //Chee added 20250110
 
@@ -721,7 +721,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       mpb_speedmodeLockStatusRegister(&speedmode_lock_status);     // pass the pointer to speedmode_lock_status to MPB   //Chee added 20250110
 
-      ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to powerOn in return
+      ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to power_On in return
 
       ptr_sysFatalError = UDHAL_sysFatalErrorRegister();            // call UDHAL to get pointer to sysFatalError
 
@@ -846,7 +846,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
                             ICALL_TIMEOUT_FOREVER);
 
         /***** Handles GapAdv_enable when user turns on BLE from MPB    *****/
-        if( (sp_opcode == GAP_LINK_TERMINATED_EVENT) || (sp_opcode == GAP_DEVICE_INIT_DONE_EVENT) )
+        if( (sp_opcode == GAP_LINK_TERMINATED_EVENT) || (sp_opcode == GAP_DEVICE_INIT_DONE_EVENT) ) //will enable BLE adv if sp_opcode = GAP_LINK_TERMINATED_EVENT or after initiation
         {
             if (*ptr_GAPflag == 1)
             {         // if BLE is not advertising, do the following
@@ -918,7 +918,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
         /***************************************************************************************************
          *  Handles POWER OFF, write to NVS and shut down protocols when user POWER OFF the device from MPB
          *  ************************************************************************************************/
-        if (!(*ptr_sp_POWER_ON)) // i.e. if power off
+        if (!(*ptr_sp_POWER_ON)) // i.e. if POWER_ON == 0 (i.e. power off)
         {
             /*** If power off, the following actions are executed before shut down  ***/
             // if BLE is connected/linked -> terminate all connections
@@ -1237,9 +1237,10 @@ static void SimplePeripheral_processGapMessage(gapEventHdr_t *pMsg)
                                      GAP_ADV_EVT_MASK_END_AFTER_DISABLE |
                                      GAP_ADV_EVT_MASK_SET_TERMINATED);
 
-        // Enable legacy advertising for set #1
-        //status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_MAX , 0);
-        status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT);
+        /**** Enable legacy advertising for set #1 ****/
+        /****   1: Comment out "GapAdv_enable" to NOT activate BLE on Startup   ****/
+        /****   2: Un-comment "GapAdv_enable" to activate BLE on Startup        ****/
+//        status = GapAdv_enable(advHandleLegacy, GAP_ADV_ENABLE_OPTIONS_USE_DURATION , SP_ADVERTISING_TIMEOUT); // advertise for a duration = SP_ADVERTISING_TIMEOUT
         SIMPLEPERIPHERAL_ASSERT(status == SUCCESS);
         check_enableStatus = status;
         *ptr_GAPflag = 0;    // whenever Advertising is enable, set GAPflag to 0
@@ -1536,164 +1537,169 @@ static void SimplePeripheral_processCharValueChangeEvt(uint8_t paramId)
  */
 static void SimplePeripheral_performPeriodicTask(void)
 {
-//  uint8_t valueToCopy;
-  uint8_t arrayToCopy1[1];
-  uint8_t arrayToCopy2[2];
-  uint8_t arrayToCopy4[4];
+    uint8_t arrayToCopy1[1];
+    uint8_t arrayToCopy2[2];
+    uint8_t arrayToCopy4[4];
 
   /****************************************************************
    *                 For Notify Permit
    ****************************************************************/
-
-  /******** Speed and rpm Notification - Refresh every SP_PERIODIC_EVT_TIME **********/
-
-  if (Controller_GetParameter(CONTROLLER_MOTOR_RPM, arrayToCopy2) == SUCCESS)
+  /******** The following Characteristics refresh every SP_PERIODIC_EVT_TIME **********/
+    if (Controller_GetParameter(CONTROLLER_MOTOR_RPM, arrayToCopy2) == SUCCESS)
     {
-      Controller_SetParameter(CONTROLLER_MOTOR_RPM, CONTROLLER_MOTOR_RPM_LEN, arrayToCopy2);
+        Controller_SetParameter(CONTROLLER_MOTOR_RPM, CONTROLLER_MOTOR_RPM_LEN, arrayToCopy2);
     }
 
-  if (Controller_GetParameter(CONTROLLER_MOTOR_SPEED, arrayToCopy2) == SUCCESS)
+    if (Controller_GetParameter(CONTROLLER_MOTOR_SPEED, arrayToCopy2) == SUCCESS)
     {
-      Controller_SetParameter(CONTROLLER_MOTOR_SPEED, CONTROLLER_MOTOR_SPEED_LEN, arrayToCopy2);
+        Controller_SetParameter(CONTROLLER_MOTOR_SPEED, CONTROLLER_MOTOR_SPEED_LEN, arrayToCopy2);
     }
 
     if (Dashboard_GetParameter(DASHBOARD_LIGHT_STATUS, arrayToCopy1) == SUCCESS)
     {
-      Dashboard_SetParameter(DASHBOARD_LIGHT_STATUS, DASHBOARD_LIGHT_STATUS_LEN, arrayToCopy1);
+        Dashboard_SetParameter(DASHBOARD_LIGHT_STATUS, DASHBOARD_LIGHT_STATUS_LEN, arrayToCopy1);
     }
 
     if (Dashboard_GetParameter(DASHBOARD_LIGHT_MODE, arrayToCopy1) == SUCCESS)
     {
-      Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
+        Dashboard_SetParameter(DASHBOARD_LIGHT_MODE, DASHBOARD_LIGHT_MODE_LEN, arrayToCopy1);
     }
 
     if (Battery_GetParameter(BATTERY_BATTERY_CURRENT, arrayToCopy2) == SUCCESS)
-      {
+    {
         Battery_SetParameter(BATTERY_BATTERY_CURRENT, BATTERY_BATTERY_CURRENT_LEN, arrayToCopy2);
-      }
-
-/******** Speed and rpm Notification - Refresh every 7 x SP_PERIODIC_EVT_TIME **********/
-if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is performed once every 4th sp_periodic_evt_counts
-{
-  /******** Dashboard Profile Notification **********/
-  if (Dashboard_GetParameter(DASHBOARD_ERROR_CODE, arrayToCopy1) == SUCCESS)
-  {
-    Dashboard_SetParameter(DASHBOARD_ERROR_CODE, DASHBOARD_ERROR_CODE_LEN, arrayToCopy1);
-  }
-
-  if (Dashboard_GetParameter(DASHBOARD_SPEED_MODE, arrayToCopy1) == SUCCESS)
-  {
-    Dashboard_SetParameter(DASHBOARD_SPEED_MODE, DASHBOARD_SPEED_MODE_LEN, arrayToCopy1);
-  }
-
-  if (Dashboard_GetParameter(DASHBOARD_POWER_ON_TIME, arrayToCopy2) == SUCCESS)
-    {
-    /* Call to set that value of DASHBOARD_POWER_ON_TIME in the profile.
-     * Note that if notifications of the DASHBOARD_POWER_ON_TIME have been
-     * enabled by a GATT client device, then a notification will be sent
-     * every time this function is called. */
-      Dashboard_SetParameter(DASHBOARD_POWER_ON_TIME, DASHBOARD_POWER_ON_TIME_LEN, arrayToCopy2);
     }
 
-  if (Dashboard_GetParameter(DASHBOARD_ADCOUNTER, arrayToCopy4) == SUCCESS)
+    if (Battery_GetParameter(BATTERY_BATTERY_VOLTAGE, arrayToCopy2) == SUCCESS)
     {
-      Dashboard_SetParameter(DASHBOARD_ADCOUNTER, DASHBOARD_ADCOUNTER_LEN, arrayToCopy4);
+        Battery_SetParameter(BATTERY_BATTERY_VOLTAGE, BATTERY_BATTERY_VOLTAGE_LEN, arrayToCopy2);
     }
 
-  if (Dashboard_GetParameter(DASHBOARD_DEVICE_UPTIME, arrayToCopy4) == SUCCESS)
+    /******** Speed and rpm Notification - Refresh every 7 x SP_PERIODIC_EVT_TIME **********/
+    if (sp_periodic_evt_counter == SP_PERIODIC_EVT_COUNT1)   // Notification is performed once every 4th sp_periodic_evt_counts
     {
-      Dashboard_SetParameter(DASHBOARD_DEVICE_UPTIME, DASHBOARD_DEVICE_UPTIME_LEN, arrayToCopy4);
+        /******** Dashboard Profile Notification **********/
+        if (Dashboard_GetParameter(DASHBOARD_ERROR_CODE, arrayToCopy1) == SUCCESS)
+        {
+            Dashboard_SetParameter(DASHBOARD_ERROR_CODE, DASHBOARD_ERROR_CODE_LEN, arrayToCopy1);
+        }
+
+        if (Dashboard_GetParameter(DASHBOARD_SPEED_MODE, arrayToCopy1) == SUCCESS)
+        {
+            Dashboard_SetParameter(DASHBOARD_SPEED_MODE, DASHBOARD_SPEED_MODE_LEN, arrayToCopy1);
+        }
+
+        if (Dashboard_GetParameter(DASHBOARD_POWER_ON_TIME, arrayToCopy2) == SUCCESS)
+        {
+        /* Call to set that value of DASHBOARD_POWER_ON_TIME in the profile.
+         * Note that if notifications of the DASHBOARD_POWER_ON_TIME have been
+         * enabled by a GATT client device, then a notification will be sent
+         * every time this function is called. */
+            Dashboard_SetParameter(DASHBOARD_POWER_ON_TIME, DASHBOARD_POWER_ON_TIME_LEN, arrayToCopy2);
+        }
+
+        if (Dashboard_GetParameter(DASHBOARD_ADCOUNTER, arrayToCopy4) == SUCCESS)
+        {
+            Dashboard_SetParameter(DASHBOARD_ADCOUNTER, DASHBOARD_ADCOUNTER_LEN, arrayToCopy4);
+        }
+
+        if (Dashboard_GetParameter(DASHBOARD_DEVICE_UPTIME, arrayToCopy4) == SUCCESS)
+        {
+            Dashboard_SetParameter(DASHBOARD_DEVICE_UPTIME, DASHBOARD_DEVICE_UPTIME_LEN, arrayToCopy4);
+        }
+
+        /******** Battery Profile Notification **********/
+        if (Battery_GetParameter(BATTERY_BATTERY_LEVEL, arrayToCopy1) == SUCCESS)
+        {
+            Battery_SetParameter(BATTERY_BATTERY_LEVEL, BATTERY_BATTERY_LEVEL_LEN, arrayToCopy1);
+        }
+
+        //  if (Battery_GetParameter(BATTERY_BATTERY_VOLTAGE, arrayToCopy2) == SUCCESS)
+        //    {
+        //      Battery_SetParameter(BATTERY_BATTERY_VOLTAGE, BATTERY_BATTERY_VOLTAGE_LEN, arrayToCopy2);
+        //    }
+
+        if (Battery_GetParameter(BATTERY_BATTERY_TEMPERATURE, arrayToCopy1) == SUCCESS)
+        {
+            Battery_SetParameter(BATTERY_BATTERY_TEMPERATURE, BATTERY_BATTERY_TEMPERATURE_LEN, arrayToCopy1);
+        }
+
+        if (Battery_GetParameter(BATTERY_BATTERY_ERROR_CODE, arrayToCopy1) == SUCCESS)
+        {
+            Battery_SetParameter(BATTERY_BATTERY_ERROR_CODE, BATTERY_BATTERY_ERROR_CODE_LEN, arrayToCopy1);
+        }
+
+        if (Battery_GetParameter(BATTERY_BATTERY_STATUS, arrayToCopy1) == SUCCESS)
+        {
+            Battery_SetParameter(BATTERY_BATTERY_STATUS, BATTERY_BATTERY_STATUS_LEN, arrayToCopy1);
+        }
+
+        /******** Controller Profile Notification **********/
+        if (Controller_GetParameter(CONTROLLER_VOLTAGE, arrayToCopy2) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_VOLTAGE, CONTROLLER_VOLTAGE_LEN, arrayToCopy2);
+        }
+
+        //  if (Controller_GetParameter(CONTROLLER_CURRENT, arrayToCopy2) == SUCCESS)
+        //    {
+        //      Controller_SetParameter(CONTROLLER_CURRENT, CONTROLLER_CURRENT_LEN, arrayToCopy2);
+        //    }
+
+        if (Controller_GetParameter(CONTROLLER_HEAT_SINK_TEMPERATURE, arrayToCopy1) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_HEAT_SINK_TEMPERATURE, CONTROLLER_HEAT_SINK_TEMPERATURE_LEN, arrayToCopy1);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_ERROR_CODE, arrayToCopy1) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_ERROR_CODE, CONTROLLER_ERROR_CODE_LEN, arrayToCopy1);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, arrayToCopy4) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, CONTROLLER_TOTAL_DISTANCE_TRAVELLED_LEN, arrayToCopy4);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_TOTAL_ENERGY_CONSUMPTION, arrayToCopy4) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_TOTAL_ENERGY_CONSUMPTION, CONTROLLER_TOTAL_ENERGY_CONSUMPTION_LEN, arrayToCopy4);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_OVERALL_EFFICIENCY, arrayToCopy4) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_OVERALL_EFFICIENCY, CONTROLLER_OVERALL_EFFICIENCY_LEN, arrayToCopy4);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_RANGE, arrayToCopy4) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_RANGE, CONTROLLER_RANGE_LEN, arrayToCopy4);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_CO2SAVED, arrayToCopy4) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_CO2SAVED, CONTROLLER_CO2SAVED_LEN, arrayToCopy4);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_INSTANT_ECONOMY, arrayToCopy2) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_INSTANT_ECONOMY, CONTROLLER_INSTANT_ECONOMY_LEN, arrayToCopy2);
+        }
+
+        if (Controller_GetParameter(CONTROLLER_MOTOR_TEMPERATURE, arrayToCopy1) == SUCCESS)
+        {
+            Controller_SetParameter(CONTROLLER_MOTOR_TEMPERATURE, CONTROLLER_MOTOR_TEMPERATURE_LEN, arrayToCopy1);
+        }
     }
 
-  /******** Battery Profile Notification **********/
-  if (Battery_GetParameter(BATTERY_BATTERY_LEVEL, arrayToCopy1) == SUCCESS)
+    if (sp_periodic_evt_counter >= SP_PERIODIC_EVT_COUNT1)
     {
-      Battery_SetParameter(BATTERY_BATTERY_LEVEL, BATTERY_BATTERY_LEVEL_LEN, arrayToCopy1);
+        sp_periodic_evt_counter = 0;
     }
 
-  if (Battery_GetParameter(BATTERY_BATTERY_VOLTAGE, arrayToCopy2) == SUCCESS)
+    if (sp_periodic_evt_counter2 >= SP_PERIODIC_EVT_COUNT2)
     {
-      Battery_SetParameter(BATTERY_BATTERY_VOLTAGE, BATTERY_BATTERY_VOLTAGE_LEN, arrayToCopy2);
+        sp_periodic_evt_counter2 = 0;
     }
-
-  if (Battery_GetParameter(BATTERY_BATTERY_TEMPERATURE, arrayToCopy1) == SUCCESS)
-    {
-      Battery_SetParameter(BATTERY_BATTERY_TEMPERATURE, BATTERY_BATTERY_TEMPERATURE_LEN, arrayToCopy1);
-    }
-
-  if (Battery_GetParameter(BATTERY_BATTERY_ERROR_CODE, arrayToCopy1) == SUCCESS)
-    {
-      Battery_SetParameter(BATTERY_BATTERY_ERROR_CODE, BATTERY_BATTERY_ERROR_CODE_LEN, arrayToCopy1);
-    }
-
-  if (Battery_GetParameter(BATTERY_BATTERY_STATUS, arrayToCopy1) == SUCCESS)
-    {
-      Battery_SetParameter(BATTERY_BATTERY_STATUS, BATTERY_BATTERY_STATUS_LEN, arrayToCopy1);
-    }
-
-  /******** Controller Profile Notification **********/
-  if (Controller_GetParameter(CONTROLLER_VOLTAGE, arrayToCopy2) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_VOLTAGE, CONTROLLER_VOLTAGE_LEN, arrayToCopy2);
-    }
-
-//  if (Controller_GetParameter(CONTROLLER_CURRENT, arrayToCopy2) == SUCCESS)
-//    {
-//      Controller_SetParameter(CONTROLLER_CURRENT, CONTROLLER_CURRENT_LEN, arrayToCopy2);
-//    }
-
-  if (Controller_GetParameter(CONTROLLER_HEAT_SINK_TEMPERATURE, arrayToCopy1) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_HEAT_SINK_TEMPERATURE, CONTROLLER_HEAT_SINK_TEMPERATURE_LEN, arrayToCopy1);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_ERROR_CODE, arrayToCopy1) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_ERROR_CODE, CONTROLLER_ERROR_CODE_LEN, arrayToCopy1);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, arrayToCopy4) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_TOTAL_DISTANCE_TRAVELLED, CONTROLLER_TOTAL_DISTANCE_TRAVELLED_LEN, arrayToCopy4);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_TOTAL_ENERGY_CONSUMPTION, arrayToCopy4) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_TOTAL_ENERGY_CONSUMPTION, CONTROLLER_TOTAL_ENERGY_CONSUMPTION_LEN, arrayToCopy4);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_OVERALL_EFFICIENCY, arrayToCopy4) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_OVERALL_EFFICIENCY, CONTROLLER_OVERALL_EFFICIENCY_LEN, arrayToCopy4);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_RANGE, arrayToCopy4) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_RANGE, CONTROLLER_RANGE_LEN, arrayToCopy4);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_CO2SAVED, arrayToCopy4) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_CO2SAVED, CONTROLLER_CO2SAVED_LEN, arrayToCopy4);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_INSTANT_ECONOMY, arrayToCopy2) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_INSTANT_ECONOMY, CONTROLLER_INSTANT_ECONOMY_LEN, arrayToCopy2);
-    }
-
-  if (Controller_GetParameter(CONTROLLER_MOTOR_TEMPERATURE, arrayToCopy1) == SUCCESS)
-    {
-      Controller_SetParameter(CONTROLLER_MOTOR_TEMPERATURE, CONTROLLER_MOTOR_TEMPERATURE_LEN, arrayToCopy1);
-    }
-}
-
-if (sp_periodic_evt_counter >= SP_PERIODIC_EVT_COUNT1){
-    sp_periodic_evt_counter = 0;
-}
-if (sp_periodic_evt_counter2 >= SP_PERIODIC_EVT_COUNT2){
-    sp_periodic_evt_counter2 = 0;
-}
 }
 
 /*********************************************************************
@@ -1708,15 +1714,15 @@ if (sp_periodic_evt_counter2 >= SP_PERIODIC_EVT_COUNT2){
  */
 static void SimplePeripheral_updateRPA(void)
 {
-  uint8_t* pRpaNew;
+    uint8_t* pRpaNew;
 
   // Read the current RPA.
-  pRpaNew = GAP_GetDevAddress(FALSE);
+    pRpaNew = GAP_GetDevAddress(FALSE);
 
-  if (memcmp(pRpaNew, rpa, B_ADDR_LEN))
-  {
-    memcpy(rpa, pRpaNew, B_ADDR_LEN);
-  }
+    if (memcmp(pRpaNew, rpa, B_ADDR_LEN))
+    {
+        memcpy(rpa, pRpaNew, B_ADDR_LEN);
+    }
 }
 
 /*********************************************************************
@@ -1730,32 +1736,32 @@ static void SimplePeripheral_updateRPA(void)
  */
 static void SimplePeripheral_clockHandler(UArg arg)
 {
-  spClockEventData_t *pData = (spClockEventData_t *)arg;
+    spClockEventData_t *pData = (spClockEventData_t *)arg;
 
- if (pData->event == SP_PERIODIC_EVT)
- {
-   // Start the next period
-   Util_startClock(&clkPeriodic);
+    if (pData->event == SP_PERIODIC_EVT)
+    {
+        // Start the next period
+        Util_startClock(&clkPeriodic);
 
-   sp_periodic_evt_counter++;
-   sp_periodic_evt_counter2++;
+        sp_periodic_evt_counter++;
+        sp_periodic_evt_counter2++;
 
-   // Post event to wake up the application
-   SimplePeripheral_enqueueMsg(SP_PERIODIC_EVT, NULL);
- }
- else if (pData->event == SP_READ_RPA_EVT)
- {
-   // Start the next period
-   Util_startClock(&clkRpaRead);
+        // Post event to wake up the application
+        SimplePeripheral_enqueueMsg(SP_PERIODIC_EVT, NULL);
+    }
+    else if (pData->event == SP_READ_RPA_EVT)
+    {
+        // Start the next period
+        Util_startClock(&clkRpaRead);
 
-   // Post event to read the current RPA
-   SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);
- }
- else if (pData->event == SP_SEND_PARAM_UPDATE_EVT)
- {
-    // Send message to app
-    SimplePeripheral_enqueueMsg(SP_SEND_PARAM_UPDATE_EVT, pData);
- }
+        // Post event to read the current RPA
+        SimplePeripheral_enqueueMsg(SP_READ_RPA_EVT, NULL);
+    }
+    else if (pData->event == SP_SEND_PARAM_UPDATE_EVT)
+    {
+        // Send message to app
+        SimplePeripheral_enqueueMsg(SP_SEND_PARAM_UPDATE_EVT, pData);
+    }
 }
 
 /*********************************************************************

@@ -31,7 +31,7 @@ extern "C"
 /*********************************************************************************************
  *  Battery Status Constants
  *********************************************************************************************/
-#define BATTERY_PERCENTAGE_INITIAL      88              // Remove this if calculated using start up voltage
+#define BATTERY_PERCENTAGE_INITIAL      100              // Remove this if calculated using start up voltage
 #define BATTERY_PERCENTAGE_LL           5               // battery low percentage at which buzzer alert starts
 #define BATTERY_PERCENTAGE_LH           8               // battery low percentage at which buzzer alert stops
 
@@ -45,15 +45,17 @@ extern "C"
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         48100
 #define BATTERY_MAX_VOLTAGE             54210
-#define BATTERY_MIN_VOLTAGE             39000           // the battery voltage assumed at 0% charged
-#define BATTERY_CRITICALLY_LOW          36400
+#define BATTERY_MIN_VOLTAGE             42900           // the battery voltage assumed at 0% charged
+#define BATTERY_CRITICALLY_LOW          42000
 #define BATTERY_MAX_CAPACITY            461760          // mW-hr
-#define LEVEL45                         51480           // equivalent to 80%
-#define LEVEL34                         48828           // equivalent to 63%
-#define LEVEL23                         46020           // equivalent to 45%
-#define LEVEL12                         43368           // equivalent to 28%
-#define LEVEL01                         39000           // equivalent to  0%
-#define LEVEL00                         36000
+#define LEVEL45                         52513           // equivalent to 80%
+#define LEVEL34                         50251           // equivalent to 63%
+#define LEVEL23                         47989           // equivalent to 45%
+#define LEVEL12                         45727           // equivalent to 28%
+#define LEVEL01                         43465           // equivalent to  0%
+#define LEVEL00                         42900
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
+#define VOLTAGE_DROP_COEFFICIENT        0.357
 #endif // BATTERY_S13P2
 
 /* Battery specification parameters     44.4V */
@@ -62,15 +64,17 @@ extern "C"
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         44400
 #define BATTERY_MAX_VOLTAGE             50040
-#define BATTERY_MIN_VOLTAGE             36000           // the battery voltage assumed at 0% charged
-#define BATTERY_CRITICALLY_LOW          33600
+#define BATTERY_MIN_VOLTAGE             39600           // the battery voltage assumed at 0% charged
+#define BATTERY_CRITICALLY_LOW          38800
 #define BATTERY_MAX_CAPACITY            426240          // mW-hr
-#define LEVEL45                         47520           // equivalent to 80%
-#define LEVEL34                         45072           // equivalent to 63%
-#define LEVEL23                         42480           // equivalent to 45%
-#define LEVEL12                         40032           // equivalent to 28%
-#define LEVEL01                         36000           // equivalent to  0%
-#define LEVEL00                         33000
+#define LEVEL45                         48474           // equivalent to 80%
+#define LEVEL34                         46386           // equivalent to 63%
+#define LEVEL23                         44298           // equivalent to 45%
+#define LEVEL12                         42210           // equivalent to 28%
+#define LEVEL01                         40122           // equivalent to  0%
+#define LEVEL00                         39600
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
+#define VOLTAGE_DROP_COEFFICIENT        0.329
 #endif // BATTERY_S12P2
 
 
@@ -80,15 +84,17 @@ extern "C"
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         40700
 #define BATTERY_MAX_VOLTAGE             45870
-#define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
-#define BATTERY_CRITICALLY_LOW          30000
+#define BATTERY_MIN_VOLTAGE             36300           // the battery voltage assumed at 0% charged
+#define BATTERY_CRITICALLY_LOW          35500
 #define BATTERY_MAX_CAPACITY            586080          // mW-hr
-#define LEVEL45                         43560           // equivalent to 80%
-#define LEVEL34                         41316           // equivalent to 63%
-#define LEVEL23                         38940           // equivalent to 45%
-#define LEVEL12                         36696           // equivalent to 28%
-#define LEVEL01                         33000           // equivalent to  0%
-#define LEVEL00                         30000
+#define LEVEL45                         44434           // equivalent to 80%
+#define LEVEL34                         42520           // equivalent to 63%
+#define LEVEL23                         40606           // equivalent to 45%
+#define LEVEL12                         38692           // equivalent to 28%
+#define LEVEL01                         36778           // equivalent to  0%
+#define LEVEL00                         36300
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
+#define VOLTAGE_DROP_COEFFICIENT        0.201
 #endif // BATTERY_S11P3
 
 
@@ -98,15 +104,17 @@ extern "C"
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         40700           // 11 x 3.7V
 #define BATTERY_MAX_VOLTAGE             45870           // 11 x 4.17V
-#define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
-#define BATTERY_CRITICALLY_LOW          30000
+#define BATTERY_MIN_VOLTAGE             36300//34000           // the battery voltage assumed at 0% charged
+#define BATTERY_CRITICALLY_LOW          35500//32000
 #define BATTERY_MAX_CAPACITY            390720          // mW-hr
-#define LEVEL45                         43560           // equivalent to 80%
-#define LEVEL34                         41316           // equivalent to 63%
-#define LEVEL23                         38940           // equivalent to 45%
-#define LEVEL12                         36696           // equivalent to 28%
-#define LEVEL01                         33000           // equivalent to  0%
-#define LEVEL00                         30000
+#define LEVEL45                         44434//43500           // equivalent to 80%
+#define LEVEL34                         42520//41480           // equivalent to 63%
+#define LEVEL23                         4066//39300           // equivalent to 45%
+#define LEVEL12                         38692//37300           // equivalent to 28%
+#define LEVEL01                         36778//34000           // equivalent to  0%
+#define LEVEL00                         36300
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
+#define VOLTAGE_DROP_COEFFICIENT        0.301
 #endif // BATTERY_S11P2
 
 /* Battery specification parameters     37.0V */
@@ -115,24 +123,23 @@ extern "C"
 // if voltage is greater than BATTERY_CEILING_VOLTAGE -> error:  incorrect battery is installed
 #define BATTERY_NOMINAL_VOLTAGE         37000           // 10 x 3.7V
 #define BATTERY_MAX_VOLTAGE             41700           // 10 x 4.17V
-#define BATTERY_MIN_VOLTAGE             30000           // the battery voltage assumed at 0% charged
-#define BATTERY_CRITICALLY_LOW          26000
+#define BATTERY_MIN_VOLTAGE             33000           // the battery voltage assumed at 0% charged
+#define BATTERY_CRITICALLY_LOW          32300
 #define BATTERY_MAX_CAPACITY            355200          // mW-hr
-#define LEVEL45                         39600           // equivalent to 80%
-#define LEVEL34                         37560           // equivalent to 63%
-#define LEVEL23                         35400           // equivalent to 45%
-#define LEVEL12                         33360           // equivalent to 28%
-#define LEVEL01                         30000           // equivalent to  0%
-#define LEVEL00                         27000
+#define LEVEL45                         40395           // equivalent to 80%
+#define LEVEL34                         38655           // equivalent to 63%
+#define LEVEL23                         36915           // equivalent to 45%
+#define LEVEL12                         35175           // equivalent to 28%
+#define LEVEL01                         33435           // equivalent to  0%
+#define LEVEL00                         33000
+/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
+#define VOLTAGE_DROP_COEFFICIENT        0.274           // for Cest Power 37V 9.6Ah 10S2P Battery pack Voltage drop empirical coefficient
 #endif // BATTERY_S10P2
 
-/** VOLTAGE_DROP_COEFFICIENT is determined experimentally via battery tests **/
-#define VOLTAGE_DROP_COEFFICIENT        0.269           // for Cest Power 37V 9.6Ah Battery pack Voltage drop empirical coefficient
-
-#define LEVEL45PERCENT                  80              // 80%
-#define LEVEL34PERCENT                  63              // 63%
+#define LEVEL45PERCENT                  85              // 80%
+#define LEVEL34PERCENT                  65              // 63%
 #define LEVEL23PERCENT                  45              // 45%
-#define LEVEL12PERCENT                  28              // 28%
+#define LEVEL12PERCENT                  25              // 28%
 #define LEVEL01PERCENT                  0               // 0%
 
 

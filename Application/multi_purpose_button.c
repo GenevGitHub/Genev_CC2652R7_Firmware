@@ -37,8 +37,9 @@
 /*********************************************************************
 * LOCAL VARIABLES
 */
-
-bool         POWER_ON = 1;               // send pointer to POWER_ON to gpt to register its address
+// POWER_ON = 1 when powered on
+// POWER_ON = 0 when powered off
+bool         POWER_ON = 1;
 
 static uint8_t      mpb_buttonState = MPB_WAITING_STATE; //It's a default waiting state!!!!
 static uint32_t     timerPeriod;
@@ -53,9 +54,9 @@ static uint8_t      *ptr_dashboardErrorCodePriority;
 static uint8_t      *ptr_speedmodeLockStatus;  //Chee added 20250110
 static uint8_t      *ptr_mpb_speedmodeIsLocked;  //Chee added 20250110
 
-void mpb_execute_event(uint8_t messageID);
-void mpb_taskFxn(UArg a0, UArg a1);
-void mpb_init();
+static void mpb_execute_event(uint8_t messageID);
+static void mpb_taskFxn(UArg a0, UArg a1);
+static void mpb_init();
 
 /*********************************************************************
  * @fn      mpb_powerOnRegister
@@ -88,7 +89,7 @@ extern void mpb_speedmodeLockStatusRegister(uint8_t *ptrSpeedmodeLockStatus)  //
  */
 static uint8_t *ptr_GAPopcode;
 static uint8_t *ptr_mpb_advertiseFlag;
-uint8_t mpb_GAPflag = 0;
+static uint8_t mpb_GAPflag = 0;
 
 extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag)
 {
@@ -107,8 +108,8 @@ extern void *mpb_registeropcode(uint8_t *ptr_opcode, uint8_t *ptr_advertiseFlag)
 * @return  None.
 *********************************************************************/
 // Task configuration
-Task_Struct     mpbTask;
-Char            mpbTaskStack[MPB_TASK_STACK_SIZE];
+static Task_Struct     mpbTask;
+static Char            mpbTaskStack[MPB_TASK_STACK_SIZE];
 
 extern void mpb_createTask(void)
 {
@@ -130,8 +131,8 @@ extern void mpb_createTask(void)
 *
 * @return  None
 **********************************************************************/
-uint8_t         mpb_buttonStatus = 0;
-uint8_t         mpb_errorStatus = 0xFF;
+static uint8_t         mpb_buttonStatus = 0;
+static uint8_t         mpb_errorStatus = 0xFF;
 void mpb_taskFxn(UArg a0, UArg a1)
 {
     mpb_timerManager = UDHAL_TIMER3_mpbTimerRegister();
@@ -155,6 +156,7 @@ void mpb_init()
     gpt_powerOnRegister(&POWER_ON);
     pot_powerOnRegister(&POWER_ON);
     da_powerOnRegister(&POWER_ON);
+    bat_powerOnRegister(&POWER_ON);
     ptr_mpb_speedmodeIsLocked = led_display_speedmodeIsLockRegister();  //Chee added 20250110
     buzzer_buzzerStatusRegister(&mpb_buzzerStatus);
     ptr_dashunit = data_analytics_ptrUnitSelectDash();
@@ -316,12 +318,11 @@ void mpb_bootAlert(uint16_t duration, uint8_t bootcase)
  *
  * @return  none
  ************************************************************************/
+//uint8_t messageid = 0;              // for debugginguse only
 
-uint8_t messageid = 0;              // for debugging only
-//uint8_t MPB_speedmode_lock_status = 0;  // send pointer to simple peripheral
 void mpb_execute_event(uint8_t messageID)
 {
-    messageid = messageID;  // for debugging only
+//    messageid = messageID;  // for debugging use only
 
     switch(messageID)
     {
@@ -332,7 +333,7 @@ void mpb_execute_event(uint8_t messageID)
             if(POWER_ON)
             {
                 POWER_ON = 0;
-                /*  gracefully disable / exit relevant tasks and put system in sleep mode  */
+                /*  provide soft landing to IQ value, gracefully disable / exit relevant tasks and put system in sleep mode  */
             }
             /**** if Powering Off -> switch to Power On ****/
             else //if (POWER_ON == 0)

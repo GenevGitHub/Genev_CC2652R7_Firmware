@@ -34,11 +34,11 @@ profileCharVal_t *ptr_pot_profileCharVal;
  */
 uint32_t    deviceUptimeMinutes = 0;
 uint16_t    powerOnTimeMinutes = 0;                    // power on time in minutes
-uint32_t    pot_count = 0;
-uint32_t    powerOnTimeMS = 0;      // power on time in milli-seconds
-uint8_t     *ptr_pot_initComplete_flag;
-bool        *ptr_pot_powerOn;
-uint8_t     *ptr_pot_snvWriteComplete_flag = 0;
+static uint32_t    pot_count = 0;
+static uint32_t    powerOnTimeMS = 0;      // power on time in milli-seconds
+static uint8_t     *ptr_pot_initComplete_flag;
+static bool        *ptr_pot_POWER_ON;
+static uint8_t     *ptr_pot_snvWriteComplete_flag = 0;
 
 // Task configuration
 Task_Struct potTask;
@@ -111,7 +111,7 @@ static void power_on_time_taskFxn(UArg a0, UArg a1)
             powerOnTimeMS  += POT_TIME;
             power_on_time_cal();
 
-            if ((!(*ptr_pot_powerOn)) && (*ptr_pot_snvWriteComplete_flag))
+            if ((!(*ptr_pot_POWER_ON)) && (*ptr_pot_snvWriteComplete_flag))
             {
               /*** break out of FOR loop during power off  ***/
                 break;
@@ -178,7 +178,7 @@ static void power_on_time_cal()
  */
 extern void pot_powerOnRegister(bool *ptr_powerOn)
 {
-    ptr_pot_powerOn = ptr_powerOn;
+    ptr_pot_POWER_ON = ptr_powerOn;
 }
 
 /****  return the pointer to deviceUptimeMinutes to the calling function ****/

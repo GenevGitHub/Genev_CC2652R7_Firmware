@@ -47,7 +47,6 @@ static uint32_t (*ptrReadBuffer)[SNV_BUFFER_SIZE];  // snvBuffer contains the da
  * driver documentation for more details.
  */
 
-
 /*********************************************************************
 * PUBLIC FUNCTIONS
 */

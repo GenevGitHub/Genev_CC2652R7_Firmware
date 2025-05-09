@@ -39,6 +39,7 @@ static uint8_t  *ptr_gpt_initComplete_flag = GPT_INACTIVE;  // static enables th
 static uint8_t  *ptr_gpt_snvWriteComplete_flag = 0;
 static uint8_t  *ptr_gpt_dashboardErrorCodePriority;
 static sysFatalError_t *ptr_sysFatalError;
+static uint8_t  *ptr_gpt_shutDownReady;
 
 // Power On Status Variable
 static bool     *ptr_gpt_POWER_ON;
@@ -46,7 +47,6 @@ static bool     *ptr_gpt_POWER_ON;
 /* Local Functions declaration */
 static void GeneralPurposeTimer_init( void );
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1);
-
 
 /*********************************************************************
  * @fn      gpt_InitComplFlagRegister
@@ -65,9 +65,9 @@ extern void gpt_InitComplFlagRegister(uint8_t *ptr_initComplete_flag)
 /*********************************************************************
  * @fn      gpt_powerOnRegister
  *
- * @brief   call to assign and register the pointer to powerOn
+ * @brief   call to assign and register the pointer to power_On
  *
- * @param   a pointer to powerOn, i.e. ptr_powerOn
+ * @param   a pointer to power_On, i.e. ptr_powerOn
  *
  * @return  None
  */
@@ -126,7 +126,7 @@ uint8_t     N_2 = 0;
 uint8_t     N_3 = 0;
 uint8_t     brakeStatusOld = 0;
 uint8_t     brakeStatusNew = 0;
-
+uint8_t     gpt_errorPriority = 0xFF;
 static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
 {
   /* Initialize application */
@@ -157,14 +157,15 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           /* Read brake and throttle ADC values */
           if (!(ptr_sysFatalError->ADCfailure) /* && !(ptr_sysFatalError->UARTfailure)*/ )
           {
-              /***  Read ADC values and processes brake and throttle input  ***/
-              brakeStatusNew = brake_and_throttle_ADC_conversion();      // uses ADC
-              // execute motor_control_brakeStatusChg() and motor_control_setIQvalue() only UART is normal
-              if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
-              {
-                  /***  execute Motor control command due to IQ value  ***/
-                  motor_control_setIQvalue();       // uses UART
-              }
+                  /***  Read ADC values and processes brake and throttle input  ***/
+                  brakeStatusNew = brake_and_throttle_ADC_conversion(gpt_counter);      // uses ADC
+
+                  // execute motor_control_setIQvalue() only UART is normal
+                  if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
+                  {
+                      /***  execute Motor control command due to IQ value  ***/
+                          motor_control_setIQvalue();       // uses UART
+                  }
           }
 
           if ((*ptr_gpt_dashboardErrorCodePriority) == SYS_FATAL_ERROR_PRIORITY)
@@ -174,7 +175,6 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               // 1: error handling shall allow led display to display the error code
               // 2: in error mode, system shall be put into the designate error handling protocol
               // 3: in error mode, button shall allow user to Power OFF and ON to reset the firmware and restart the system
-
           }
 
           /*********************************************************************************
@@ -225,7 +225,10 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
               if (!(ptr_sysFatalError->I2Cfailure))
               {
                   led_display_changeLEDPower();
-                  led_display_ErrorDisplay();
+                  gpt_errorPriority = led_display_ErrorDisplay();
+                  if (gpt_errorPriority == PHASE_I_ERROR_PRIORITY) {
+                      (*ptr_gpt_POWER_ON) = 0;
+                  }
                   led_display_changeLightMode();
                   led_display_changeLightStatus();
 
@@ -247,7 +250,6 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   if (brakeStatusOld != brakeStatusNew)     // Added by Chee 20250213
                   {
                       motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
-//                      motor_control_brakeStatusChg();
                       brakeStatusOld = brakeStatusNew;
                   }      // Added by Chee 20250213
               }
@@ -280,32 +282,36 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           /******************************************************************************
            * When instructed to Power Off, the programme enters here to exit for loop
            ******************************************************************************/
-//          if (gpt_PWR_OFF() == true)  //or alternatively:
-          if (!(*ptr_gpt_POWER_ON))
+          if (!(*ptr_gpt_POWER_ON))// if POWER_ON == 0 (i.e. power off)
           {
-              bat_zeroIQ();  /* Send IQ = 0 to Motor controller  */
-              data_analytics();
-              data2snvBuffer();
-              gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
-              /*********************************************************************************
-               * When instructed to Power Off and after breaking out of FOR loop,
-               *    the programme exits and reaches here.
-               *    The following codes and power off procedure are executed
-               ***************************************************************************************/
-              lights_setLightOff();       /* Ensure lights are turned off */
-              // Add: STM32 command turn off tail-light and auxiliary light
-              led_display_setAllOff();    /* turns off all led lights */
-              led_display_deinit();       /* turns off led display */
+              if (*ptr_gpt_shutDownReady)   // when this is true, IQ_input_x10 and IQ_input are successfully reduced to ZERO. Motor is now ready to be stopped
+              {
+              /****   IMPORTANT NOTE:     *********************************
+               ****     Do not modified the following shut down sequences
+               **************************************************************/
+                  data_analytics();
+                  data2snvBuffer();
+                  gpt_snvWriteFlag = 1;  // flag = 1 allows simple peripheral to execute save snvBuffer to snv and break out FOR loop
+          /*********************************************************************************
+           * When instructed to Power Off and after breaking out of FOR loop,
+           *    the programme exits and reaches here.
+           *    The following codes and power off procedure are executed
+           ***************************************************************************************/
+                  lights_setLightOff();       /* Ensure lights are turned off */
+                  // Add: STM32 command turn off tail-light and auxiliary light
+                  led_display_setAllOff();    /* turns off all led lights */
+                  led_display_deinit();       /* turns off led display */
 
-              STM32MCP_clearMsg();
-              STM32MCP_toggleCommunication();
-              STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);
-              STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
-              STM32MCP_clearMsg();
+                  STM32MCP_clearMsg();
+                  STM32MCP_toggleCommunication();
+                  STM32MCP_controlEscooterBehavior(ESCOOTER_TAIL_LIGHT_OFF);
+                  STM32MCP_controlEscooterBehavior(ESCOOTER_POWER_OFF);
+                  STM32MCP_clearMsg();
 
-              Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds
+                  Task_sleep(300 * 1000 / Clock_tickPeriod);    // sleep for 300 milliseconds before break out
 
-              break;      // break out of GPT infinite FOR loop
+                  break;      // break out of GPT infinite FOR loop
+              }
           }
       }
   } /* GPT infinite FOR loop */
@@ -321,6 +327,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
  **********************************************************************/
 void GeneralPurposeTimer_init( void )
 {
+    ptr_gpt_shutDownReady = bat_shutDownReadyRegister();
     ptr_sysFatalError = UDHAL_sysFatalErrorRegister();
     ptr_gpt_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
     N_data_analytics = DATA_ANALYTICS_INTERVAL / GPT_TIME;

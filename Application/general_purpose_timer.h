@@ -43,10 +43,10 @@ extern "C"
 #endif
 
 /** GPT_TIME is the smallest time interval unit in General Purpose Timer **/
-#define GPT_TIME                    20      // in milli-seconds
+#define GPT_TIME                    50      // in milli-seconds
 #define GPT_INACTIVE                0
 #define GPT_ACTIVE                  1
-#define EXECUTION_INTERVAL_2        140     // in milli-seconds
+#define EXECUTION_INTERVAL_2        150     // in milli-seconds
 #define EXECUTION_INTERVAL_3        500     // in milli-seconds
 /*********************************************************************
  * FUNCTIONS

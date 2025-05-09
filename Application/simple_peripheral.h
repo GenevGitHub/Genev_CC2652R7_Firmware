@@ -77,13 +77,13 @@ extern "C"
 #define SP_TASK_STACK_SIZE                   1024
 #endif
 
-/***** when NEW_RESET_NVS is defined, the firmware will reset snv_internal_80 to the define reset values at every startup ***/
+/***** when NEW_RESET_NVS is defined, the firmware will set snv_internal_80 to the define reset values - IF passcode are not already writtened ***/
 #define NEW_RESET_NVS                            1
 #ifndef NEW_RESET_NVS
-//#undef NEW_RESET_NVS
+#undef NEW_RESET_NVS
+#define HARD_OVERRIDE_NVS                         1   // use hard reset to reset old dashboards to zeros. Old dashboard are dashboard with passcode already writtened
 #endif // NEW_NEW_RESET_NVS
 
-//#define HARD_OVERRIDE_NVS                         1      // hard reset of snv data
 #ifndef HARD_OVERRIDE_NVS
 #undef HARD_OVERRIDE_NVS
 #endif // HARD_OVERRIDE_NVS
