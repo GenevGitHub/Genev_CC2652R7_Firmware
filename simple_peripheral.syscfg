@@ -61,6 +61,7 @@ ble.deviceName                                            = "Genev gGo ES01";
 ble.maxPDUNum                                             = 25;
 ble.rpaRead                                               = 750;
 ble.maxConnNum                                            = 3;
+ble.bondPairing                                           = "GAPBOND_PAIRING_MODE_INITIATE";
 ble.radioConfig.codeExportConfig.$name                    = "ti_devices_radioconfig_code_export_param0";
 ble.connUpdateParamsPeripheral.$name                      = "ti_ble5stack_general_ble_conn_update_params0";
 ble.advSet1.$name                                         = "ti_ble5stack_broadcaster_advertisement_set0";

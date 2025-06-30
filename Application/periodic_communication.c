@@ -87,7 +87,7 @@ void periodic_communication_MCUSampling()
 
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy Battery Voltage
-    ptr_pc_MCUDArray->bat_voltage_mV = 3500 * sin(PI_CONSTANT * xtt * 0.005) + 38000;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
+    ptr_pc_MCUDArray->bat_voltage_mV = 40700;//5000 * sin(PI_CONSTANT * xtt * 0.005) + 40700;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
 
     // ***** Simulation of dummy Battery Current
     ptr_pc_MCUDArray->bat_current_mA = 3000 * sin(PI_CONSTANT * xtt * 0.005) + 3000; // 3000; // dummy data - get battery current from MCU:  unit in mA
@@ -142,7 +142,7 @@ void periodic_communication_MCUSamplingRPM()
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy RPM
     uint16_t pc_rpm;   // but payload length is 0x05
-    int32_t rawRPM = 200 * sin(PI_CONSTANT * 0.008 * xrpm ) + 220;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    int32_t rawRPM = 45 * sin(PI_CONSTANT * 0.008 * xrpm ) + 100;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
     uint8_t pc_rpmStatus;
 
     if(rawRPM >= 0)

@@ -388,11 +388,11 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
  * PROFILE CALLBACKS
  */
 //// GAP Bond Manager Callbacks
-//static gapBondCBs_t SimplePeripheral_BondMgrCBs =
-//{
-//  SimplePeripheral_passcodeCb,       // Passcode callback
-//  SimplePeripheral_pairStateCb       // Pairing/Bonding state Callback
-//};
+static gapBondCBs_t SimplePeripheral_BondMgrCBs =
+{
+  SimplePeripheral_passcodeCb,       // Passcode callback
+  SimplePeripheral_pairStateCb       // Pairing/Bonding state Callback
+};
 //
 //// Simple GATT Profile Callbacks
 //static simpleProfileCBs_t SimplePeripheral_simpleProfileCBs =
@@ -629,7 +629,7 @@ static void SimplePeripheral_init(void)
   Controller_RegisterAppCBs( &ControllerCBs );      // there is no characteristic that require callback
 
   // Start Bond Manager and register callback
-//  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);
+  VOID GAPBondMgr_Register(&SimplePeripheral_BondMgrCBs);
 
   // Register with GAP for HCI/Host messages. This is needed to receive HCI
   // events. For more information, see the HCI section in the User's Guide:

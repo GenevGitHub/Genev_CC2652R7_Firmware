@@ -238,7 +238,6 @@ extern void data_analytics_init()
      */
 #ifdef MOTOR_CONNECT
     STM32MCP_controlEscooterBehavior(ESCOOTER_VOLTAGE_CHECKING);
-//    STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID,STM32MCP_BUS_VOLTAGE_REG_ID);   // obsoleted
 #endif // MOTOR_CONNECT
 
     uint16_t batteryVoltageStartUp_mV = ptr_MCUDArray->bat_voltage_mV;
