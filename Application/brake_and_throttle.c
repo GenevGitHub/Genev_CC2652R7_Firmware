@@ -109,7 +109,7 @@ static uint8_t  RPM_index = 0;
 
 static uint16_t brakeADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
 static uint16_t throttleADCSamples[BRAKE_AND_THROTTLE_SAMPLES];
-static uint16_t RPMarray[RPM_SAMPLES] = {0};    // for computing acceleration
+ uint16_t RPMarray[RPM_SAMPLES] = {0};    // for computing acceleration
 static uint16_t IQarray[RPM_SAMPLES] = {0};
 
 /** Speed limiter control variables **/
@@ -230,10 +230,11 @@ static uint8_t     throttle_error_count = 0;
 static uint8_t     brake_error_count = 0;
 static uint16_t    throttleADCsample = 0;  //throttleADCsample
 static uint16_t    brakeADCsample = 0;     //brakeADCsample
-
-float debug_expression_1 = 0;   // for debugging
-float debug_expression_3 = 0;   // for debugging
-uint8_t debug_expression_2 = 0;   // for debugging
+uint16_t movingavgRPM = 0;
+static uint16_t sumRPM = 0;
+float debug_expression_1 = 0;   // for debugging only
+float debug_expression_3 = 0;   // for debugging only
+uint16_t debug_expression_2 = 0;   // for debugging only
 
 /***    This is the main function of brake_and_throttle.c
  *      This function
@@ -436,7 +437,23 @@ uint8_t brake_and_throttle_ADC_conversion(uint32_t gptCounter)
 
     /******** Get RPM from mcu  ******************/
     RPM_temp = ptr_bat_MCUDArray->speed_rpm;            //
-    PID_params.rpm = RPM_temp;
+    RPM_prev = RPMarray[RPM_index];
+    PID_params.rpm0 = movingavgRPM;//RPM_prev;
+    RPMarray[RPM_index] = RPM_temp;
+
+    /****  Moving average RPM over RPM_SAMPLES  ****/
+    for (uint8_t qq = 0; qq < RPM_SAMPLES; qq++) {
+        sumRPM += RPMarray[qq];
+    }
+    movingavgRPM = round((float)sumRPM / N_rpm);
+    /****  Use RPM moving average for PID control to smooth out PID cals and input  ****/
+    PID_params.rpm = movingavgRPM;//RPM_temp;
+
+    /****  average acceleration calculation over a time = (N_rpm * GPT_TIME) ****/
+    acceleration = (float)(RPM_temp - RPM_prev) * 1000 / (N_rpm * GPT_TIME);    // in rpm per second
+    if (N_rpm < RPM_SAMPLES) {   // TRUE only for the 1st round of RPM_SAMPLE measurements
+        N_rpm++;
+    }
 
     /*** K_volt augment the max IQ and IQ increments based on the instant battery voltage
      *   K_volt reduces IQ increment and max IQ when battery voltage is greater than the nominal value
@@ -460,15 +477,6 @@ uint8_t brake_and_throttle_ADC_conversion(uint32_t gptCounter)
     /**** throttleRPMdemand correlates throttlePercent with targeted Speed   **********************/
     throttleRPMdemand = throttlePercent * (allowableRPM - (REG_MINP_RPM / 2)) / 100 + (REG_MINP_RPM / 2);// this equation sets the throttleRPMdemand value at 40 rpm instead of 80 rpm when throttle% is 0
     allowableRPM = speedModeRPMmax;
-
-    /****  instantaneous acceleration calculation  ****/
-    RPM_prev = RPMarray[RPM_index];
-    PID_params.rpm0 = RPM_prev;
-    RPMarray[RPM_index] = RPM_temp;
-    acceleration = (float)(RPM_temp - RPM_prev) * 1000 / (N_rpm * GPT_TIME);    // in rpm per second
-    if (N_rpm < RPM_SAMPLES) {   // TRUE only for the 1st round of RPM_SAMPLE measurements
-        N_rpm++;
-    }
 
     /******** Throttle Error Safety Protocol -> when throttle error detected or speed is negative, IQ_input is set to zero
      *  Calculating the IQ Value
@@ -547,6 +555,7 @@ uint8_t brake_and_throttle_ADC_conversion(uint32_t gptCounter)
     if (RPM_index >= RPM_SAMPLES) { // reset RPM_index to 0 once RPM_index reaches the end of the array
         RPM_index = 0;
     }
+    sumRPM = 0;
 
     return (brakeStatus);
 }
@@ -735,9 +744,9 @@ static void brake_and_throttle_PID_speedControl(){
     PID_params.pid_error = (throttleRPMdemand - RPM_temp);
 
     if ((brakeStatus) || (RPM_temp < REG_MINP_RPM) || (chargingStatus)) {/* if brake is applied or rpm is less than the min power rpm or is charging */
-        // Too great of change in IQ can be harmful for the motor controller and motor
-        // Therefore, change to throttleRPMApplied (IQ) should be progressively or incrementally
-        // or decrementally.  Never jump from a high value to a low value or to zero instantly.
+        // Too great of change in IQ can be harmful for the motor controller, motor and battery
+        // Therefore, change to throttleRPMApplied (IQ) should be progressive or incremental
+        // or decremental when reducing.  Sudden large jumps from a high value to a low value or to zero instantly must be avoided.
         // In general, always provide a soft landing to throttleRPMApplied (IQ) from non-zero value to zero.
         // The following routine provides a soft landing by decreasing throttleRPMApplied at increments.
         if(PID_params.pid_total) {  // if PID_params.pid_total is greater than 0
@@ -804,23 +813,24 @@ static void brake_and_throttle_PID_speedControl(){
             } //    End Kick start state and Brake start state
             /*** throttle control state ***/
             else {
-                PID_params.kp = PID_FPO * speedModeIQmax / (float)(allowableRPM - REG_MINP_RPM) * abs(allowableRPM - RPM_temp) / (float)(allowableRPM - REG_MINP_RPM);
+                PID_params.kp = PID_FPO * speedModeIQmax / (float)(allowableRPM - REG_MINP_RPM) * pow(abs(allowableRPM - RPM_temp) / (float)(allowableRPM - REG_MINP_RPM),KP_EXP);
                 PID_params.ki = PID_params.kp / PID_TCI;
                 PID_params.kd = PID_params.kp * PID_TCD;
 
                 PID_params.pid_p = K_volt * PID_params.kp * PID_params.pid_error;
                 PID_params.pid_i = K_volt * PID_params.ki * (float)(PID_params.pid_error + PID_params.pid_error0) * GPT_TIME / 2000;
                 PID_params.pid_d = K_volt * PID_params.kd * acceleration;
-                /** pid_i Clamping  **/
-                if (PID_params.pid_i > (float) speedModeIQmax * K_volt){
-                    PID_params.pid_i = (float) speedModeIQmax * K_volt;
-                }
-                if (PID_params.pid_i < 0){
-                    PID_params.pid_i = 0;
-                }
-                /***** PID total ******/
+//                /** pid_i Clamping  **/
+//                if (PID_params.pid_i > (float) speedModeIQmax * K_volt){
+//                    PID_params.pid_i = (float) speedModeIQmax * K_volt;
+//                }
+//                if (PID_params.pid_i < 0){
+//                    PID_params.pid_i = 0;
+//                }
+            /***** PID total ******/
+            /***** PID total =  Bias + Proportional term + Integral Term + Derivative Term      ****/
+            /***** Note: The negative sign in front of the Derivative Term.  The Derivative term is based on acceleration - not change in error)     *****/
                 PID_params.pid_total =  PID_params.pid_total0 + PID_params.pid_p + PID_params.pid_i - PID_params.pid_d;
-//                PID_params.pid_total =  PID_params.pid_biasTS + PID_params.pid_p + PID_params.pid_i - PID_params.pid_d;
                 /** pid_total Clamping  **/
                 if (PID_params.pid_total > (float) speedModeIQmax * K_volt){
                     PID_params.pid_total = (float) speedModeIQmax * K_volt;
@@ -829,14 +839,15 @@ static void brake_and_throttle_PID_speedControl(){
                     PID_params.pid_total = 0;
                 }
                 /*   Sum of integral action terms   */
-                PID_params.pid_biasTS += PID_params.pid_i;
-                /** pid_biasTS Clamping  **/
-                if (PID_params.pid_biasTS > (float) speedModeIQmax * K_volt){
-                    PID_params.pid_biasTS = (float) speedModeIQmax * K_volt;
-                }
-                if (PID_params.pid_biasTS < 0){
-                    PID_params.pid_biasTS = 0;
-                }
+                PID_params.pid_biasTS = PID_params.pid_total;       // update pid_biasTS
+//                PID_params.pid_biasTS += PID_params.pid_i;
+//                /** pid_biasTS Clamping  **/
+//                if (PID_params.pid_biasTS > (float) speedModeIQmax * K_volt){
+//                    PID_params.pid_biasTS = (float) speedModeIQmax * K_volt;
+//                }
+//                if (PID_params.pid_biasTS < 0){
+//                    PID_params.pid_biasTS = 0;
+//                }
             }
         }
         /** When error is negative, i.e when Setpoint value is less than actual value  **/
@@ -856,6 +867,7 @@ static void brake_and_throttle_PID_speedControl(){
             }
             else {
                 if ((PID_params.pid_error < 0) && (PID_params.pid_error >= -60)) {
+            /***** Note: The negative sign in front of the Derivative Term.  The Derivative term is based on acceleration - not change in error)     *****/
                     PID_params.pid_total =  PID_params.pid_total0 + PID_params.pid_p + PID_params.pid_i - PID_params.pid_d;
                 }
                 else if (PID_params.pid_error < -60) {
