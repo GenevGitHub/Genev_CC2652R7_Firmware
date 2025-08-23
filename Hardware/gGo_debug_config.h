@@ -35,7 +35,7 @@ extern "C"
  *      Note:   If MOTOR_CONNECT is "NOT" defined -> dummy data becomes active
  *              If MOTOR_CONNECT = 1 -> Receiving MCU data = MCU_DATA_ON
  **/
-//#define MOTOR_CONNECT           1         // MOTOR_CONNECT = 1 = Receiving MCU data = MCU_DATA_ON
+#define MOTOR_CONNECT           1         // MOTOR_CONNECT = 1 = Receiving MCU data = MCU_DATA_ON
 #ifdef MOTOR_CONNECT
 #define ADC_CORRECTION_FACTOR   1       //  ADC_CORRECTION_FACTOR corrects ADC value due to VCC difference between LaunchPad and MOTOR CONNECT
 #endif // MOTOR_CONNECT

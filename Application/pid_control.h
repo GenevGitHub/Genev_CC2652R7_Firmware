@@ -39,7 +39,7 @@ extern "C"
 #define PID_TFI         1
 #define PID_TFD         6
 
-#define KP_EXP          0.75
+#define KP_EXP          1//0.75
 /*********************************************************************
  * MACROS
  */

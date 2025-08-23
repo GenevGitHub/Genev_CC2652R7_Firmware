@@ -71,7 +71,7 @@ extern "C"
 #define SP_PERIODIC_EVT_COUNT2               4          // 3000 ms
 
 // Task configuration
-#define SP_TASK_PRIORITY                     1
+#define SP_TASK_PRIORITY                     5//1
 
 #ifndef SP_TASK_STACK_SIZE
 #define SP_TASK_STACK_SIZE                   1024
