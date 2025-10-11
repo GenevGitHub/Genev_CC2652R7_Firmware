@@ -78,7 +78,7 @@ extern "C"
 #endif
 
 /***** when NEW_RESET_NVS is defined, the firmware will set snv_internal_80 to the define reset values - IF passcode are not already writtened ***/
-#define NEW_RESET_NVS                            1
+#define NEW_RESET_NVS                            1  // comment out this line to reset memory to zeros.  Once zero-ed, un-comment this line and re-built.
 #ifndef NEW_RESET_NVS
 #undef NEW_RESET_NVS
 #define HARD_OVERRIDE_NVS                         1   // use hard reset to reset old dashboards to zeros. Old dashboard are dashboard with passcode already writtened

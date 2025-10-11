@@ -46,7 +46,7 @@ void buzzer_init()
  *
  * @return  Nil
 ******************************************************************************************************/
-static uint8_t *ptr_buzzer_buzzerStatus;
+uint8_t *ptr_buzzer_buzzerStatus;
 
 extern void buzzer_buzzerStatusRegister(uint8_t *ptrbuzzerStatus)
 {
@@ -81,7 +81,6 @@ void buzzer_buttonHandler(uint8_t buttonStatus)
 
 }
 
-
 /***************************************************************************************************
  * @fn      buzzer_ErrorHandler
  *
@@ -93,25 +92,28 @@ void buzzer_buttonHandler(uint8_t buttonStatus)
 ******************************************************************************************************/
 bool buzzer_buzzerOn = 0;
 uint16_t buzzer_buzzerCounter = 0;
-uint16_t buzzer_buzzerTrigger = BUZZER_WARNING_BEEP_PERIOD / GPT_TIME;
-
+uint16_t buzzer_buzzerTrigger = BUZZER_WARNING_BEEP_PERIOD / EXECUTION_INTERVAL_2;
+uint8_t checkCount = 0;
 extern void buzzer_ErrorHandler( void )
 {
     if (!(*ptr_buzzer_buzzerStatus) && (!buzzer_buzzerCounter) && (*ptr_buzzer_errorPriority <= BATTERY_CRITICALLY_LOW_PRIORITY) && (!buzzer_buzzerOn))
     {
         UDHAL_PWM_setBUZDutyAndPeriod(BUZZER_WARNING_DUTYPERCENT, BUZZER_WARNING_FREQUENCY);
         buzzer_buzzerOn = 1;
+        checkCount = 1;
     }
     else if (buzzer_buzzerOn == 1)
     {
         UDHAL_PWM_setBUZDutyAndPeriod(0, BUZZER_WARNING_FREQUENCY);
         buzzer_buzzerOn = 0;
+        checkCount = 2;
     }
 
     buzzer_buzzerCounter++;
     if (buzzer_buzzerCounter >= buzzer_buzzerTrigger)
     {
         buzzer_buzzerCounter = 0;
+        checkCount = 3;
     }
 
 }

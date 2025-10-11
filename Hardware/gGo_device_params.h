@@ -41,13 +41,13 @@ extern "C"
 /*********************************************************************************************
  *  Regional / Regulation Options
  *********************************************************************************************/
-//#define  REGION0                                     // Unregulated
+//#define  REGION0                                     // Test, Canada, USA
 #define REGION1                             1       // HK, Singapore
-//#define  REGION2                                     // EU, Brisbane Australia, New Zealand
-//#define  REGION3                                     // Japan
-//#define  REGION4                                     // Melbourne Australia
-//#define  REGION5                                     // Canada, USA
-//#define  REGION6                            1        // Germany
+//#define  REGION2                                     // Japan
+//#define  REGION3                                     // EU, Brisbane Australia, New Zealand,
+//#define  REGION4                                     // Melbourne Australia, Germany
+//#define  REGION5                                     //
+//#define  REGION6                                     //
 
 // Speed limit protection selection
 // * Direct Law -> speed limit protection is deactivated
@@ -72,7 +72,7 @@ extern "C"
 #define WHEELRADIUS_CM                      10.16           // wheel radius in centimeter
 #define COEFF01                             0.2156          // kg/km
 #define COEFF02                             0.000386        // kg/W-hr
-#define BCF                                 0.7             // Battery Capacity Safety Factor - e.g. 60% - 70%
+#define BCF                                 0.80             // Battery Capacity Factor - e.g. 70% - 80%
 #define CRIT_HEATSINKTEMPOFFSET50C          160             // Critical Heatsink Temperature + 50 degrees C
 #define CRIT_MOTORTEMPOFFSET50C             200             // Critical Motor Temperature + 50 degrees C
 /*********************************************************************************************
@@ -142,7 +142,6 @@ extern "C"
 #define THROTTLE_ERROR_PRIORITY                         0x10    // 17:Throttle error priority                   (LED display error code 0C)
 
 // Minor hardware/firmware/software errors
-//#define SOFTWARE_ERROR_PRIORITY                         0X12
 #define BRAKE_ERROR_PRIORITY                            0x1A    // 16:Brake error priority                      (LED display error code 0E)
 
 // Warnings
@@ -172,19 +171,18 @@ extern "C"
 /*********************************************************************************************
  *  Regional / Regulation Settings
  *********************************************************************************************/
-#ifdef REGION0  // unlimited, USA, Canada
-#define REG_MAXPOUT                                          250 //Watt
+#ifdef REGION0  // Test, USA, Canada
+#define REG_MAXPOUT                                          330 //Watt
 #define REG_MAXP_RPM                                         630 // 24 Km/hr
 #define REG_MINP_RPM                                         0
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 // 12 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 // 20 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM  // 24 Km/hr
-
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 //
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 #endif // REGION0
 
-#ifdef REGION1  // Hong Kong
-#define REG_MAXPOUT                                          250 //Watt
+#ifdef REGION1  // Hong Kong, Singapore
+#define REG_MAXPOUT                                          300 //Watt
 #define REG_MAXP_RPM                                         630 // 24 km/h
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
@@ -193,61 +191,60 @@ extern "C"
 #define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 // We can set sports mode max speed to different value lower than the regulation maximum speed.
 // The set value shall be less than or equal to regulation max speed.
-
 #endif // REGION1
 
-#ifdef REGION2  // EU
+#ifdef REGION2  // Japan (24km/hr max)
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         630 // rpm
+#define REG_MAXP_RPM                                         630 //  24 km/hr
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //  10.5 Km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 //  17 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM //  25 Km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 
 #endif // REGION2
 
-#ifdef REGION3  // Japan
+#ifdef REGION3  // EU (25km/hr max), Australia except Melbourne, New Zealand,
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         630 // 24 km/hr
+#define REG_MAXP_RPM                                         660 // 25 km/hr
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //  = 10.5 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 //  = 17 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM //  = 24 km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477 //  = 17 km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 
 #endif // REGION3
 
-#ifdef REGION4  // Melbourne
+#ifdef REGION4  // Melbourne Australia and Germany
 #define REG_MAXPOUT                                          250 //Watt
 #define REG_MAXP_RPM                                         535 // 20 km/hr
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 // 265 RPM = 10 km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 // 398 RPM = 15 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM  // 530 RPM = 20 km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 
 #endif // REGION4
 
-#ifdef REGION5 // Canada, USA
-#define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         630 // 24 km/hr
+#ifdef REGION5 //
+#define REG_MAXPOUT                                          300 //Watt
+#define REG_MAXP_RPM                                         535 // 20 km/hr
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 // 265 RPM = 10 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 // 475 RPM = 18 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM // 25 km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 //
+#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 //
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 
 #endif // REGION5
 
-#ifdef REGION6 // Germany
-#define REG_MAXPOUT                                          250 // Watt
+#ifdef REGION6 //
+#define REG_MAXPOUT                                          330 // Watt
 #define REG_MAXP_RPM                                         535 // 20 km/hr
 #define REG_MINP_RPM                                         80
 //Speed mode maximum "powered" speed in RPM
 #define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 // 265 RPM = 10 km/hr
 #define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 // 488 RPM = 15 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM // 530 RPM = 20 km/hr
+#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
 
 #endif // REGION6
 

@@ -44,12 +44,12 @@ extern "C"
 // Direct mode controls IQ value by throttle percentage
 /* Direct Mode Params   */
 //#define RPM_REF_DIRECTMODE                                        BRAKE_AND_THROTTLE_MAXSPEED_SPORTS
-#define MIN_KICK_START_THROTTLE_PERCENT                           50    // throttle% != IQ%. Note: Throttle% and IQ is not linear. See table below
-#define MIN_BRAKE_START_THROTTLE_PERCENT                          33
-#define THROTTLE_INCREMENT_LIMIT                                  1     // in percentage, the maximum increase in applied throttle per GPT cycle
-#define DIRECT_MODE_AMBLE_ACCELERATION_THRESHOLD                  36    // rpm per second (27 rpm per second = 1km per second)
-#define DIRECT_MODE_LEISURE_ACCELERATION_THRESHOLD                48    // rpm per second
-#define DIRECT_MODE_SPORTS_ACCELERATION_THRESHOLD                 60    // rpm per second
+#define MIN_KICK_START_THROTTLE_PERCENT                           35    // throttle% != IQ%. Note: Throttle% and IQ is not linear. See table below
+#define MIN_BRAKE_START_THROTTLE_PERCENT                          18
+#define THROTTLE_INCREMENT_LIMIT                                  0.25     // in percentage, the maximum increase in applied throttle per GPT cycle
+#define DIRECT_MODE_AMBLE_ACCELERATION_THRESHOLD                  27    // rpm per second (27 rpm per second = 1km per second)
+#define DIRECT_MODE_LEISURE_ACCELERATION_THRESHOLD                36    // rpm per second
+#define DIRECT_MODE_SPORTS_ACCELERATION_THRESHOLD                 48    // rpm per second
 #define DIRECT_MODE_IQ_EXPONENT                                   1
 /*********************************************
  * Throttle%    IQ% @ DIRECT_MODE_IQ_EXPONENT=1
@@ -67,17 +67,19 @@ extern "C"
  ********************************************/
 // Normal mode controls IQ value by RPM-demand
 /* Normal Mode Params   */
-#define KICK_START_IQ_PERCENT_BIAS                                30    // IQ%
-#define BRAKE_START_IQ_PERCENT_BIAS                               10    //15
-#define THROTTLE_START_IQ_PERCENT_BIAS                            13    //18
-#define NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD                  60    // rpm per second square (55 rpm/s^2 = 2.06 km/s^2)
-#define NORMAL_MODE_LEISURE_ACCELERATION_THRESHOLD                65    // rpm per second square (60 rpm/s^2 = 2.25 km/s^2)
-#define NORMAL_MODE_SPORTS_ACCELERATION_THRESHOLD                 70    // rpm per second square (70 rpm/s^2 = 2.63 km/s^2)
-#define IQ_INCREMENT_FACTOR_AMBLE                                 0.6 //
-#define IQ_INCREMENT_FACTOR_LEISURE                               1   //
-#define IQ_INCREMENT_FACTOR_SPORTS                                1.4   //
-#define MAX_IQ_DECREMENT_PERCENT                                  4
-
+#define KICK_START_IQ_PERCENT_BIAS                                35    // IQ%
+#define BRAKE_START_IQ_PERCENT_BIAS                               20    //15
+#define THROTTLE_START_IQ_PERCENT_BIAS                            25    //18
+#define NORMAL_MODE_AMBLE_ACCELERATION_THRESHOLD                  65    // rpm per second square (55 rpm/s^2 = 2.06 km/s^2)
+#define NORMAL_MODE_LEISURE_ACCELERATION_THRESHOLD                70    // rpm per second square (60 rpm/s^2 = 2.25 km/s^2)
+#define NORMAL_MODE_SPORTS_ACCELERATION_THRESHOLD                 75    // rpm per second square (70 rpm/s^2 = 2.63 km/s^2)
+#define IQ_INCREMENT_FACTOR_AMBLE                                 0.65//0.65 //
+#define IQ_INCREMENT_FACTOR_LEISURE                               1.2//1.1   //
+#define IQ_INCREMENT_FACTOR_SPORTS                                1.7//1.5   //
+#define MAX_IQ_DECREMENT_PERCENT                                  6
+#define MAX_IQ_INCREMENT_PERCENT                                  5//2
+#define DELTA_ERROR_THRESHOLD                                     60
+#define K_VOLT_EXP                                                0.5
 //Speed modes
 #define BRAKE_AND_THROTTLE_SPEED_MODE_AMBLE                       0x00
 #define BRAKE_AND_THROTTLE_SPEED_MODE_LEISURE                     0x01
@@ -98,9 +100,9 @@ extern "C"
 #define BRAKE_AND_THROTTLE_DIRECT_MODE_REDUCTION_RATIO_SPORTS     55        //55%   IQmax = 11000 -> 9777.8 mA -> 0.978C
 
 // Normal Law TORQUEIQ reduction ratio
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       45        //70%   IQmax = 13600 -> 12444 mA -> 1.25C
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     50        //74%   IQmax = 14600 -> 13155 mA -> 1.35C
-#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      55        //79%   IQmax = 15800 -> 14044 mA -> 1.46C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_AMBLE       46        //45%   IQmax = 9000 -> 8000 mA -> 0.800C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_LEISURE     51        //50%   IQmax = 10000 -> 8888.9 mA -> 0.889C
+#define BRAKE_AND_THROTTLE_SPEED_MODE_REDUCTION_RATIO_SPORTS      56        //55%   IQmax = 11000 -> 9777.8 mA -> 0.978C
 
 //Speed mode ramp rate (acceleration) in milliseconds
 #define BRAKE_AND_THROTTLE_RAMPRATE_AMBLE                         3000      // ramp rates are not used

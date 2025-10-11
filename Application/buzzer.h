@@ -29,10 +29,10 @@ extern "C"
 #define BUZZER_WARNING_BEEP                         0x03
 
 // Warning beeps starts after the following duration (in milliseconds)
-#define BUZZER_WARNING_FREQUENCY           3200     //  BUZZER frequency
+#define BUZZER_WARNING_FREQUENCY           3200    //  BUZZER frequency
 #define BUZZER_WARNING_DUTYPERCENT         5       // in percentage -> control sound volume
-#define BUZZER_WARNING_BEEP_PERIOD         30000    //  BUZZER repeat beeps at the following period (in milliseconds) -
-                                                    //Values should be in multiples of GPT_TIME
+#define BUZZER_WARNING_BEEP_PERIOD         15000   //  BUZZER repeat beeps at the following period (in milliseconds) -
+                                                   //  Values must be multiples of GPT_TIME
 // singleButton beeps
 #define BUZZER_MPB_FREQUENCY               4200
 #define BUZZER_MPB_DUTYPERCENT             5     // in percentage -> controls sound volume

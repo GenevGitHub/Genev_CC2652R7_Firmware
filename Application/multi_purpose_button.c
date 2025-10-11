@@ -48,7 +48,7 @@ static uint8_t      fallingEdgeCount = 0;   // make this static if not debugging
 
 static mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 
-static uint8_t      mpb_buzzerStatus = 0;
+uint8_t      mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
 static uint8_t      *ptr_dashboardErrorCodePriority;
 static uint8_t      *ptr_speedmodeLockStatus;  //Chee added 20250110
@@ -308,6 +308,7 @@ void mpb_bootAlert(uint16_t duration, uint8_t bootcase)
         Task_sleep(duration * 1000 / Clock_tickPeriod);
         buzzer_buttonHandler(0);
     }
+    mpb_buzzerStatus = 0;
 }
 
 /*********************************************************************

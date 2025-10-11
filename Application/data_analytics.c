@@ -84,8 +84,8 @@ static uint16_t  phaseVoltage_mV[DATA_ANALYSIS_POINTS] = {0};           //phase 
 static uint8_t   heatSinkTempOffset50_C[DATA_ANALYSIS_POINTS] = {0};        // temperature can be negative. tempOffset50 = temperature + 50
 static uint8_t   motorTempOffset50_C[DATA_ANALYSIS_POINTS] = {0};           // temperature can be negative. tempOffset50 = temperature + 50
 
-uint16_t  avgSpeed100kph = 0;    // output in km/hr x100
-uint16_t  avgRPM = 0;
+static uint16_t  avgSpeed100kph = 0;    // output in km/hr x100
+static uint16_t  avgRPM = 0;
 
 
 /*** ADArray is a temporary buffer/holder for organising BLE profile variables  *****/
@@ -103,7 +103,7 @@ static uint16_t avgBusCurrent_mA = 0;
 static uint16_t avgPhaseVoltage_mV;
 static uint16_t avgPhaseCurrent_mA;
 uint8_t  avgBatteryPercent = BATTERY_PERCENTAGE_INITIAL;
-static bool     batteryLow = 0;
+static uint8_t     batteryLow = 0;
 
 /**************************************/
 static uint8_t  da_startup = 1;
@@ -119,8 +119,7 @@ static uint32_t totalPowerConsumed0_mWh;            // unit in milli-W-hr.  This
 /****  MCUD_t is a struct buffer/holder that organizes the performance data periodically sampled from controller for data analysis
  *     MCUD_t is declared in motor_control.c
  ***************************************************************************/
-//static
-MCUD_t (*ptr_MCUDArray);
+static MCUD_t (*ptr_MCUDArray);
 
 /*********************************************************************
 * LOCAL Functions
@@ -199,6 +198,10 @@ extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErro
     ptr_da_dashboardErrorCodePriority = ptrdashboardErrorCodePriority;
 }
 
+extern void* data_analytics_batteryPercentRegister()
+{
+    return (&avgBatteryPercent);
+}
 /******************************************************************************************************
  * @fun      dataAnalysis_Init
  *
@@ -208,7 +211,7 @@ extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErro
  *
  * @return  Nil
 ******************************************************************************************************/
-uint32_t resetUDDataCounter;
+static uint32_t resetUDDataCounter;
 
 extern void data_analytics_init()
 {
@@ -439,7 +442,6 @@ extern void data_analytics_Main( void )
  *
  * @return  Nil
 ******************************************************************************************************/
-//uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
 extern void data_analytics()
 {
     uint32_t deltaPowerConsumption_mWh, deltaMileage_dm;
@@ -522,19 +524,20 @@ static uint32_t computePowerConsumption()
  * @fn      computeDistanceTravelled
  *
  * @brief   This function calculates the change of distance_travelled of the e_scooter
- *          over a period using Simpson's Rule.  The distance is in decimeter.
+ *          over a period using Simpson's Rule.  The distance is in decimeter (dm). 1 dm = 0.1 meters
  *
  * @param   AccumMileage
  *
- * @return  distanceTravelled (unit in decimeters, i.e.  0.1 meters) in type: uint32_t
+ * @return  distanceTravelled (unit in decimeters (dm), i.e.  0.1 meters) in type: uint32_t
 ******************************************************************************************************/
 static uint32_t computeDistanceTravelled()
 {
     uint32_t deltaDistanceTravelled_dm = 0;
+    uint32_t tempdeltaDistanceTravelled_dm = 0;
     for( uint8_t ii = 0; ii < DATA_ANALYSIS_POINTS; ii++ ) {
-         deltaDistanceTravelled_dm += coefficient_array[ii] * speed_cmps[ii];            // for computational accuracy reasons, calculations are performed in centimeter/second
+         tempdeltaDistanceTravelled_dm += coefficient_array[ii] * speed_cmps[ii];            // for computational accuracy reasons, calculations are performed in centimeter/second
     }
-    deltaDistanceTravelled_dm = round((float) deltaDistanceTravelled_dm * data_analytics_sampling_time / 30000);// (1/3) x (1/1000) x (1/10) = 1/30000: output is then converted to decimeter
+    deltaDistanceTravelled_dm = round((float) tempdeltaDistanceTravelled_dm * data_analytics_sampling_time / 30000);// (1/3) x (1/1000) x (1/10) = 1/30000: output is then converted to decimeter
 
     return (deltaDistanceTravelled_dm); // -> convert to the desired unit before displaying on App
 }
@@ -637,7 +640,7 @@ static uint8_t computeMotorTemperature()
 /***************************************************************************************************
  * @fn      computeAvgVoltages
  *
- * @brief   This function calculates the average of the battery voltage over the given time interval in mV.
+ * @brief   This function calculates the average battery voltage in mV.
  *
  * @param   batteryVoltage_mV in mV
  *
@@ -654,43 +657,9 @@ static void computeAvgVoltages()
             sumBatteryVoltage_mV += batteryVoltage_mV[ii];                               // Average is in mV
             sumPhaseVoltage_mV += phaseVoltage_mV[ii];
         }
+
         avgBatteryVoltage_mV = round((float) sumBatteryVoltage_mV / DATA_ANALYSIS_POINTS);        // output in mV
         avgPhaseVoltage_mV = round((float) sumPhaseVoltage_mV / DATA_ANALYSIS_POINTS);            // output in mV
-
-//        if (avgBatteryVoltage_mV < BATTERY_CRITICALLY_LOW)  // If battery voltage is critically low
-        if (ptr_MCUDArray->bat_voltage_mV < BATTERY_CRITICALLY_LOW)  // If battery voltage is critically low
-        {
-            led_display_ErrorPriority(BATTERY_CRITICALLY_LOW_PRIORITY);   // battery low buzzer alert
-            /***  battery critically low is a warning, not error  **/
-            if (batteryErrorCodePriority > BATTERY_CRITICALLY_LOW_PRIORITY) {
-                batteryErrorCodePriority = BATTERY_CRITICALLY_LOW_PRIORITY;
-                ADArray.batteryCode = BATTERY_VOLTAGE_CRIT_LOW_CODE;
-            }
-            /* battery level critically low -> power shut down */
-            /****  POWER OFF    ****/
-            batteryLowCounter++;
-            if (batteryLowCounter >= 20)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
-            {
-                *ptr_da_POWER_ON = 0;   // Set POWER ON to 0, i.e., Power Off
-            }
-        }
-//        else if (avgBatteryVoltage_mV > BATTERY_CEILING_VOLTAGE)    // if voltage exceeded ceiling voltage
-        else if (ptr_MCUDArray->bat_voltage_mV > BATTERY_CEILING_VOLTAGE)    // if voltage exceeded ceiling voltage
-        {
-            /* battery over-voltage -> disable system */
-            led_display_ErrorPriority(BATTERY_VOLTAGE_ERROR_PRIORITY);
-
-            if (batteryErrorCodePriority > BATTERY_VOLTAGE_ERROR_PRIORITY) {
-                batteryErrorCodePriority = BATTERY_VOLTAGE_ERROR_PRIORITY;
-                ADArray.batteryCode = BATTERY_VOLTAGE_ERROR_CODE;
-            }
-            batteryLowCounter = 0;
-        }
-        else {   // else voltage is within normal range
-            batteryErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
-            ADArray.batteryCode = SYS_NORMAL_CODE;
-            batteryLowCounter = 0;
-        }
     }
 }
 
@@ -705,6 +674,7 @@ static void computeAvgCurrents()
             sumBusCurrent_mA += batteryCurrent_mA[ii];                               // Average is in mV
             sumPhaseCurrent_mA += phaseCurrent_mA[ii];
         }
+
         avgBusCurrent_mA = round((float) sumBusCurrent_mA / DATA_ANALYSIS_POINTS);            // output in mA
         avgPhaseCurrent_mA = round((float) sumPhaseCurrent_mA / DATA_ANALYSIS_POINTS);
     }
@@ -713,31 +683,82 @@ static void computeAvgCurrents()
 /***************************************************************************************************
  * @fn      computeBatteryPercentage
  *
- * @brief   This function computes the battery percentage based on the average battery voltage.
+ * @brief   This function computes the battery percentage based on the average battery voltage,
+ *          and checks for and executes battery critically low protocol
  *
  * @param   Nil
  *
- * @return  avgBatteryPercent = battery_battery_level in battery.h
+ * @return  avgBatteryPercent
 ******************************************************************************************************/
+static uint8_t batteryHighCounter = 0;
 static uint8_t computeBatteryPercentage()
 {
-    int16_t     instantBatteryLevel = 0;
-    uint16_t     sumBatteryLevel = 0;
+    uint16_t     sumBatteryPercent = 0;
+    float     dischargeRate = 0;
+    float     voltageMax_at_cValue_mV = 0;
+    float     capacityUsed = 0;
+    float     temp_BatteryPercent = 0;
 
     /**** Whenever this func is called, dA_Count = (DATA_ANALYSIS_POINTS - 1)  ****/
     if (dA_Count == (DATA_ANALYSIS_POINTS - 1)) {
         for(uint8_t ii = 0; ii < DATA_ANALYSIS_POINTS; ii++) {
-            /* Calculates instantaneous percentage with compensation for voltage drop */
-            instantBatteryLevel = (float) (batteryVoltage_mV[ii] - BATTERY_MIN_VOLTAGE) * 100 /((float) (BATTERY_MAX_VOLTAGE - batteryCurrent_mA[ii] * VOLTAGE_DROP_COEFFICIENT) - BATTERY_MIN_VOLTAGE);
-            if (instantBatteryLevel > 100) {
-                instantBatteryLevel = 100;              // battery % cannot be greater than 100%
+
+    /******* Calculates instantaneous percentage with compensation for voltage drop ********/
+            dischargeRate = (float) batteryCurrent_mA[ii] / BATTERY_IMAX_CAPACITY;
+            voltageMax_at_cValue_mV = VOLTAGE_DROP_RATE * dischargeRate + BATTERY_MAX_VOLTAGE;
+            capacityUsed = (float) (batteryVoltage_mV[ii] - voltageMax_at_cValue_mV) / DISCHARGE_RATE;
+            if (capacityUsed > BATTERY_IMAX_CAPACITY) {
+                capacityUsed = BATTERY_IMAX_CAPACITY;              // battery % cannot be greater than 100%
             }
-            else if (instantBatteryLevel < 0) {
-                instantBatteryLevel = 0;                // negative % will be displayed as 0%
+            else if (capacityUsed < 0) {
+                capacityUsed = 0;                // negative % will be displayed as 0%
             }
-            sumBatteryLevel += instantBatteryLevel;
+            temp_BatteryPercent = (1 - capacityUsed / BATTERY_IMAX_CAPACITY) * 100;
+            sumBatteryPercent += round(temp_BatteryPercent);
         }
-        avgBatteryPercent = round((float) sumBatteryLevel / DATA_ANALYSIS_POINTS);                      // output in %
+
+        avgBatteryPercent = round((float) sumBatteryPercent / DATA_ANALYSIS_POINTS);
+    }
+
+    if (avgBatteryPercent < LEVEL01PERCENT)  // If battery % is lower than LEVEL01PERCENT
+    {
+        led_display_ErrorPriority(BATTERY_CRITICALLY_LOW_PRIORITY);   // battery low buzzer alert
+        /***  battery critically low is a warning, not error  **/
+        if (batteryErrorCodePriority > BATTERY_CRITICALLY_LOW_PRIORITY) {
+            batteryErrorCodePriority = BATTERY_CRITICALLY_LOW_PRIORITY;
+            ADArray.batteryCode = BATTERY_VOLTAGE_CRIT_LOW_CODE;
+        }
+        /* battery level critically low -> power shut down */
+        /****  POWER OFF    ****/
+        batteryLowCounter++;
+        if (batteryLowCounter >= 30)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
+        {
+            *ptr_da_POWER_ON = 0;   // Set POWER ON to 0, i.e., Power Off
+        }
+        batteryHighCounter = 0;
+    }
+    else {
+        if (avgBatteryVoltage_mV > BATTERY_CEILING_VOLTAGE)   // if voltage exceeded ceiling voltage
+        {
+            batteryHighCounter++;
+            if (batteryHighCounter >= 3) {
+            /* battery over-voltage -> very serious error -> disable system */
+                led_display_ErrorPriority(BATTERY_VOLTAGE_ERROR_PRIORITY);
+
+                if (batteryErrorCodePriority > BATTERY_VOLTAGE_ERROR_PRIORITY) {
+                    batteryErrorCodePriority = BATTERY_VOLTAGE_ERROR_PRIORITY;
+                    ADArray.batteryCode = BATTERY_VOLTAGE_ERROR_CODE;
+                }
+            }
+        }
+        else {   // else voltage is within normal range
+            batteryErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
+            led_display_ErrorPriority(SYSTEM_NORMAL_PRIORITY);
+            ADArray.batteryCode = SYS_NORMAL_CODE;
+            batteryHighCounter = 0;
+        }
+
+        batteryLowCounter = 0;
     }
 
     return (avgBatteryPercent);
@@ -849,7 +870,7 @@ static uint32_t computeRange()
         range_m = 0;
         return range_m;   // output in meters  -> convert to the desired unit before displaying on App
     }                                                       // output in meters
-    range_m = ((float) ADArray.batteryPercentage * BATTERY_MAX_CAPACITY * BCF / ADArray.economy_100Whpk );
+    range_m = ((float) ADArray.batteryPercentage * BATTERY_WMAX_CAPACITY * BCF / ADArray.economy_100Whpk );
 
     return (range_m);     // output in metres  -> convert to the desired unit before displaying on App
 }
@@ -939,7 +960,7 @@ extern void data2snvBuffer()
 extern void data_analytics_LEDSpeed()
 {
 //    rawSpeed_100kph = ((float) speed_cmps[dA_Count] * 3.6 );                    // in km/hr x 100
-    uint8_t dashSpeed = ((float) speed_cmps[dA_Count] * 0.036 * lenConvFactorDash);     // in km/hr or mph
+    uint8_t dashSpeed = round((float) speed_cmps[dA_Count] * 0.036 * lenConvFactorDash);     // in km/hr or mph
 
     /* Send dashSpeed to LED display */
     led_display_setDashSpeed(dashSpeed);

@@ -102,6 +102,7 @@ extern void data_analytics_MCUDArrayRegister(MCUD_t (*ptrMCUD));
 
 extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErrorCodePriority);
 extern void setErrorPriority(uint8_t errorPriority, uint8_t errorCode);
+extern void* data_analytics_batteryPercentRegister( void );
 
 extern uint8_t data_analytics_getSpeedmodeInit(void);
 extern uint8_t data_analytics_getLightmodeInit(void);

@@ -240,13 +240,10 @@ void lights_statusChg(void){
     /*** execute headlight commands ***/
     UDHAL_PWM_setHLDutyAndPeriod(lights_PWMDuty);
     /*** execute taillight commands ***/
-    //if (brakeStatus == 0){
-        if (!lights_uart2ErrorStatus)// if no uart error
-        {
-    //        motor_control_taillightControl(light_status);
-            motor_control_taillightStatusChg();         // called only when light status has changed, otherwise, it cannot reach here
-        }
-    //}
+    if (!lights_uart2ErrorStatus)// if no uart error
+    {
+        motor_control_taillightStatusChg();         // called only when light status has changed, otherwise, it cannot reach here
+    }
 
     /* updates light status Characteristic Value -> Mobile App */
     /******  Dashboard services  *************************************/
@@ -377,8 +374,3 @@ void auxiliaryLightStatusChg()
 #endif // AUXILIARY_LIGHT
 
 }
-
-//void tail_lightControl(void)  // Chee -> I think this is not needed anymore
-//{
-//        motor_control_taillightControl(lights_getLightStatus());
-//}

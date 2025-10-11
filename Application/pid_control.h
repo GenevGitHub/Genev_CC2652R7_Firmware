@@ -31,13 +31,15 @@ extern "C"
  * CONSTANTS
  */
 //PID CONSTANTS FOR POSITIVE ERROR
-#define PID_FPO         0.03
-#define PID_TCI         0.05
-#define PID_TCD         4
+#define PID_FPO         0.08//0.03
+#define PID_TCI         0.03//0.05
+#define PID_TCD         2.5
+#define PID_TCD_A       2.5
+
 //PID CONSTANTS FOR NEGATIVE ERROR
-#define PID_FNE         0.01
+#define PID_FNE         0.08//0.01
 #define PID_TFI         1
-#define PID_TFD         6
+#define PID_TFD         4
 
 #define KP_EXP          1//0.75
 /*********************************************************************
