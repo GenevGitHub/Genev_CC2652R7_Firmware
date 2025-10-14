@@ -75,7 +75,7 @@ uint8_t K_accel = 0;
 uint8_t     startThrottlePercent = 0;
 
 uint8_t     dashboardErrorCodePriority = SYSTEM_NORMAL_PRIORITY;
-uint8_t     *ptr_batteryPercent;
+uint8_t     *ptr_SoC;
 
 /********************************************************************
  *  when brakeAndThrottle_errorMsg is true (=1),
@@ -186,7 +186,7 @@ void brake_and_throttle_init()
     UDHAL_ADC_ptrADCValues(&adcValues);
     data_analytics_dashErrorCodeStatusRegister(&dashboardErrorCodePriority);
     ptr_bat_errorPriority = led_display_errorPriorityRegister();
-    ptr_batteryPercent = data_analytics_batteryPercentRegister();
+    ptr_SoC = data_analytics_SoCRegister();
 
     /** Initiate PID    **/
     PID_params.pid_biasKS = 0;//KICK_START_IQ_PERCENT_BIAS;
@@ -459,15 +459,15 @@ uint8_t brake_and_throttle_ADC_conversion(uint32_t gptCounter)
     /*** K_volt augment the max IQ and IQ increments based on the battery capacity
      *   K_volt reduces IQ increment and max IQ when battery capacity is lower than a designated percentage
      *   to prevent the battery from draining out too quickly ***/
-    if (*ptr_batteryPercent <= LEVEL_KVOLT_LOW) {
+    if (*ptr_SoC <= SOC_LEVEL_KVOLT_LOW) {
         K_volt = 0;
     }
-    else if (*ptr_batteryPercent >= LEVEL_KVOLT_HIGH) {
+    else if (*ptr_SoC >= SOC_LEVEL_KVOLT_HIGH) {
         K_volt = 1;
     }
     else {
         float K_volt_temp = 0;
-        K_volt_temp = (float) (*ptr_batteryPercent - LEVEL_KVOLT_HIGH) / (LEVEL_KVOLT_LOW - LEVEL_KVOLT_HIGH);  //25/5/25
+        K_volt_temp = (float) (SOC_LEVEL_KVOLT_HIGH - *ptr_SoC) / (SOC_LEVEL_KVOLT_HIGH - SOC_LEVEL_KVOLT_LOW);  //25/5/25
         K_volt_temp = 0.5 * (cos(PI_CONSTANT * K_volt_temp) + 1);
         K_volt_temp = pow(K_volt_temp, K_VOLT_EXP);
         K_volt = K_volt_temp;
@@ -883,14 +883,14 @@ static void brake_and_throttle_PID_speedControl(){
                 PID_params.pid_total -= (float) speedModeIQmax * MAX_IQ_DECREMENT_PERCENT / 100;  // decrement x% per computational cycle
             }
             else {
-                if ((PID_params.pid_error < 0) && (PID_params.pid_error >= -DELTA_ERROR_THRESHOLD)) { // if the change in error is small
-            /***** Note: The negative sign in front of the Derivative Term.  The Derivative term is based on acceleration - not change in error)     *****/
-                    PID_params.pid_total = PID_params.pid_total0 + PID_params.pid_p + PID_params.pid_i - PID_params.pid_d;
-                }
-                else if (PID_params.pid_error < -DELTA_ERROR_THRESHOLD) {  // if the change in error is large
+//                if ((PID_params.pid_error < 0) && (PID_params.pid_error >= -DELTA_ERROR_THRESHOLD)) { // if the change in error is small
+//            /***** Note: The negative sign in front of the Derivative Term.  The Derivative term is based on acceleration - not change in error)     *****/
+//                    PID_params.pid_total = PID_params.pid_total0 + PID_params.pid_p + PID_params.pid_i - PID_params.pid_d;
+//                }
+//                else if (PID_params.pid_error < -DELTA_ERROR_THRESHOLD) {  // if the change in error is large
                     PID_params.pid_total -= (float) speedModeIQmax * MAX_IQ_DECREMENT_PERCENT / 100;
                     //PID_params.pid_total = PID_params.pid_total0 + PID_params.pid_p;
-                }
+//                }
             }
             /* Clamping */
             if (PID_params.pid_total > (float) speedModeIQmax * K_volt) {

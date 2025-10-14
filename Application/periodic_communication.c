@@ -87,10 +87,10 @@ void periodic_communication_MCUSampling()
 
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy Battery Voltage
-    ptr_pc_MCUDArray->bat_voltage_mV = 3500 * sin(PI_CONSTANT * xtt * 0.003) + 39700;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
+    ptr_pc_MCUDArray->bat_voltage_mV = 4000 * sin(PI_CONSTANT * xtt * 0.003) + 39000;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
 
     // ***** Simulation of dummy Battery Current
-    ptr_pc_MCUDArray->bat_current_mA = 4200;//2000 * sin(PI_CONSTANT * xtt * 0.005) + 3000; // 3000; // dummy data - get battery current from MCU:  unit in mA
+    ptr_pc_MCUDArray->bat_current_mA = 3900 * sin(PI_CONSTANT * xtt * 0.005) + 4000; // 3000; // dummy data - get battery current from MCU:  unit in mA
 
     // ***** Simulation of dummy Heatsink Temp + 50
     ptr_pc_MCUDArray->heatSinkTempOffset50_Celcius = 70;//30 * sin(PI_CONSTANT * xtt * 0.0075) + 65; // +50  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature

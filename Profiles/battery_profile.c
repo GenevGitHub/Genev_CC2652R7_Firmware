@@ -121,7 +121,7 @@ static uint8 Battery_Battery_CurrentVal[BATTERY_BATTERY_CURRENT_LEN] = {0xA0, 0x
 
 /**************************  Characteristic Description ******************************/
 // Battery Level User Description
-static uint8 Battery_Battery_LevelUserDesp[17] = "Battery Level";
+static uint8 Battery_Battery_LevelUserDesp[17] = "Battery Percent";
 // Battery Voltage User Description
 static uint8 Battery_Battery_VoltageUserDesp[17] = "Battery Voltage";
 // Battery Temperature User Description

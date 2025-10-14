@@ -89,7 +89,7 @@ static uint16_t  avgRPM = 0;
 
 
 /*** ADArray is a temporary buffer/holder for organising BLE profile variables  *****/
-static AD_t     ADArray = {0};
+AD_t     ADArray = {0};
 
 static uint16_t dA_Count = 1;
 static uint32_t UDDataCounter = 0;           // At new or reset, UDDataCounter = 0
@@ -103,6 +103,7 @@ static uint16_t avgBusCurrent_mA = 0;
 static uint16_t avgPhaseVoltage_mV;
 static uint16_t avgPhaseCurrent_mA;
 uint8_t  avgBatteryPercent = BATTERY_PERCENTAGE_INITIAL;
+uint8_t  avgSoC = SOC_INITIAL;
 static uint8_t     batteryLow = 0;
 
 /**************************************/
@@ -198,9 +199,10 @@ extern void data_analytics_dashErrorCodeStatusRegister(uint8_t *ptrdashboardErro
     ptr_da_dashboardErrorCodePriority = ptrdashboardErrorCodePriority;
 }
 
-extern void* data_analytics_batteryPercentRegister()
+extern void* data_analytics_SoCRegister()
 {
-    return (&avgBatteryPercent);
+//    return (&avgBatteryPercent);
+    return (&avgSoC);
 }
 /******************************************************************************************************
  * @fun      dataAnalysis_Init
@@ -279,27 +281,27 @@ extern void data_analytics_init()
      * defining ADArray variables at initialization allow connectivity with Mobile App instantly.
      *********************************************************************************************/
     ADArray.accumPowerConsumption_mWh = totalPowerConsumedPrev_mWh;         // ADArray = App data strut
-    ADArray.accumMileage_dm = totalMileagePrev_dm;                          // ADArray = App data strut
-    ADArray.avgSpeed_100kph = 0;                                            // ADArray = App data strut
-    ADArray.HeatSinkTempOffset50_C = computeAvgHeatSinkTemperature();       // ADArray = App data strut
+    ADArray.accumMileage_dm = totalMileagePrev_dm;
+    ADArray.avgSpeed_100kph = 0;
+    ADArray.HeatSinkTempOffset50_C = computeAvgHeatSinkTemperature();
 
     computeAvgVoltages();
-    ADArray.avgBatteryVoltage_mV = avgBatteryVoltage_mV;                    // ADArray = App data strut
+    ADArray.avgBatteryVoltage_mV = avgBatteryVoltage_mV;
     ADArray.avgBusCurrent_mA = ptr_MCUDArray->bat_current_mA;
     ADArray.avgPhaseVoltage_mV = ptr_MCUDArray->phase_voltage_mV;
     ADArray.avgPhaseCurrent_mA = ptr_MCUDArray->phase_current_mA;
 
-    ADArray.batteryPercentage = computeBatteryPercentage();                 // ADArray = App data strut
-    ADArray.batteryStatus = determineBatteryStatus();                       // ADArray = App data strut
+    ADArray.batteryPercentage = computeBatteryPercentage();                 // computeBatteryPercentage() calculates avgSoC and avgBatteryPercent
+    ADArray.batteryStatus = determineBatteryStatus();
     ADArray.batteryCode = SYS_NORMAL_CODE;      // Initial error code set to normal
     ADArray.dashboardErrorCode = SYS_NORMAL_CODE;
     ADArray.controllerErrorCode = SYS_NORMAL_CODE;
 
-    ADArray.instantEconomy_100Whpk = computeInstantEconomy(0, 0);           // ADArray = App data strut
-    ADArray.economy_100Whpk = computeEconomy();                             // ADArray = App data strut
-    ADArray.range_m = computeRange();                                       // ADArray = App data strut
-    ADArray.co2Saved_g = computeCO2Saved();                                 // ADArray = App data strut
-    ADArray.motorTempOffset50_C = computeMotorTemperature();                // ADArray = App data strut
+    ADArray.instantEconomy_100Whpk = computeInstantEconomy(0, 0);
+    ADArray.economy_100Whpk = computeEconomy();
+    ADArray.range_m = computeRange();
+    ADArray.co2Saved_g = computeCO2Saved();
+    ADArray.motorTempOffset50_C = computeMotorTemperature();
 
     data_analytics_changeUnitSelectDash();      // Send Initial Unit Select to LED display
 
@@ -310,11 +312,13 @@ extern void data_analytics_init()
 
     *ptr_lightmode = lightmode_init;
 
-    avgBatteryPercent = ADArray.batteryPercentage;
-    if ((batteryLow == 0) && (ADArray.batteryPercentage < BATTERY_PERCENTAGE_LL)){
+//    avgBatteryPercent = ADArray.batteryPercentage;                          // This is not necessary and redundant
+//    if ((batteryLow == 0) && (ADArray.batteryPercentage < BATTERY_PERCENTAGE_LL)){
+    if ((batteryLow == 0) && (avgBatteryPercent < BATTERY_PERCENTAGE_LL)){
         batteryLow = 1;
     }
-    if ((batteryLow == 1) && (ADArray.batteryPercentage > BATTERY_PERCENTAGE_LH)){
+//    if ((batteryLow == 1) && (ADArray.batteryPercentage > BATTERY_PERCENTAGE_LH)){
+    if ((batteryLow == 1) && (avgBatteryPercent > BATTERY_PERCENTAGE_LH)){
         batteryLow = 0;
     }
 }
@@ -691,47 +695,61 @@ static void computeAvgCurrents()
  * @return  avgBatteryPercent
 ******************************************************************************************************/
 static uint8_t batteryHighCounter = 0;
+
 static uint8_t computeBatteryPercentage()
 {
-    uint16_t     sumBatteryPercent = 0;
     float     dischargeRate = 0;
     float     voltageMax_at_cValue_mV = 0;
     float     capacityUsed = 0;
     float     temp_BatteryPercent = 0;
+    float     temp_SoC = 0;
 
     /**** Whenever this func is called, dA_Count = (DATA_ANALYSIS_POINTS - 1)  ****/
     if (dA_Count == (DATA_ANALYSIS_POINTS - 1)) {
+        float     sumBatteryPercent = 0;
+        float     sum_SoC = 0;
         for(uint8_t ii = 0; ii < DATA_ANALYSIS_POINTS; ii++) {
 
     /******* Calculates instantaneous percentage with compensation for voltage drop ********/
             dischargeRate = (float) batteryCurrent_mA[ii] / BATTERY_IMAX_CAPACITY;
             voltageMax_at_cValue_mV = VOLTAGE_DROP_RATE * dischargeRate + BATTERY_MAX_VOLTAGE;
-            capacityUsed = (float) (batteryVoltage_mV[ii] - voltageMax_at_cValue_mV) / DISCHARGE_RATE;
-            if (capacityUsed > BATTERY_IMAX_CAPACITY) {
-                capacityUsed = BATTERY_IMAX_CAPACITY;              // battery % cannot be greater than 100%
-            }
-            else if (capacityUsed < 0) {
-                capacityUsed = 0;                // negative % will be displayed as 0%
-            }
-            temp_BatteryPercent = (1 - capacityUsed / BATTERY_IMAX_CAPACITY) * 100;
-            sumBatteryPercent += round(temp_BatteryPercent);
-        }
 
+            capacityUsed = (float) (batteryVoltage_mV[ii] - voltageMax_at_cValue_mV) / DISCHARGE_RATE;
+
+            if (capacityUsed >= BATTERY_IMAX_CAPACITY) {
+                capacityUsed = BATTERY_IMAX_CAPACITY;              // battery% cannot be greater than 100%
+                temp_BatteryPercent = 0;
+            }
+            else if ((capacityUsed >=  (1 - (float) SOC_LEVEL_KVOLT_LOW / 100) * BATTERY_IMAX_CAPACITY) && (capacityUsed < BATTERY_IMAX_CAPACITY)) {
+                temp_BatteryPercent = 0;
+            }
+            else if (capacityUsed <= 0) {
+                capacityUsed = 0;                // negative % will be displayed as 0%
+                temp_BatteryPercent = 100;
+            }
+            else {
+                temp_BatteryPercent = (1 - capacityUsed / BATTERY_IMAX_CAPACITY - (float) SOC_LEVEL_KVOLT_LOW / 100) / (1 - (float) SOC_LEVEL_KVOLT_LOW / 100) * 100;
+            }
+            sumBatteryPercent += round(temp_BatteryPercent);
+            temp_SoC = (1 - capacityUsed / BATTERY_IMAX_CAPACITY) * 100;
+            sum_SoC += round(temp_SoC);
+        }
+        avgSoC = round((float) sum_SoC / DATA_ANALYSIS_POINTS);
         avgBatteryPercent = round((float) sumBatteryPercent / DATA_ANALYSIS_POINTS);
     }
 
-    if (avgBatteryPercent < LEVEL01PERCENT)  // If battery % is lower than LEVEL01PERCENT
+    if (avgSoC < SOC_LEVEL01)  // If battery SoC is lower than SOC_LEVEL01
     {
         led_display_ErrorPriority(BATTERY_CRITICALLY_LOW_PRIORITY);   // battery low buzzer alert
         /***  battery critically low is a warning, not error  **/
         if (batteryErrorCodePriority > BATTERY_CRITICALLY_LOW_PRIORITY) {
             batteryErrorCodePriority = BATTERY_CRITICALLY_LOW_PRIORITY;
-            ADArray.batteryCode = BATTERY_VOLTAGE_CRIT_LOW_CODE;
+            ADArray.batteryCode = BATTERY_SOC_CRIT_LOW_CODE;
         }
         /* battery level critically low -> power shut down */
         /****  POWER OFF    ****/
         batteryLowCounter++;
-        if (batteryLowCounter >= 30)   // 100 * DATA_ANALYTICS_INTERVAL = 30 seconds -> Power Off
+        if (batteryLowCounter >= 20)   // 20 * DATA_ANALYTICS_INTERVAL = 120 seconds (2 mins) -> Power Off
         {
             *ptr_da_POWER_ON = 0;   // Set POWER ON to 0, i.e., Power Off
         }
@@ -741,7 +759,7 @@ static uint8_t computeBatteryPercentage()
         if (avgBatteryVoltage_mV > BATTERY_CEILING_VOLTAGE)   // if voltage exceeded ceiling voltage
         {
             batteryHighCounter++;
-            if (batteryHighCounter >= 3) {
+            if (batteryHighCounter >= 5) {
             /* battery over-voltage -> very serious error -> disable system */
                 led_display_ErrorPriority(BATTERY_VOLTAGE_ERROR_PRIORITY);
 
@@ -775,19 +793,24 @@ static uint8_t computeBatteryPercentage()
 ******************************************************************************************************/
 static uint8_t determineBatteryStatus()
 {
-    if (avgBatteryPercent > LEVEL45PERCENT) {
+//    if (avgBatteryPercent > SOC_LEVEL45) {
+    if (avgSoC > SOC_LEVEL45) {
         batteryStatus = GLOWING_AQUA;
     }
-    else if (avgBatteryPercent <= LEVEL45PERCENT && avgBatteryPercent > LEVEL34PERCENT) {
+//    else if (avgBatteryPercent <= SOC_LEVEL45 && avgBatteryPercent > SOC_LEVEL34) {
+    else if (avgSoC <= SOC_LEVEL45 && avgSoC > SOC_LEVEL34) {
         batteryStatus = GLOWING_GREEN;
     }
-    else if (avgBatteryPercent <= LEVEL34PERCENT && avgBatteryPercent > LEVEL23PERCENT) {
+//    else if (avgBatteryPercent <= SOC_LEVEL34 && avgBatteryPercent > SOC_LEVEL23) {
+    else if (avgSoC <= SOC_LEVEL34 && avgSoC > SOC_LEVEL23) {
         batteryStatus = YELLOW;
     }
-    else if (avgBatteryPercent <= LEVEL23PERCENT && avgBatteryPercent > LEVEL12PERCENT) {
+//    else if (avgBatteryPercent <= SOC_LEVEL23 && avgBatteryPercent > SOC_LEVEL12) {
+    else if (avgSoC <= SOC_LEVEL23 && avgSoC > SOC_LEVEL12) {
         batteryStatus = ORANGE;
     }
-    else if (avgBatteryPercent <= LEVEL12PERCENT && avgBatteryPercent > LEVEL01PERCENT) {
+//    else if (avgBatteryPercent <= SOC_LEVEL12 && avgBatteryPercent > SOC_LEVEL01) {
+    else if (avgSoC <= SOC_LEVEL12 && avgSoC > SOC_LEVEL01) {
         batteryStatus = RED;
     }
     else {

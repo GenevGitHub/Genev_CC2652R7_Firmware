@@ -155,7 +155,7 @@ extern "C"
 #define BATTERY_VOLTAGE_ERROR_CODE                      0x1A    // check that the e-scooter has not been connected with an incorrect battery rating. Restart (Power off, wait for 10 seconds and power on again)
 #define BATTERY_TEMP_ERROR_CODE                         0x1F    // no battery temperature sensor at present.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
 #define BMS_COMM_ERROR_CODE                             0x1C    // Replace battery with a new genev battery. Restart, contact customer service if problem persists.
-#define BATTERY_VOLTAGE_CRIT_LOW_CODE                   0x1E    // recharge battery immediately. If battery depletes rapidly, replace with a new genev battery.
+#define BATTERY_SOC_CRIT_LOW_CODE                   0x1E    // recharge battery immediately. If battery depletes rapidly, replace with a new genev battery.
 #define GATE_DRIVER_ERROR_CODE                          0x2C    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
 #define MOSFET_ERROR_CODE                               0x2E    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
 #define PHASE_I_ERROR_CODE                              0x2A    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
