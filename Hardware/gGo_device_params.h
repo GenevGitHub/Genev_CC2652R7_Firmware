@@ -42,10 +42,10 @@ extern "C"
  *  Regional / Regulation Options
  *********************************************************************************************/
 //#define  REGION0                                     // Test, Canada, USA
-#define REGION1                             1       // HK, Singapore
+//#define REGION1                             1       // HK, Singapore
 //#define  REGION2                                     // Japan
 //#define  REGION3                                     // EU, Brisbane Australia, New Zealand,
-//#define  REGION4                                     // Melbourne Australia, Germany
+#define  REGION4                                     // Melbourne Australia, Germany
 //#define  REGION5                                     //
 //#define  REGION6                                     //
 
@@ -155,7 +155,7 @@ extern "C"
 #define BATTERY_VOLTAGE_ERROR_CODE                      0x1A    // check that the e-scooter has not been connected with an incorrect battery rating. Restart (Power off, wait for 10 seconds and power on again)
 #define BATTERY_TEMP_ERROR_CODE                         0x1F    // no battery temperature sensor at present.   The e-scooter's throttle response will automatically unlock when temp drop below the pre-set value.
 #define BMS_COMM_ERROR_CODE                             0x1C    // Replace battery with a new genev battery. Restart, contact customer service if problem persists.
-#define BATTERY_SOC_CRIT_LOW_CODE                   0x1E    // recharge battery immediately. If battery depletes rapidly, replace with a new genev battery.
+#define BATTERY_SOC_CRIT_LOW_CODE                       0x1E    // recharge battery immediately. If battery depletes rapidly, replace with a new genev battery.
 #define GATE_DRIVER_ERROR_CODE                          0x2C    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
 #define MOSFET_ERROR_CODE                               0x2E    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
 #define PHASE_I_ERROR_CODE                              0x2A    // Restart, contact genev technical / customer services or approved distributor for inspection and repair
@@ -173,78 +173,78 @@ extern "C"
  *********************************************************************************************/
 #ifdef REGION0  // Test, USA, Canada
 #define REG_MAXPOUT                                          330 //Watt
-#define REG_MAXP_RPM                                         630 // 24 Km/hr
+#define REG_CEILING_RPM                                      655 // 25 Km/hr
 #define REG_MINP_RPM                                         0
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 //
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   278 //
+#define CEILINGSPEED_LEISURE                                 472 //
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 #endif // REGION0
 
 #ifdef REGION1  // Hong Kong, Singapore
 #define REG_MAXPOUT                                          300 //Watt
-#define REG_MAXP_RPM                                         630 // 24 km/h
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      630 // 24 km/h
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 // 10.5 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 // 17 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   278 // 10.5 Km/hr
+#define CEILINGSPEED_LEISURE                                 472 // 18 Km/hr
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 // We can set sports mode max speed to different value lower than the regulation maximum speed.
 // The set value shall be less than or equal to regulation max speed.
 #endif // REGION1
 
 #ifdef REGION2  // Japan (24km/hr max)
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         630 //  24 km/hr
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      630 //  24 km/hr
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //  10.5 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  455 //  17 Km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   278 //  10.5 Km/hr
+#define CEILINGSPEED_LEISURE                                 472 //  18 Km/hr
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 
 #endif // REGION2
 
 #ifdef REGION3  // EU (25km/hr max), Australia except Melbourne, New Zealand,
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         660 // 25 km/hr
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      655 // 25 km/hr
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    278 //  = 10.5 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  477 //  = 17 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   278 //  274 = 10.5 km/hr
+#define CEILINGSPEED_LEISURE                                 472 //  = 18 km/hr
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 
 #endif // REGION3
 
 #ifdef REGION4  // Melbourne Australia and Germany
 #define REG_MAXPOUT                                          250 //Watt
-#define REG_MAXP_RPM                                         535 // 20 km/hr
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      530 // 20 km/hr
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 // 265 RPM = 10 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 // 398 RPM = 15 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   270 // 261 RPM = 10 km/hr
+#define CEILINGSPEED_LEISURE                                 422 // 422 RPM = 16.2 km/hr
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 
 #endif // REGION4
 
 #ifdef REGION5 //
 #define REG_MAXPOUT                                          300 //Watt
-#define REG_MAXP_RPM                                         535 // 20 km/hr
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      530 // 20 km/hr
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 //
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 //
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   270 //
+#define CEILINGSPEED_LEISURE                                 422 //
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 
 #endif // REGION5
 
 #ifdef REGION6 //
 #define REG_MAXPOUT                                          330 // Watt
-#define REG_MAXP_RPM                                         535 // 20 km/hr
-#define REG_MINP_RPM                                         80
+#define REG_CEILING_RPM                                      530 // 20 km/hr
+#define REG_MINP_RPM                                         75
 //Speed mode maximum "powered" speed in RPM
-#define BRAKE_AND_THROTTLE_MAXSPEED_AMBLE                    275 // 265 RPM = 10 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_LEISURE                  400 // 488 RPM = 15 km/hr
-#define BRAKE_AND_THROTTLE_MAXSPEED_SPORTS                   REG_MAXP_RPM
+#define CEILINGSPEED_AMBLE                                   270 // 261 RPM = 10 km/hr
+#define CEILINGSPEED_LEISURE                                 422 // 422 RPM = 16.2 km/hr
+#define CEILINGSPEED_SPORTS                                  REG_CEILING_RPM
 
 #endif // REGION6
 

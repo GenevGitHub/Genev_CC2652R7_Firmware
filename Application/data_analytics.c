@@ -31,6 +31,7 @@
 */
 #include "Application/data_analytics.h"
 
+#include "Hardware/gGo_debug_config.h"
 #include "Application/general_purpose_timer.h"
 #include "Application/snv_internal.h"
 #include "Application/brake_and_throttle.h"
@@ -627,6 +628,7 @@ static uint8_t computeMotorTemperature()
         }
         avgMotorTempOffset50_C = round((sumMotorTempOffset50_C) / DATA_ANALYSIS_POINTS);
 
+#ifdef MOTOR_TEMP_SENSOR
         if (avgMotorTempOffset50_C > CRIT_MOTORTEMPOFFSET50C) {
             // Action: Restrict speed mode to AMBLE mode or restrict IQ to 0 until temperature drop below the safe threshold
             led_display_ErrorPriority(MOTOR_TEMP_ERROR_PRIORITY);
@@ -636,6 +638,7 @@ static uint8_t computeMotorTemperature()
                 ADArray.controllerErrorCode = MOTOR_TEMP_ERROR_CODE; // error code algorithm to be defined
             }
         }
+#endif //MOTOR_TEMP_SENSOR
     }
 
     return (avgMotorTempOffset50_C); // output in degree celcius
@@ -793,23 +796,18 @@ static uint8_t computeBatteryPercentage()
 ******************************************************************************************************/
 static uint8_t determineBatteryStatus()
 {
-//    if (avgBatteryPercent > SOC_LEVEL45) {
     if (avgSoC > SOC_LEVEL45) {
         batteryStatus = GLOWING_AQUA;
     }
-//    else if (avgBatteryPercent <= SOC_LEVEL45 && avgBatteryPercent > SOC_LEVEL34) {
     else if (avgSoC <= SOC_LEVEL45 && avgSoC > SOC_LEVEL34) {
         batteryStatus = GLOWING_GREEN;
     }
-//    else if (avgBatteryPercent <= SOC_LEVEL34 && avgBatteryPercent > SOC_LEVEL23) {
     else if (avgSoC <= SOC_LEVEL34 && avgSoC > SOC_LEVEL23) {
         batteryStatus = YELLOW;
     }
-//    else if (avgBatteryPercent <= SOC_LEVEL23 && avgBatteryPercent > SOC_LEVEL12) {
     else if (avgSoC <= SOC_LEVEL23 && avgSoC > SOC_LEVEL12) {
         batteryStatus = ORANGE;
     }
-//    else if (avgBatteryPercent <= SOC_LEVEL12 && avgBatteryPercent > SOC_LEVEL01) {
     else if (avgSoC <= SOC_LEVEL12 && avgSoC > SOC_LEVEL01) {
         batteryStatus = RED;
     }

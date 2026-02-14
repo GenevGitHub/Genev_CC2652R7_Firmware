@@ -49,7 +49,7 @@ MCUD_t MCUDArray = {BATTERY_MAX_VOLTAGE,
 // initial declared  values for:
 // {allowable_rpm, speed_mode_IQmax, IQ_value, ramp_rate,
 //  brake_percent, error_msg, brake_status, light_status, speed_mode}
-STM32MCPD_t STM32MCDArray = {BRAKE_AND_THROTTLE_MAXSPEED_AMBLE,
+STM32MCPD_t STM32MCDArray = {CEILINGSPEED_AMBLE,
                              14000,
                              0,
                              BRAKE_AND_THROTTLE_RAMPRATE_AMBLE,
