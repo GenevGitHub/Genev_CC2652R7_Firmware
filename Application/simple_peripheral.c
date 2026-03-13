@@ -700,7 +700,7 @@ static uint8_t     sp_i2cOpenStatus;
 static bStatus_t    check_enableStatus;
 static uint8_t      *ptr_sp_dashboardErrorCodePriority;
 
-static uint8_t      speedmode_lock_status = 0;  //Chee added 20250110
+static uint8_t      speedmode_lock_status = 0;
 
 uint8_t how_boot = 0xFF;
 
@@ -719,7 +719,7 @@ static void SimplePeripheral_taskFxn(UArg a0, UArg a1)
 
       data_analytics_setSNVBufferRegister(&snv_internal_80);        // pass the pointer to snv_internal_80 to data_analytics
 
-      mpb_speedmodeLockStatusRegister(&speedmode_lock_status);     // pass the pointer to speedmode_lock_status to MPB   //Chee added 20250110
+      mpb_speedmodeLockStatusRegister(&speedmode_lock_status);     // pass the pointer to speedmode_lock_status to MPB
 
       ptr_sp_POWER_ON = mpb_powerOnRegister();                      // call mpb_powerOnRegister and get the pointer to power_On in return
 
@@ -1456,12 +1456,12 @@ static void SimplePeripheral_dashboardCB(uint8_t paramID)
         // the dashboard is instructed here to toggle between lock and unlock of the speed mode
     case DASHBOARD_SPEED_MODE:
         {
-            if (!speedmode_lock_status){  //Chee added 20250110
-                speedmode_lock_status = 1;  //Chee added 20250110
-            }  //Chee added 20250110
-            else{  //Chee added 20250110
-                speedmode_lock_status = 0;  //Chee added 20250110
-            }  //Chee added 20250110
+            if (!speedmode_lock_status){
+                speedmode_lock_status = 1;
+            }
+            else{
+                speedmode_lock_status = 0;
+            }
             bat_dashboard_speedmode_service();
             break;
         }

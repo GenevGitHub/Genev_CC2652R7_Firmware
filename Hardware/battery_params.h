@@ -20,13 +20,13 @@ extern "C"
 /*********************************************************************************************
  *  Battery Options
  *********************************************************************************************/
-#define BATTERY_40700mV_S11P2           1
+#define BATTERY_40700mV_S11P2           4
 // Battery Options
-// 1: BATTERY_48100mV_S13P2
-// 2: BATTERY_44400mV_S12P2
-// 3: BATTERY_40700mV_S11P3
-// 4: BATTERY_40700mV_S11P2
-// 5: BATTERY_37000mV_S10P2
+// 1: BATTERY_48100mV_S13P2             1
+// 2: BATTERY_44400mV_S12P2             2
+// 3: BATTERY_40700mV_S11P3             3
+// 4: BATTERY_40700mV_S11P2             4
+// 5: BATTERY_37000mV_S10P2             5
 
 /*********************************************************************************************
  *  Battery Status Constants
@@ -103,12 +103,12 @@ extern "C"
 
 /*  Key SoC Levels  */
 #define SOC_LEVEL45                     85              //86 4-5 bars
-#define SOC_LEVEL_KVOLT_HIGH                80          // Kvolt high
+#define SOC_LEVEL_KVOLT_HIGH            80              // Kvolt high
 #define SOC_LEVEL34                     70              //72 3-4 bars
 #define SOC_LEVEL23                     55              //56 2-3 bars
 #define SOC_LEVEL12                     38              //40 1-2 bars
 #define SOC_LEVEL01                     17              //24 1 bar flashing = Battery critically low level
-#define SOC_LEVEL_KVOLT_LOW                  6          //8 Kvolt low
+#define SOC_LEVEL_KVOLT_LOW             6               //8 Kvolt low
 
 #ifdef _cplusplus
 }

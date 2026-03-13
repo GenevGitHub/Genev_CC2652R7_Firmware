@@ -51,8 +51,8 @@ static mpb_timerManager_t  *mpb_timerManager; //singleButton_timerManager
 uint8_t      mpb_buzzerStatus = 0;
 static uint8_t      *ptr_dashunit;
 static uint8_t      *ptr_dashboardErrorCodePriority;
-static uint8_t      *ptr_speedmodeLockStatus;  //Chee added 20250110
-static uint8_t      *ptr_mpb_speedmodeIsLocked;  //Chee added 20250110
+static uint8_t      *ptr_speedmodeLockStatus;
+static uint8_t      *ptr_mpb_speedmodeIsLocked;
 
 static void mpb_execute_event(uint8_t messageID);
 static void mpb_taskFxn(UArg a0, UArg a1);
@@ -72,10 +72,10 @@ extern void* mpb_powerOnRegister(void)
     return (&POWER_ON);
 }
 
-extern void mpb_speedmodeLockStatusRegister(uint8_t *ptrSpeedmodeLockStatus)  //Chee added 20250110
-{  //Chee added 20250110
-    ptr_speedmodeLockStatus = ptrSpeedmodeLockStatus;  //Chee added 20250110
-}  //Chee added 20250110
+extern void mpb_speedmodeLockStatusRegister(uint8_t *ptrSpeedmodeLockStatus)
+{
+    ptr_speedmodeLockStatus = ptrSpeedmodeLockStatus;
+}
 
 /*********************************************************************
  * @fn      mpb_registeropcode
@@ -157,7 +157,7 @@ void mpb_init()
     pot_powerOnRegister(&POWER_ON);
     da_powerOnRegister(&POWER_ON);
     bat_powerOnRegister(&POWER_ON);
-    ptr_mpb_speedmodeIsLocked = led_display_speedmodeIsLockRegister();  //Chee added 20250110
+    ptr_mpb_speedmodeIsLocked = led_display_speedmodeIsLockRegister();
     buzzer_buzzerStatusRegister(&mpb_buzzerStatus);
     ptr_dashunit = data_analytics_ptrUnitSelectDash();
     ptr_dashboardErrorCodePriority = bat_dashboardErrorCodePriorityRegister();
@@ -359,7 +359,7 @@ void mpb_execute_event(uint8_t messageID)
                     mpb_GAPflag = 1;    // flag to advertise
                 }
             }
-            /***** Terminates BLE when user opted to turn off BLE from MPB  -  Added 2024/12/02  *****/
+            /***** Terminates BLE when user opted to turn off BLE from MPB   *****/
             else if((*ptr_GAPopcode == GAP_LINK_ESTABLISHED_EVENT) || ( *ptr_GAPopcode == GAP_LINK_PARAM_UPDATE_EVENT))
             {
                 mpb_GAPflag = 2;    // flag to terminate
@@ -373,14 +373,14 @@ void mpb_execute_event(uint8_t messageID)
     case MPB_DOUBLE_SHORT_PRESS_MSG:      // case = 0x04 - toggle speed modes
         {
             // if not locked
-            if (!(*ptr_speedmodeLockStatus)){  //Chee added 20250110
+            if (!(*ptr_speedmodeLockStatus)){
                 /**** toggle speed mode ****/
                 brake_and_throttle_toggleSpeedMode();
-            }  //Chee added 20250110
+            }
             // if locked -> led_display "LC" for 0.5 seconds
-            else {  //Chee added 20250110
-                *ptr_mpb_speedmodeIsLocked = 1; // led display "LC" for 0.5 seconds  //Chee added 20250110
-            }  //Chee added 20250110
+            else {
+                *ptr_mpb_speedmodeIsLocked = 1; // led display "LC" for 0.5 seconds
+            }
             break;
         }
     case MPB_TREBLE_SHORT_PRESS_MSG:      // case = 0x05 - toggle units
@@ -418,12 +418,12 @@ void mpb_execute_event(uint8_t messageID)
         }
     case MPB_DOUBLE_SHORT_LONG_PRESS_MSG:   // lock and unlock speed mode
         {
-            if (!(*ptr_speedmodeLockStatus)) {  //Chee added 20250110
-                (*ptr_speedmodeLockStatus) = 1;  //Chee added 20250110
-            }  //Chee added 20250110
-            else{  //Chee added 20250110
-                (*ptr_speedmodeLockStatus) = 0;  //Chee added 20250110
-            }  //Chee added 20250110
+            if (!(*ptr_speedmodeLockStatus)) {
+                (*ptr_speedmodeLockStatus) = 1;
+            }
+            else{
+                (*ptr_speedmodeLockStatus) = 0;
+            }
         }
     default:
         {    // case 0x00 for all unrecognized cases

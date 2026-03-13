@@ -23,7 +23,7 @@
 #include "Application/motor_control.h"
 #include "Application/data_analytics.h"
 #include "Hardware/STM32MCP.h"
-#include "UDHAL/UDHAL.h"// added 20241110
+#include "UDHAL/UDHAL.h"
 
 /*********************************************************************
 * CONSTANTS
@@ -34,7 +34,7 @@
 * LOCAL VARIABLES
 */
 MCUD_t *ptr_pc_MCUDArray;
-static sysFatalError_t *ptr_systemFatalError;       // added 20241110
+static sysFatalError_t *ptr_systemFatalError;
 
 /*********************************************************************
 * FUNCTIONS
@@ -46,7 +46,7 @@ extern void periodic_communication_MCUArrayRegister(MCUD_t *ptrMCUDArray)
     ptr_pc_MCUDArray = ptrMCUDArray;
 }
 /**** get the pointer/register to sysFatalError   ****/
-extern void periodic_communication_init( void ) // added 20241110
+extern void periodic_communication_init( void )
 {
     ptr_systemFatalError = UDHAL_sysFatalErrorRegister();
 }
@@ -106,7 +106,7 @@ void periodic_communication_MCUSampling()
 #endif // MOTOR_CONNECT
 
 #ifdef MOTOR_CONNECT
-    if (!(ptr_systemFatalError->UARTfailure))    // added if statement 20241110
+    if (!(ptr_systemFatalError->UARTfailure))
     {
         /* behaviour ID STM32MCP_BUS_VOLTAGE_REG_ID = get DC-bus voltage */
         /*Checks DC Bus Voltage in mV*/
@@ -162,7 +162,7 @@ void periodic_communication_MCUSamplingRPM()
 
 #ifdef MOTOR_CONNECT
     // execute motor_control_brakeStatusChg() and motor_control_setIQvalue() only UART is normal
-    if (!(ptr_systemFatalError->UARTfailure))        // added if statement 20241110
+    if (!(ptr_systemFatalError->UARTfailure))
     {
         STM32MCP_getRegisterFrame(STM32MCP_MOTOR_1_ID, STM32MCP_SPEED_MEASURED_REG_ID);         // is speed in RPM
     }

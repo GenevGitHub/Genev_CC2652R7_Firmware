@@ -47,7 +47,7 @@ extern void periodic_communication_MCUArrayRegister(MCUD_t *ptrMCUDArray);
 extern void periodic_communication_MCUSampling();
 extern void periodic_communication_MCUSamplingRPM();
 extern uint8_t periodic_communication_getxhf();
-extern void periodic_communication_init( void );        // added  20241110
+extern void periodic_communication_init( void );
 
 
 #ifdef _cplusplus

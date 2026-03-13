@@ -33,7 +33,7 @@ extern "C"
 //PID CONSTANTS FOR POSITIVE ERROR
 #define PID_FPO         0.15//0.13
 #define PID_TCI         1
-#define PID_TCD_S       2.5
+#define PID_TCD_S       2
 #define PID_TCD_L       2
 #define PID_TCD_A       1.5
 
@@ -42,12 +42,12 @@ extern "C"
 #define PID_TFI         1
 #define PID_TFD         1
 
-#define KP_EXP          1//0.75
+#define RPMMIN_FACTOR   0.5    // must be greater than 0.3
 
 // Increment factor enables the IQ increment size of each mode to be individually tuned
-#define IQ_INCREMENT_FACTOR_AMBLE                                 0.78//0.75 //
-#define IQ_INCREMENT_FACTOR_LEISURE                               0.85//0.83   //
-#define IQ_INCREMENT_FACTOR_SPORTS                                0.95//0.95   //
+#define IQ_INCREMENT_FACTOR_AMBLE                                 0.80//0.80 //
+#define IQ_INCREMENT_FACTOR_LEISURE                               0.90//0.88   //
+#define IQ_INCREMENT_FACTOR_SPORTS                                1.00//0.95   //
 
 /*********************************************************************
  * MACROS
@@ -82,6 +82,8 @@ typedef struct pid_params{
  * Task creation function.
  */
 extern void PID_control_init();
+extern void pid_control_batParamsRegister(bat_params_t *ptrBatParams);
+extern uint16_t PID_speedControl();
 
 /*********************************************************************
 *********************************************************************/

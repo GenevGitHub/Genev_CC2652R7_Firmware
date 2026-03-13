@@ -147,9 +147,9 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
            * N = 1 executes codes at the fundamental time interval unit for general purpose timer - GPT_TIME
            * N = 1 is Use for reading motor rpm, brake and throttle, controlling MCU and Motor */
           /************** Read rpm every GPT_TIME *************************/
-          if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
+          if (!(ptr_sysFatalError->UARTfailure))
           {
-              /*Measures the Motor's speed --> calculates the average RPM*/
+              /*Get Motor speed from MCU --> calculates the average RPM*/
               periodic_communication_MCUSamplingRPM();
           }
 
@@ -161,7 +161,7 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   brakeStatusNew = brake_and_throttle_ADC_conversion(gpt_counter);      // uses ADC
 
                   // execute motor_control_setIQvalue() only UART is normal
-                  if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
+                  if (!(ptr_sysFatalError->UARTfailure))
                   {
                       /***  execute Motor control command due to IQ value  ***/
                           motor_control_setIQvalue();       // uses UART
@@ -244,14 +244,14 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
                   led_display_changeBatteryStatus(gpt_counter2);
               }
 
-              if (!(ptr_sysFatalError->UARTfailure))     // added if statement 20241110
+              if (!(ptr_sysFatalError->UARTfailure))
               {
                   /***  execute Motor control command due to brake status change  ***/
-                  if (brakeStatusOld != brakeStatusNew)     // Added by Chee 20250213
+                  if (brakeStatusOld != brakeStatusNew)
                   {
                       motor_control_taillightStatusChg();         // called only when tail light status has changed, otherwise, it will not reach here
                       brakeStatusOld = brakeStatusNew;
-                  }      // Added by Chee 20250213
+                  }
               }
               buzzer_ErrorHandler();
           }
@@ -267,12 +267,12 @@ static void GeneralPurposeTimer_taskFxn(UArg a0, UArg a1)
           {
               gpt_counter3++;
               /** MCU fault check **/
-              if (!(ptr_sysFatalError->UARTfailure))    // Added by Chee 20250213
+              if (!(ptr_sysFatalError->UARTfailure))
               {
                   /*Checks UART stability*/
-                  motor_control_uartFaultCheck();   // Moved here by Chee 20250213
+                  motor_control_uartFaultCheck();
                   /*Checks motor controller faults*/
-                  STM32MCP_controlEscooterBehavior(ESCOOTER_ERROR_REPORT);   // Moved here by Chee 20250213
+                  STM32MCP_controlEscooterBehavior(ESCOOTER_ERROR_REPORT);
               }
           }
 

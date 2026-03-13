@@ -878,7 +878,7 @@ bStatus_t Dashboard_WriteAttrCB(uint16_t connHandle,
           paramID = DASHBOARD_LIGHT_MODE;
       }
   }
-  /* Toggle lock and unlock of speed mode */  //Chee added 20250110
+  /* Toggle lock and unlock of speed mode */
   else if(! memcmp(pAttr->type.uuid, Dashboard_Speed_ModeUUID, pAttr->type.len))
   {
       if ( offset + len > DASHBOARD_SPEED_MODE_LEN )
