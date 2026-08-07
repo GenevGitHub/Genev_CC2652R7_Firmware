@@ -43,7 +43,7 @@ extern "C"
 #define ADC_CORRECTION_FACTOR   1.03    //  ADC_CORRECTION_FACTOR corrects ADC value due to VCC difference between LaunchPad and MOTOR CONNECT
 #endif // MOTOR_CONNECT
 
-//#define MOTOR_TEMP_SENSOR       1
+//#define MOTOR_TEMP_SENSOR       1     // activates motor temperature sensor
 
 #ifdef _cplusplus
 }

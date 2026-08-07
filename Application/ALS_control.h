@@ -23,7 +23,7 @@ extern "C"
 /** #define the ambient light sensor chip that is in use **/
 // defined in gGo_device_params.h
 
-#define ALS_NUMSAMPLES      5    // The number of samples used for light intensity evaluation --> must be 8
+#define ALS_NUMSAMPLES      5
 
 
 /* ********************************************************************

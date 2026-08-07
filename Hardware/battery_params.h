@@ -47,8 +47,9 @@ extern "C"
 #define BATTERY_NOMINAL_VOLTAGE         48100
 #define BATTERY_WMAX_CAPACITY           432900        // mW-hr
 #define BATTERY_IMAX_CAPACITY           9000          // mA-hr
-#define DISCHARGE_RATE                  -1.2085
-#define VOLTAGE_DROP_RATE               -2647.2
+#define DISCHARGE_CURVE_GRADIENT                  -1.2085
+#define VOLTAGE_DROP_RATE               1981.6
+#define VOLTAGE_DROP_0                  245.29
 #endif // BATTERY_S13P2
 
 /* Battery specification parameters     44.4V */
@@ -59,8 +60,9 @@ extern "C"
 #define BATTERY_NOMINAL_VOLTAGE         44400
 #define BATTERY_WMAX_CAPACITY           399600          // mW-hr
 #define BATTERY_IMAX_CAPACITY           9000          // mA-hr
-#define DISCHARGE_RATE                  -1.1156
-#define VOLTAGE_DROP_RATE               -2443.5
+#define DISCHARGE_CURVE_GRADIENT        -1.1156
+#define VOLTAGE_DROP_RATE               1981.6
+#define VOLTAGE_DROP_0                  245.29
 #endif // BATTERY_S12P2
 
 
@@ -72,8 +74,9 @@ extern "C"
 #define BATTERY_NOMINAL_VOLTAGE         40700           // 11 x 3.7V
 #define BATTERY_WMAX_CAPACITY           549450          // mW-hr
 #define BATTERY_IMAX_CAPACITY           13500          // mA-hr
-#define DISCHARGE_RATE                  -0.6817
-#define VOLTAGE_DROP_RATE               -2239.9
+#define DISCHARGE_CURVE_GRADIENT        -0.6817
+#define VOLTAGE_DROP_RATE               1981.6
+#define VOLTAGE_DROP_0                  245.29
 #endif // BATTERY_S11P3
 
 
@@ -85,8 +88,9 @@ extern "C"
 #define BATTERY_NOMINAL_VOLTAGE         40700           // 11 x 3.7V
 #define BATTERY_WMAX_CAPACITY           366300          // mW-hr - Manufacturer data
 #define BATTERY_IMAX_CAPACITY           9000            // mA-hr - Manufacturer data
-#define DISCHARGE_RATE                  -1.0226         // Based on Genev Test Data - gradient of mV vs mAh curve
-#define VOLTAGE_DROP_RATE               -2239.9         // Based on Genev Test Data - Linear Function Gradient
+#define DISCHARGE_CURVE_GRADIENT        -1.0226         // Based on Genev Test Data - gradient of mV vs mAh curve
+#define VOLTAGE_DROP_RATE               1981.6         // Based on Genev Test Data - Linear Function Gradient
+#define VOLTAGE_DROP_0                  245.29
 #endif // BATTERY_S11P2
 
 /* Battery specification parameters     37.0V */
@@ -97,18 +101,19 @@ extern "C"
 #define BATTERY_NOMINAL_VOLTAGE         37000           // 10 x 3.7V
 #define BATTERY_WMAX_CAPACITY           333000          // mW-hr
 #define BATTERY_IMAX_CAPACITY           9000          // mA-hr
-#define DISCHARGE_RATE                  -0.9296
-#define VOLTAGE_DROP_RATE               -2036.3
+#define DISCHARGE_CURVE_GRADIENT        -0.9297
+#define VOLTAGE_DROP_RATE               1981.6
+#define VOLTAGE_DROP_0                  245.29
 #endif // BATTERY_S10P2
 
 /*  Key SoC Levels  */
-#define SOC_LEVEL45                     85              //86 4-5 bars
+#define SOC_LEVEL45                     86              // 4-5 bars
 #define SOC_LEVEL_KVOLT_HIGH            80              // Kvolt high
-#define SOC_LEVEL34                     70              //72 3-4 bars
-#define SOC_LEVEL23                     55              //56 2-3 bars
-#define SOC_LEVEL12                     38              //40 1-2 bars
-#define SOC_LEVEL01                     17              //24 1 bar flashing = Battery critically low level
-#define SOC_LEVEL_KVOLT_LOW             6               //8 Kvolt low
+#define SOC_LEVEL34                     72              // 3-4 bars
+#define SOC_LEVEL23                     57              // 2-3 bars
+#define SOC_LEVEL12                     41              // 1-2 bars
+#define SOC_LEVEL01                     24              // 1 bar flashing = Battery critically low level
+#define SOC_LEVEL_KVOLT_LOW             15               //
 
 #ifdef _cplusplus
 }

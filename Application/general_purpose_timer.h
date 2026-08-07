@@ -37,17 +37,17 @@ extern "C"
  *  Constants
  *********************************************************************************************/
 // Task configuration
-#define GPT_TASK_PRIORITY           4
+#define GPT_TASK_PRIORITY           4       // Do not change priority
 #ifndef GPT_TASK_STACK_SIZE
 #define GPT_TASK_STACK_SIZE         1024    // Stack size must be multiples of 8
 #endif
 
 /** GPT_TIME is the smallest time interval unit in General Purpose Timer **/
-#define GPT_TIME                    25      // in milli-seconds
+#define GPT_TIME                    25//25      // in milli-seconds
 #define GPT_INACTIVE                0
 #define GPT_ACTIVE                  1
 #define EXECUTION_INTERVAL_2        150     // in milli-seconds
-#define EXECUTION_INTERVAL_3        500     // in milli-seconds
+#define EXECUTION_INTERVAL_3        600     // in milli-seconds
 /*********************************************************************
  * FUNCTIONS
  *********************************************************************/

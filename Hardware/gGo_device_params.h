@@ -31,7 +31,7 @@ extern "C"
 
 /*********************************************************************
  * CONSTANTS
- */
+ *********************************************************************/
 // Device Information
 #define DEVICE_MODEL_NUMBER               "Genev gGo ES01O"
 #define DEVICE_SERIAL_NUMBER              "MSN T00001"     // MSN is unique for each production eScooter. Input the MSN here before uploading firmware.
@@ -49,18 +49,24 @@ extern "C"
 //#define  REGION5                            5         //
 //#define  REGION6                            6         //
 
-// Speed limit protection selection
-// * Direct Law -> speed limit protection is deactivated
-// * Normal law -> speed limit protection is activated
+/*********************************************************************************************
+ * Speed limit protection selection
+ *      Direct Law -> speed limit protection is deactivated
+ *      Normal law -> speed limit protection is activated
+ *********************************************************************************************/
 #define BRAKE_AND_THROTTLE_NORMALLAW        1
 #define BRAKE_AND_THROTTLE_DIRECTLAW        0
+
+/*********************************************************************************************
+ * Define to activate or Un-define to deactivate Power limit Algorithm
+ **********************************************************************************************/
+#define POWER_LIMITER_ON                    1
 
 ///*********************************************************************************************
 // *  Ambient Light Sensor Chip Options
 // *********************************************************************************************/
 //#define veml6030                            1
 #define veml3235                            1
-
 //#define AUXILIARY_LIGHT                     1
 
 /******   CONSTANTS   *******/
@@ -73,8 +79,8 @@ extern "C"
 #define COEFF01                             0.2156          // kg/km
 #define COEFF02                             0.000386        // kg/W-hr
 #define BCF                                 0.80             // Battery Capacity Factor - e.g. 70% - 80%
-#define CRIT_HEATSINKTEMPOFFSET50C          160             // Critical Heatsink Temperature + 50 degrees C
-#define CRIT_MOTORTEMPOFFSET50C             180             // Critical Motor Temperature + 50 degrees C
+#define CRIT_HEATSINKTEMPOFFSET50C          150             // Critical Heatsink Temperature + 50 degrees C
+#define CRIT_MOTORTEMPOFFSET50C             170             // Critical Motor Temperature + 50 degrees C
 /*********************************************************************************************
  *  Unit Conversion
  *********************************************************************************************/
@@ -88,12 +94,13 @@ extern "C"
  *     Motor Characteristics - BLDC 36-48V 15Amax 8-icnh hub motor
  *     with decoupling caps and NTC thermal sensor
  *************************************************************************/
-#define KT_CONSTANT                         0.5895
-#define KIQ_CONSTANT                        0.0008889
-#define MOTOR_RESISTANCE                    0.6343
-#define FRICTION_TORQUE                     0.1919
-#define DAMPING_CONSTANT                    0.003443
-
+#define KT_CONSTANT                         0.3400  // Line-to-Line (Nm per Amp)
+#define KIQ_CONSTANT                        0.00089 // I (Amp) per Iq (milli-Amp)
+#define MOTOR_RESISTANCE                    0.4050  // Line-to-Line (Ohm)
+#define FRICTION_TORQUE                     0.1916  // Nm
+#define DAMPING_CONSTANT                    0.00343 // Nm/(rad/s)
+#define MOTOR_INDUCTANCE                    680     // Line-to-Line (micro H)
+#define P_CALIBRAION_FACTOR                 1     // Calibration Factor
 /*********************************************************************************************
  *  Battery Status Colours
  *********************************************************************************************/
@@ -146,7 +153,7 @@ extern "C"
 
 // Warnings
 #define BATTERY_CRITICALLY_LOW_PRIORITY     0x20    // 32:Battery level critically low warning
-
+#define CONTROLLER_TEMP_HIGH_THRESHOLD      124     // Degrees plus 50 (temp = 125 - 50 = 75 degrees C)
 /*********************************************************************************************/
 /**  LED Display and MOBILE APP Error Codes  **/
 /*********************************************************************************************/
@@ -172,22 +179,22 @@ extern "C"
  *  Regional / Regulation Settings
  *********************************************************************************************/
 #ifdef REGION0  // Test, USA, Canada
-#define REG_MAXPOUT                         330 //Watt
+#define REG_MAXPOUT                         300 //Watt
 #define REG_CEILING_RPM                     655 // 25 Km/hr
 #define REG_MINP_RPM                        0
 //Speed mode maximum "powered" speed in RPM
-#define CEILINGSPEED_AMBLE                  278 //
-#define CEILINGSPEED_LEISURE                472 //
+#define CEILINGSPEED_AMBLE                  300 //
+#define CEILINGSPEED_LEISURE                470 //
 #define CEILINGSPEED_SPORTS                 REG_CEILING_RPM
 #endif // REGION0
 
 #ifdef REGION1  // Hong Kong, Singapore
-#define REG_MAXPOUT                         300 //Watt
+#define REG_MAXPOUT                         250 //Watt
 #define REG_CEILING_RPM                     630 // 24 km/h
 #define REG_MINP_RPM                        75
 //Speed mode maximum "powered" speed in RPM
-#define CEILINGSPEED_AMBLE                  278 // 10.5 Km/hr
-#define CEILINGSPEED_LEISURE                472 // 18 Km/hr
+#define CEILINGSPEED_AMBLE                  300 // 11.3 Km/hr
+#define CEILINGSPEED_LEISURE                470 // 17.7 Km/hr
 #define CEILINGSPEED_SPORTS                 REG_CEILING_RPM
 // We can set sports mode max speed to different value lower than the regulation maximum speed.
 // The set value shall be less than or equal to regulation max speed.
@@ -198,8 +205,8 @@ extern "C"
 #define REG_CEILING_RPM                     630 //  24 km/hr
 #define REG_MINP_RPM                        75
 //Speed mode maximum "powered" speed in RPM
-#define CEILINGSPEED_AMBLE                  278 //  10.5 Km/hr
-#define CEILINGSPEED_LEISURE                472 //  18 Km/hr
+#define CEILINGSPEED_AMBLE                  278 //  11.3 Km/hr
+#define CEILINGSPEED_LEISURE                470 //  17.7 Km/hr
 #define CEILINGSPEED_SPORTS                 REG_CEILING_RPM
 #endif // REGION2
 
@@ -208,8 +215,8 @@ extern "C"
 #define REG_CEILING_RPM                     655 // 25 km/hr
 #define REG_MINP_RPM                        75
 //Speed mode maximum "powered" speed in RPM
-#define CEILINGSPEED_AMBLE                  278 //  274 = 10.5 km/hr
-#define CEILINGSPEED_LEISURE                472 //  = 18 km/hr
+#define CEILINGSPEED_AMBLE                  300 //  274 = 10.5 km/hr
+#define CEILINGSPEED_LEISURE                470 //  = 18 km/hr
 #define CEILINGSPEED_SPORTS                 REG_CEILING_RPM
 #endif // REGION3
 
@@ -224,7 +231,7 @@ extern "C"
 #endif // REGION4
 
 #ifdef REGION5 //
-#define REG_MAXPOUT                         300 //Watt
+#define REG_MAXPOUT                         275 //Watt
 #define REG_CEILING_RPM                     530 // 20 km/hr
 #define REG_MINP_RPM                        75
 //Speed mode maximum "powered" speed in RPM
@@ -234,7 +241,7 @@ extern "C"
 #endif // REGION5
 
 #ifdef REGION6 //
-#define REG_MAXPOUT                         330 // Watt
+#define REG_MAXPOUT                         300 // Watt
 #define REG_CEILING_RPM                     530 // 20 km/hr
 #define REG_MINP_RPM                        75
 //Speed mode maximum "powered" speed in RPM

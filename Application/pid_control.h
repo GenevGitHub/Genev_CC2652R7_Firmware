@@ -31,23 +31,26 @@ extern "C"
  * CONSTANTS
  */
 //PID CONSTANTS FOR POSITIVE ERROR
-#define PID_FPO         0.15//0.13
-#define PID_TCI         1
-#define PID_TCD_S       2
-#define PID_TCD_L       2
-#define PID_TCD_A       1.5
+#define PID_FPO         0.16//0.1
+#define PID_TCI         5//5
+#define PID_TCD_S       4.3//4.3
+#define PID_TCD_L       4.5//4.5
+#define PID_TCD_A       4.4//4
 
 //PID CONSTANTS FOR NEGATIVE ERROR
-#define PID_FNE         0.01//0.01
+#define PID_FNE         0.025//0.01
 #define PID_TFI         1
-#define PID_TFD         1
+#define PID_TFD         2
 
 #define RPMMIN_FACTOR   0.5    // must be greater than 0.3
+#define CLAMPACC_S      -25
+#define CLAMPACC_L      -15
+#define CLAMPACC_A      -5
 
 // Increment factor enables the IQ increment size of each mode to be individually tuned
-#define IQ_INCREMENT_FACTOR_AMBLE                                 0.80//0.80 //
-#define IQ_INCREMENT_FACTOR_LEISURE                               0.90//0.88   //
-#define IQ_INCREMENT_FACTOR_SPORTS                                1.00//0.95   //
+#define IQ_INCREMENT_FACTOR_AMBLE                                 0.82//0.83
+#define IQ_INCREMENT_FACTOR_LEISURE                               0.90//0.9
+#define IQ_INCREMENT_FACTOR_SPORTS                                1.12//1.10
 
 /*********************************************************************
  * MACROS
@@ -58,6 +61,8 @@ extern "C"
  */
 // This set of data is for PID control algorithm
 typedef struct pid_params{
+    uint16_t rpm;               // rpm
+    uint16_t rpm0;              // previous rpm
     float kp;                   // proportional gain
     float ki;                   // integral gain
     float kd;                   // derivative gain
@@ -71,8 +76,6 @@ typedef struct pid_params{
     float pid_d;                // pid d action
     float pid_total;            // pid_total = pid_bias + pid_p + pid_i + pid_d
     float pid_total0;           // previous pid_total
-    uint16_t rpm;               // rpm
-    uint16_t rpm0;              // previous rpm
 }pid_params_t;
 
 /*********************************************************************

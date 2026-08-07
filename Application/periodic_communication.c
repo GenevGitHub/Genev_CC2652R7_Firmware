@@ -87,18 +87,18 @@ void periodic_communication_MCUSampling()
 
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy Battery Voltage
-    ptr_pc_MCUDArray->bat_voltage_mV = 4000 * sin(PI_CONSTANT * xtt * 0.003) + 39000;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
+    ptr_pc_MCUDArray->bat_voltage_mV = 45000;//4000 * sin(PI_CONSTANT * xtt * 0.003) + 39000;   // simulate over-voltage, voltage-normal and under-voltage.  unit in mV
 
     // ***** Simulation of dummy Battery Current
-    ptr_pc_MCUDArray->bat_current_mA = 3900 * sin(PI_CONSTANT * xtt * 0.005) + 4000; // 3000; // dummy data - get battery current from MCU:  unit in mA
+    ptr_pc_MCUDArray->bat_current_mA = 5000;//3900 * sin(PI_CONSTANT * xtt * 0.005) + 4000; // 3000; // dummy data - get battery current from MCU:  unit in mA
 
     // ***** Simulation of dummy Heatsink Temp + 50
-    ptr_pc_MCUDArray->heatSinkTempOffset50_Celcius = 70;//30 * sin(PI_CONSTANT * xtt * 0.0075) + 65; // +50  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
+    ptr_pc_MCUDArray->heatSinkTempOffset50_Celcius = 25 * sin(PI_CONSTANT * xtt * 0.005) + 125; // +50  dummy data - temperature is shifted by 50 degrees for taking care of - negative temperature
 
     // ***** Simulation of dummy Motor Temp + 50
     ptr_pc_MCUDArray->motorTempOffset50_Celcius = 70;//30 * sin(PI_CONSTANT * xtt * 0.0075) + 70;   // +50 dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
 
-    ptr_pc_MCUDArray->phase_voltage_mV = 31000;
+    ptr_pc_MCUDArray->phase_voltage_mV = 20000;
 
     ptr_pc_MCUDArray->phase_current_mA = 4500;  //1500 * sin(PI_CONSTANT * xtt * 0.0075) + 5000;  //  dummy data - temperature is shifted by 20 degrees for taking care of - negative temperature
 
@@ -142,9 +142,11 @@ void periodic_communication_MCUSamplingRPM()
 #ifndef MOTOR_CONNECT   // if NOT defined
     // ***** Simulation of dummy RPM
     uint16_t pc_rpm;   // but payload length is 0x05
-    int32_t rawRPM = 380;//200 * sin(PI_CONSTANT * 0.004 * xrpm ) + 300;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    int32_t rawRPM = 200 * sin(PI_CONSTANT * 0.002 * xrpm ) + 300;  // 264;  //dummy data - get RPM from MCU:  unit in rpm.  20 secs per cycle = 0.05 Hz;
+    if (rawRPM < 0) {
+        rawRPM = 0;
+    }
     uint8_t pc_rpmStatus;
-
     if(rawRPM >= 0)
     {
         pc_rpm = (uint16_t) (rawRPM & 0xFFFF);

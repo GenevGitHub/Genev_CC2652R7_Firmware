@@ -87,7 +87,7 @@ typedef struct appData{                                 // is appData needed her
         uint8_t     batteryPercentage;                      // length = 1 (0-100%). App display input - require device parameters
         uint8_t     batteryStatus;                          // length = 1 . Both LED display and App display input - require device parameters
         uint8_t     batteryTempOffset50_C;
-
+        uint8_t     controllerTempHighFlag;
 }AD_t;        // 4-4-4-4-4-4-2-2-2-2-2-2-1-1-1-1-1-1-1-1 decreasing byte size minimizes the amount of struct padding
 
 
